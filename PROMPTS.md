@@ -92,7 +92,7 @@ temPermissao consulta o banco, nunca uma constante no código.
 
 # FASE 1 — Cadastros
 
-## [ ] F1.1 — Contratantes, contratos e unidades
+## [x] F1.1 — Contratantes, contratos e unidades
 
 ```
 Implemente em /admin as telas de contratantes, contratos e unidades: listagem com

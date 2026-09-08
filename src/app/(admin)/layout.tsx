@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 
 import { CabecalhoArea } from "@/components/cabecalho-area";
-import { exigirTipo } from "@/lib/auth/sessao";
+import { NavAdmin, type ItemNav } from "@/components/nav-admin";
+import { exigirTipo, temPermissao } from "@/lib/auth/sessao";
 
 /**
  * Área da equipe interna da 3e.
@@ -23,9 +24,21 @@ import { exigirTipo } from "@/lib/auth/sessao";
 export default async function LayoutAdmin({ children }: { children: ReactNode }) {
   const usuario = await exigirTipo("interno");
 
+  // Link que a pessoa não pode abrir não é mostrado. Filtro de UI apenas:
+  // quem barra é o layout de cada módulo.
+  const itens: ItemNav[] = [{ href: "/admin", rotulo: "Início" }];
+  if (await temPermissao("contratos", "ver")) {
+    itens.push(
+      { href: "/admin/contratantes", rotulo: "Contratantes" },
+      { href: "/admin/contratos", rotulo: "Contratos" },
+      { href: "/admin/unidades", rotulo: "Unidades" },
+    );
+  }
+
   return (
     <div className="flex min-h-dvh flex-col">
       <CabecalhoArea nome={usuario.nome} />
+      <NavAdmin itens={itens} />
       {children}
     </div>
   );
