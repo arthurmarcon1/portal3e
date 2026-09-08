@@ -3,6 +3,14 @@
 A migração está em `supabase/migrations/0001_init.sql`. Este documento explica **por
 que** cada decisão foi tomada. Se você for mudar o schema, leia isto antes.
 
+> **Ambiente.** O projeto Supabase linkado hoje é **dev permanente**. Ele foi usado como
+> rascunho — migração aplicada e depois corrigida por cima, schema mexido com o banco no
+> ar — e hospeda o seed do qual a suíte de testes depende. **Nenhum dado real de
+> funcionário entra nele, em nenhuma fase.** Produção é um projeto novo, criado na F3,
+> com as migrações reaplicadas do zero em banco limpo; se a sequência não subir sozinha
+> lá, é sinal de que alguma correção só existe no histórico deste projeto e precisa
+> virar migração de verdade.
+
 ---
 
 ## Mapa das entidades

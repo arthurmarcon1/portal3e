@@ -143,6 +143,92 @@ describe("exigirPermissao — usuário sem perfil nenhum", () => {
   });
 });
 
+/**
+ * Resposta encadeável que imita o construtor de query do supabase-js.
+ * Serve para forçar o ramo de erro do banco, que não dá para provocar de
+ * verdade sem derrubar o Supabase.
+ */
+type Resposta = { data: unknown; error: unknown };
+type Encadeavel = {
+  select: () => Encadeavel;
+  eq: () => Encadeavel;
+  in: () => Encadeavel;
+  maybeSingle: () => Promise<Resposta>;
+  then: (
+    aoResolver: (valor: Resposta) => unknown,
+    aoRejeitar?: (erro: unknown) => unknown,
+  ) => Promise<unknown>;
+};
+
+function resposta(valor: Resposta): Encadeavel {
+  const encadeia: Encadeavel = {
+    select: () => encadeia,
+    eq: () => encadeia,
+    in: () => encadeia,
+    maybeSingle: async () => valor,
+    then: (aoResolver, aoRejeitar) => Promise.resolve(valor).then(aoResolver, aoRejeitar),
+  };
+  return encadeia;
+}
+
+describe("permissoesDoUsuario — fail-closed é intencional", () => {
+  it("usuário sem nenhum perfil não tem NENHUMA das 45 combinações", async () => {
+    const { permissoesDoUsuario, temPermissao, MODULOS, ACOES } = await guardasComo(
+      PERSONAS.funcionaria,
+    );
+
+    const permissoes = await permissoesDoUsuario();
+    expect(permissoes.size).toBe(0);
+
+    // Varre a matriz inteira em vez de amostrar: assim, uma refatoração que
+    // reabra o acesso em um único módulo não passa despercebida. A varredura
+    // é sobre o conjunto já lido — `cache()` do React só memoiza dentro do
+    // escopo de requisição do Next, então chamar `temPermissao` 45 vezes aqui
+    // seriam 45 idas ao banco.
+    const concedidas = MODULOS.flatMap((modulo) =>
+      ACOES.filter((acao) => permissoes.has(`${modulo}:${acao}`)).map(
+        (acao) => `${modulo}:${acao}`,
+      ),
+    );
+    expect(concedidas).toEqual([]);
+
+    // E o caminho completo, de ponta a ponta, em duas amostras.
+    expect(await temPermissao("pessoas", "ver")).toBe(false);
+    expect(await temPermissao("administracao", "ver")).toBe(false);
+  });
+
+  it("erro do banco ao ler os vínculos nega tudo, em vez de liberar", async () => {
+    estado.cliente = {
+      auth: {
+        getUser: async () => ({ data: { user: { id: "usuario-de-teste" } } }),
+      },
+      from: (tabela: string) =>
+        tabela === "usuarios"
+          ? resposta({
+              data: {
+                id: "usuario-de-teste",
+                org_id: "org-de-teste",
+                pessoa_id: null,
+                tipo: "interno",
+                nome: "Interno de teste",
+                email_login: "teste@3e.com.br",
+                precisa_trocar_senha: false,
+                status: "ativo",
+              },
+              error: null,
+            })
+          : resposta({ data: null, error: { message: "conexão perdida" } }),
+    };
+    vi.resetModules();
+    const { permissoesDoUsuario, exigirPermissao } = await import("./sessao");
+
+    expect((await permissoesDoUsuario()).size).toBe(0);
+    expect((await barrouCom(exigirPermissao("pessoas", "ver"))).name).toBe(
+      "ErroDePermissao",
+    );
+  });
+});
+
 describe("exigirPermissao — tipos externos em módulo interno", () => {
   it("barra a funcionária em administracao:ver", async () => {
     const { exigirPermissao } = await guardasComo(PERSONAS.funcionaria);

@@ -28,6 +28,21 @@ Leia `docs/01-blueprint-produto.md` antes de qualquer tarefa de produto e
 Sem Prisma, sem ORM extra: usar `@supabase/supabase-js` + `@supabase/ssr`, com tipos
 gerados por `supabase gen types typescript`.
 
+### O projeto Supabase atual é DEV permanente
+
+O projeto linkado hoje nasceu como rascunho: migrações foram aplicadas e ajustadas com
+o schema já no ar, e o seed de teste vive nele. Ele **continua sendo dev para sempre**.
+
+- **Nunca importe dado real de funcionário neste projeto.** Nem para "testar a
+  importação da F1.3", nem uma planilha reduzida. Sem quadro real, sem CPF real,
+  sem espelho real.
+- A suíte de testes depende do seed dele (as personas de `supabase/seed.sql`).
+  Apagar ou alterar o seed quebra `npm test`.
+- **Produção será um projeto Supabase novo, criado na F3**, com as migrações
+  reaplicadas do zero, na ordem, em banco limpo. É esse o teste de que a sequência de
+  migrações funciona sem o histórico de tentativas — e é por isso que migração aplicada
+  nunca é editada.
+
 ---
 
 ## Invariantes — nunca quebrar

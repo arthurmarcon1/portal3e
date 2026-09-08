@@ -105,8 +105,15 @@ export async function exigirTipo(tipo: TipoUsuario): Promise<UsuarioSessao> {
  * fazer é `insert`, não deploy.
  */
 export const permissoesDoUsuario = cache(async (): Promise<ReadonlySet<string>> => {
+  // Conjunto vazio = nenhuma permissão. Todo caminho de saída daqui que não
+  // seja a consulta bem-sucedida devolve vazio, de propósito: sem sessão, sem
+  // perfil ou com o banco reclamando, o usuário não passa em `temPermissao`.
+  // Isto é fail-closed deliberado, não efeito colateral — não troque nenhum
+  // destes retornos por um fallback "permissivo enquanto carrega".
+  const NENHUMA: ReadonlySet<string> = new Set<string>();
+
   const usuario = await getUsuario();
-  if (!usuario) return new Set<string>();
+  if (!usuario) return NENHUMA;
 
   const supabase = await criarClienteServidor();
 
@@ -115,7 +122,13 @@ export const permissoesDoUsuario = cache(async (): Promise<ReadonlySet<string>> 
     .select("perfil_id")
     .eq("usuario_id", usuario.id);
 
-  if (erroVinculos || !vinculos?.length) return new Set<string>();
+  if (erroVinculos) return NENHUMA;
+
+  // Usuário sem nenhum perfil não tem permissão nenhuma — e é um caso real,
+  // não borda: funcionário entra assim no seed. O acesso dele ao próprio dado
+  // vem da RLS por `pessoa_id`, nunca da matriz de `perfil_permissoes`.
+  // Sair aqui também evita mandar um `in ()` vazio ao PostgREST.
+  if (!vinculos.length) return NENHUMA;
 
   const { data: permissoes, error } = await supabase
     .from("perfil_permissoes")
@@ -125,7 +138,7 @@ export const permissoesDoUsuario = cache(async (): Promise<ReadonlySet<string>> 
       vinculos.map((v) => v.perfil_id),
     );
 
-  if (error || !permissoes) return new Set<string>();
+  if (error || !permissoes) return NENHUMA;
 
   return new Set(permissoes.map((p) => `${p.modulo}:${p.acao}`));
 });
