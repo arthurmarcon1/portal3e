@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
+
 import "./globals.css";
 
 // Uma família só (docs/04). Variável, para pesar pouco no celular do funcionário.
@@ -24,7 +27,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="pt-BR" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col text-base">{children}</body>
+      <body className="min-h-full flex flex-col text-base">
+        {children}
+        <Toaster position="top-center" />
+      </body>
     </html>
   );
 }

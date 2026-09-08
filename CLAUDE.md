@@ -50,6 +50,12 @@ gerados por `supabase gen types typescript`.
    apagado. Documento novo = versão nova = ciência nova; o histórico anterior fica.
 8. **Nada de soft delete inventado.** Use `status` explícito nas entidades que preveem
    ciclo de vida (`ativo`, `inativo`, `arquivado`), documentado no modelo de dados.
+9. **Autorização mora no que renderiza, nunca no proxy.**
+   Fronteira de área é o layout do grupo de rotas (tipo de usuário).
+   Fronteira de módulo é o layout do módulo (`exigirPermissao`).
+   Todo route handler valida sozinho — o proxy nunca é a única barreira, nem para rota
+   de API.
+   Server Action que não seja pré-sessão começa com `exigirUsuario()`.
 
 ---
 
@@ -76,6 +82,25 @@ gerados por `supabase gen types typescript`.
   ```
 - **Toda mutação passa por Server Action** com: validação Zod → checagem de permissão
   → operação → log de auditoria → `revalidatePath`.
+- **Onde cada guarda entra** (invariante 9, detalhado em `docs/03`):
+
+  | Camada | Arquivo | Chamada |
+  |---|---|---|
+  | Área | `src/app/(admin)/layout.tsx` e irmãos | `exigirTipo("interno")` |
+  | Módulo | `src/app/(admin)/pessoas/layout.tsx` | `exigirPermissao("pessoas", "ver")` |
+  | Server Action | `src/features/<modulo>/actions.ts` | `exigirUsuario()` e depois `exigirPermissao(...)` para a ação específica |
+  | Route handler | `src/app/api/**/route.ts` | valida sozinho, sempre |
+
+  A raiz de `/admin` fica em `exigirTipo` de propósito: ela é fronteira de **área**, e
+  não existe permissão única que sirva para os nove módulos. Exigir
+  `administracao:ver` ali trancaria RH/DP e Contratos fora do próprio painel — a matriz
+  de `docs/02` dá esse módulo só a Admin geral e Suporte/Auditoria.
+
+  **Módulo novo sob `/admin` nasce com o próprio `layout.tsx`** chamando
+  `exigirPermissao("<modulo>", "ver")`. Um layout cobre a subárvore inteira, então a
+  page de listagem, a de detalhe e as aninhadas ficam protegidas de uma vez — e a
+  ação mais forte (`criar`, `editar`, `excluir`, `exportar`) é checada de novo na
+  Server Action que a executa.
 - **Erro no formato `{ ok: false, erro: string }`.** Mensagem em português, voltada ao
   usuário, dizendo o que fazer. Nunca vazar erro cru do Postgres para a tela.
 
@@ -90,6 +115,9 @@ O Arthur é o líder do projeto. Você executa uma tarefa por vez.
   `docs/05-roadmap-prompts.md` e diga em 3 linhas o que vai fazer. Só então codifique.
 - **Depois de codar:** rode `npm run build`, `npm run lint` e os testes. Se quebrou,
   conserte antes de entregar. Relate o que foi feito e o que ficou pendente.
+  `npm test` precisa de `.env.local` preenchido: parte da suíte autentica as personas
+  do seed no Supabase de verdade, porque permissão é dado e testar contra dublê
+  provaria só o dublê. Teste que depende do banco falha alto — nunca é pulado.
 - **Migração de banco nunca é editada depois de aplicada.** Corrija com migração nova
   e numeração sequencial: `0007_ajusta_perfis.sql`.
 - **Se a tarefa exigir uma decisão de negócio que não está nos docs**, pare e pergunte.

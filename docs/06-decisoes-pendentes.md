@@ -22,6 +22,15 @@ custa mais caro.
       na unidade, contra assinatura de lista, junto com um cartão explicando o acesso.)
 - [ ] **Quem tem celular com internet** no quadro alvo. Se a fatia for baixa, isso muda
       o projeto: precisa de totem na unidade ou acesso pelo supervisor.
+- [ ] **Canal da recuperação de senha do funcionário.** docs/03 diz "código de uso único
+      no telefone ou e-mail cadastrado", mas o Portal só tem e-mail (Resend) — e o
+      e-mail sintético `<cpf>@func.<slug>.portal3e` não recebe nada.
+      **Estado atual da implementação:** o código vai para `pessoas.email_pessoal`.
+      Funcionário sem esse campo preenchido **não consegue se recuperar sozinho** — a
+      tela manda procurar o RH ou o supervisor, que gera senha provisória nova.
+      Decidir: (a) exigir e-mail pessoal no cadastro/importação da F1.3, (b) contratar
+      canal de SMS/WhatsApp, ou (c) assumir que recuperação de funcionário é sempre
+      presencial pelo supervisor. Enquanto não decidir, vale (c) na prática.
 
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
@@ -31,6 +40,12 @@ custa mais caro.
       ocorrência para a 3e tratar?
 - [ ] **Contratante vê espelho individual?** Ou apenas frequência consolidada? Isso muda
       a policy de `documentos` e é o ponto mais sensível da matriz.
+      **Estado atual da implementação: NÃO, por padrão.** O espelho ficou na categoria
+      `jornada` (migração 0004) e o ramo `contratante` de `app.categoria_permitida()`
+      libera apenas `geral`, `contratual` e `sst` — então a pergunta segue em aberto,
+      mas em aberto pelo lado seguro. Responder **SIM** exige migração nova incluindo
+      `jornada` naquela lista; é migração e não `insert` de propósito, porque mudar o
+      teto do contratante é decisão de produto, não configuração de cliente.
 - [ ] **Funcionário desligado:** mantém acesso por quanto tempo, e a quê? (Sugestão: 90
       dias, somente leitura dos próprios documentos.)
 - [ ] **Quem é o administrador geral** na 3e? Precisa ser mais de uma pessoa (nunca
@@ -42,6 +57,21 @@ custa mais caro.
       espelho de ponto, comunicado geral, norma interna. Holerite e ASO na Fase 4.
 - [ ] **Prazo padrão de ciência** em dias corridos ou úteis, e qual valor.
 - [ ] **Quais tipos exigem código de uso único.** Sugestão: folha, bancário e rescisão.
+      No seed, `exige_2fa = true` apenas em `holerite` e `termo_rescisao`.
+
+- [ ] **Confirmar a categoria de 3 tipos de documento.** O seed precisou de um valor e
+      eu escolhi pelo lado fechado, mas nenhum dos três está decidido em docs/02:
+      | Tipo | Categoria no seed | Consequência | Alternativa |
+      |---|---|---|---|
+      | `termo_rescisao` | `folha` | Admin, RH/DP e Financeiro veem; contratante não | `pessoal` tira o Financeiro |
+      | `contrato_trabalho` | `pessoal` | só Admin e RH/DP; contratante não vê salário | `contratual` abriria para o contratante |
+      | `norma_interna` | `geral` | aberta a todo perfil com `documentos:ver` | `sst`, se norma for sempre de segurança |
+      As duas primeiras importam: `contratual` e `geral` são visíveis ao contratante.
+      Se qualquer uma estiver errada, é um `update` em `documento_tipos`, sem migração.
+
+- [ ] **`exige_ciencia` por tipo.** O seed marcou `true` nos 7 tipos, por falta de
+      definição em docs/02. Se ASO ou contrato de trabalho não devem gerar pendência
+      de ciência, corrigir antes da Fase 3.
 - [ ] **Prazo de guarda por categoria** (em meses), com o jurídico:
       contratual __ · pessoal __ · médico __ · folha __ · SST __ · geral __
 - [ ] **O que fazer com quem não confirma** dentro do prazo. Cobra o supervisor?
@@ -73,6 +103,28 @@ custa mais caro.
 - [ ] **Encarregado de dados (DPO)** e política de privacidade publicada — exigência de
       LGPD quando houver cliente externo.
 - [ ] **Contrato de operador de dados** entre a prestadora e as contratantes.
+
+---
+
+## Decisões já tomadas (registro)
+
+- **2026-09-04 — Acesso por categoria de documento virou configurável.**
+  A migração inicial inferia acesso a dado sensível a partir de permissões de módulo,
+  usando `relatorios:exportar` como proxy de "é do Financeiro". Como os 6 perfis
+  internos têm essa permissão na matriz de `docs/02`, na prática **todos** enxergavam
+  `bancario` e `folha` — o oposto do documentado e uma quebra do invariante 4 do
+  CLAUDE.md. Corrigido pela migração 0003, que cria `perfil_categorias` e reescreve
+  `app.categoria_permitida()` para ler dessa tabela. Efeito prático: mudar quem vê
+  holerite passa a ser `insert`, não deploy. O teto do contratante continua em código
+  por ser invariante de produto.
+
+- **2026-09-04 — Categoria `jornada` criada para espelho de ponto** (migração 0004).
+  Espelho não é `folha`, não é `pessoal` e não é `geral`. Encaixá-lo em `folha` ou
+  `pessoal` teria tirado o acesso de Contratos/Coordenação, que é justamente o time que
+  publica espelho e trata contestação. Ver a nota na pergunta sobre o contratante acima.
+
+- **2026-09-04 — Prazo de guarda continua indefinido.** `documento_tipos.retencao_meses`
+  está `null` no seed de propósito, até o jurídico fechar os valores desta lista.
 
 ---
 

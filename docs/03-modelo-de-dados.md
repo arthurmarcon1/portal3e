@@ -93,6 +93,40 @@ Regras do primeiro acesso:
 O domínio `.portal3e` é interno e não resolve na internet — nenhum e-mail é enviado
 para ele. Confirmação de e-mail deve ficar desligada para esses usuários.
 
+**De onde sai o `<slug-da-org>` na tela de login.** Ali ainda não existe sessão, então
+não dá para descobrir a organização pelo banco. Enquanto o produto roda em um domínio
+por prestadora, a instalação declara o próprio slug na variável de ambiente `ORG_SLUG`
+(só server — nunca `NEXT_PUBLIC_`). Quando entrar a segunda organização no mesmo
+domínio (F6.3), `src/lib/auth/organizacao.ts` passa a resolver o slug pelo host da
+requisição e nada mais muda.
+
+### Barreiras de acesso
+
+Três camadas de autorização, da mais externa à decisiva. **O proxy não é uma delas.**
+
+1. **Fronteira de área — `layout.tsx` do grupo de rotas.** Chama `exigirTipo()`.
+   É o que separa funcionário, contratante e equipe interna. Sem esta linha, qualquer
+   sessão válida do Portal renderiza qualquer área.
+2. **Fronteira de módulo — `layout.tsx` do módulo.** Chama
+   `exigirPermissao(modulo, acao)`, que lê `usuario_perfis × perfil_permissoes` no
+   banco, nunca uma constante no código. Cobre toda a subárvore do módulo.
+   Server Action que não seja pré-sessão começa por `exigirUsuario()`, e route handler
+   valida por conta própria — nunca por herança de camada externa.
+3. **RLS.** A que vale. Um bug nas duas primeiras não pode virar vazamento.
+
+**Onde entra o `src/proxy.ts`.** No Next 16 o antigo `middleware.ts` virou `proxy.ts`,
+com o export `proxy`. Ele renova a sessão do Supabase, barra quem não tem sessão fora
+de `/login` e `/recuperar-senha`, prende em `/primeiro-acesso` quem tem
+`precisa_trocar_senha = true` e manda cada tipo para a própria área. O mapa de rotas
+fica em `src/lib/auth/rotas.ts`, módulo puro que o proxy e as telas compartilham.
+
+Isso é **conveniência de roteamento, não autorização**. A própria documentação do Next
+descreve Proxy como interceptação de requisição, que pode inclusive rodar na CDN, fora
+do runtime da aplicação — e já houve CVE de bypass de middleware no Next. O teste é
+simples: **apagar `proxy.ts` inteiro não abre buraco nenhum**, só piora a navegação.
+Apagar um `exigirTipo` abre. Se algum dia a única coisa entre um usuário e um dado for
+o proxy, isso é o bug, não a economia.
+
 ---
 
 ## Storage
