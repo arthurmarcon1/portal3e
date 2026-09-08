@@ -1,6 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
 import { chaveAnon, urlSupabase } from "./env";
+import type { Database } from "./types";
 
 /**
  * Cliente para Client Components.
@@ -10,5 +11,5 @@ import { chaveAnon, urlSupabase } from "./env";
  * Server Component com o cliente de `./server`.
  */
 export function criarClienteBrowser() {
-  return createBrowserClient(urlSupabase(), chaveAnon());
+  return createBrowserClient<Database>(urlSupabase(), chaveAnon());
 }

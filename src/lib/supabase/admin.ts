@@ -3,6 +3,7 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 import { chaveServiceRole, urlSupabase } from "./env";
+import type { Database } from "./types";
 
 /**
  * Cliente com `service_role` — ignora RLS por completo.
@@ -17,7 +18,7 @@ import { chaveServiceRole, urlSupabase } from "./env";
  * depois — aqui não existe rede de proteção do banco.
  */
 export function criarClienteAdmin() {
-  return createClient(urlSupabase(), chaveServiceRole(), {
+  return createClient<Database>(urlSupabase(), chaveServiceRole(), {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

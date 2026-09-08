@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 
 import { chaveAnon, urlSupabase } from "./env";
+import type { Database } from "./types";
 
 /**
  * Cliente para Server Components, Server Actions e route handlers.
@@ -14,7 +15,7 @@ import { chaveAnon, urlSupabase } from "./env";
 export async function criarClienteServidor() {
   const cookieStore = await cookies();
 
-  return createServerClient(urlSupabase(), chaveAnon(), {
+  return createServerClient<Database>(urlSupabase(), chaveAnon(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();

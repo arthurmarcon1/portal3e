@@ -21,18 +21,36 @@ Legenda: `V` ver · `C` criar · `E` editar · `X` excluir · `R` exportar/relat
 | relatorios | V R | V R | V R | V R | V R | V R |
 | administracao | V C E X R | — | — | — | — | V |
 
-Restrições adicionais por categoria de documento (aplicadas em cima da tabela acima):
+Restrições adicionais por categoria de documento (aplicadas em cima da tabela acima).
 
-| Categoria | Quem enxerga |
-|---|---|
-| `medico` (ASO, CID, atestado) | Admin geral, SST, RH/DP |
-| `bancario` | Admin geral, Financeiro |
-| `folha` (holerite, benefícios) | Admin geral, Financeiro, RH/DP |
-| `pessoal` (RG, CPF, comprovantes) | Admin geral, RH/DP |
-| `contratual`, `geral`, `sst` | Todos os perfis internos com `documentos:ver` |
+Esta tabela é carregada em **`perfil_categorias`** (migração 0003), no mesmo espírito
+de `perfil_permissoes`: categoria de documento é dado, não `case` em função. Cliente
+com organograma diferente é `insert`, não migração.
+
+| Categoria | Quem enxerga | Linha em `perfil_categorias` |
+|---|---|---|
+| `medico` (ASO, CID, atestado) | Admin geral, SST, RH/DP | sim |
+| `bancario` | Admin geral, Financeiro | sim |
+| `folha` (holerite, benefícios) | Admin geral, Financeiro, RH/DP | sim |
+| `pessoal` (RG, CPF, comprovantes) | Admin geral, RH/DP | sim |
+| `jornada` (espelho de ponto) | Admin geral, RH/DP, Contratos, Financeiro | sim |
+| `contratual`, `geral`, `sst` | Todos os perfis internos com `documentos:ver` | não — são abertas |
+
+`jornada` (migração 0004) existe porque espelho de ponto não cabe em nenhuma das
+outras: não é pagamento, não é documento pessoal e não é aberto. Fosse `folha` ou
+`pessoal`, Contratos/Coordenação — que publica espelho e trata contestação — ficaria
+sem acesso ao que mais usa. **SST não recebe `jornada`**: jornada não é assunto de
+saúde e segurança.
 
 O **próprio funcionário** sempre vê os documentos dele, inclusive das categorias
 restritas. Restrição é sobre terceiros, não sobre o titular do dado.
+
+**O teto do contratante não está nesta tabela e não é configurável.** Ele vive no ramo
+`contratante` de `app.categoria_permitida()`, que libera apenas `geral`, `contratual` e
+`sst`. Inserir linha em `perfil_categorias` para um perfil de contratante não tem
+efeito — o bloqueio prevalece. Isso é deliberado: é invariante de produto (CLAUDE.md,
+item 4), não configuração de cliente. Mudar esse teto exige migração e decisão de
+produto.
 
 ---
 
