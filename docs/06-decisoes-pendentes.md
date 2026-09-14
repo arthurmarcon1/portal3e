@@ -46,6 +46,20 @@ custa mais caro.
       mas em aberto pelo lado seguro. Responder **SIM** exige migração nova incluindo
       `jornada` naquela lista; é migração e não `insert` de propósito, porque mudar o
       teto do contratante é decisão de produto, não configuração de cliente.
+- [ ] **Interno com escopo enxerga pessoa sem alocação?** `pessoas_leitura` alcança o
+      interno por `app.pessoas_no_escopo()`, que é derivada de `alocacoes`. Uma pessoa
+      recém-cadastrada e ainda não alocada não pertence a escopo nenhum — logo,
+      **some da lista de quem tem escopo cadastrado**, que é o mesmo ovo e galinha que
+      a migração 0005 resolveu para `contratantes`.
+      **Hoje não aparece:** todo usuário interno do seed está em `escopo_total()`
+      (nenhum tem linha em `usuario_escopos`), então a F1.2 funciona. O problema nasce
+      na F2.1, quando passar a existir interno com escopo. Decidir: (a) interno com
+      `pessoas:ver` enxerga quem não tem nenhuma alocação na organização — uma migração
+      curta, análoga à 0005; (b) cadastro e alocação viram um passo só, e pessoa sem
+      alocação deixa de existir; ou (c) escopo de interno nunca restringe `pessoas`.
+      Não foi implementado nada: é regra de permissão, e regra de permissão não se
+      inventa (CLAUDE.md).
+
 - [ ] **Funcionário desligado:** mantém acesso por quanto tempo, e a quê? (Sugestão: 90
       dias, somente leitura dos próprios documentos.)
 - [ ] **Quem é o administrador geral** na 3e? Precisa ser mais de uma pessoa (nunca

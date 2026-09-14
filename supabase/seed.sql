@@ -56,7 +56,7 @@ end $$;
 -- Organização (tenant)
 -- ---------------------------------------------------------------------
 insert into organizacoes (id, nome, cnpj, slug) values
-  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', '3e Gestao de Pessoas', '09876543000199', '3e');
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', '3e Gestao de Pessoas', '09876543000141', '3e');
 
 -- ---------------------------------------------------------------------
 -- Perfis — 6 internos + 4 de contratante (docs/02)
@@ -306,7 +306,7 @@ insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, 
 -- ---------------------------------------------------------------------
 insert into contratantes (id, org_id, nome, cnpj) values
   ('4cef5154-d96d-5d3e-879e-fef2401f2cf5', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Hospital Sao Lucas', '11222333000181'),
-  ('73b46f69-8d4f-54e9-9dbe-87a03553c88a', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Rede Bom Preco', '44555666000172');
+  ('73b46f69-8d4f-54e9-9dbe-87a03553c88a', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Rede Bom Preco', '44555666000181');
 
 insert into unidades (id, org_id, contratante_id, nome, endereco, cidade, uf) values
   ('79baf83d-a8c3-5a89-90bf-6ae7d29a2302', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', 'Unidade Central', 'Av. Ipiranga, 1200', 'Porto Alegre', 'RS'),

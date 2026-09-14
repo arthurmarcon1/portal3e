@@ -27,6 +27,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
   // Link que a pessoa não pode abrir não é mostrado. Filtro de UI apenas:
   // quem barra é o layout de cada módulo.
   const itens: ItemNav[] = [{ href: "/admin", rotulo: "Início" }];
+  if (await temPermissao("pessoas", "ver")) {
+    itens.push({ href: "/admin/pessoas", rotulo: "Pessoas" });
+  }
   if (await temPermissao("contratos", "ver")) {
     itens.push(
       { href: "/admin/contratantes", rotulo: "Contratantes" },

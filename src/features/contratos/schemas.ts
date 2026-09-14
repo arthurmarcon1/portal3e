@@ -1,57 +1,44 @@
 import { z } from "zod";
 
+import {
+  data,
+  opcional,
+  primeiraMensagem,
+  statusGenerico,
+  texto,
+  uuid,
+} from "@/lib/campos-zod";
+import { apenasDigitos, validarCnpj } from "@/lib/cpf-cnpj";
+
 /**
  * Entrada das telas de estrutura comercial: contratante, contrato e unidade.
  *
  * O mesmo esquema valida no cliente (zodResolver) e na Server Action. Vale a
  * do servidor.
+ *
+ * Os campos genéricos — texto, opcional, data, uuid — moram em
+ * `@/lib/campos-zod` desde a F1.2, que precisa deles com as mesmas mensagens.
  */
 
-const texto = (rotulo: string, max = 160) =>
-  z
-    .string()
-    .trim()
-    .min(1, `Informe ${rotulo}.`)
-    .max(max, `${rotulo[0].toUpperCase()}${rotulo.slice(1)} pode ter no máximo ${max} caracteres.`);
-
-/** Campo livre que aceita vazio e chega ao banco como null, nunca "". */
-const opcional = (max = 160) =>
-  z
-    .string()
-    .trim()
-    .max(max, `Máximo de ${max} caracteres.`)
-    .transform((v) => (v === "" ? null : v))
-    .nullable()
-    .default(null);
-
-const uuid = z.uuid("Selecione uma opção válida.");
+// Reexportados porque as telas e as actions deste módulo já os importavam daqui.
+export { primeiraMensagem, statusGenerico };
+export { STATUS } from "@/lib/campos-zod";
 
 /**
- * CNPJ: 14 dígitos, guardado sem máscara.
+ * CNPJ: 14 dígitos com verificador conferido, guardado sem máscara.
  *
- * Só o formato é validado. O dígito verificador entra junto com o de CPF na
- * F1.2, num utilitário só, para não ter duas implementações da mesma conta.
+ * A conta mora em `@/lib/cpf-cnpj`, o mesmo utilitário que valida o CPF da
+ * F1.2 — era isso que esta linha esperava desde a F1.1.
  */
 const cnpj = z
   .string()
   .trim()
-  .transform((v) => v.replace(/\D/g, ""))
+  .transform(apenasDigitos)
   .refine((v) => v === "" || v.length === 14, "CNPJ precisa ter 14 dígitos.")
+  .refine((v) => v === "" || validarCnpj(v), "CNPJ inválido. Confira os dígitos.")
   .transform((v) => (v === "" ? null : v))
   .nullable()
   .default(null);
-
-/** Data ISO (yyyy-mm-dd) ou vazio. */
-const data = z
-  .string()
-  .trim()
-  .refine((v) => v === "" || /^\d{4}-\d{2}-\d{2}$/.test(v), "Data inválida.")
-  .transform((v) => (v === "" ? null : v))
-  .nullable()
-  .default(null);
-
-export const STATUS = ["ativo", "inativo", "arquivado"] as const;
-export const statusGenerico = z.enum(STATUS);
 
 // ---------------------------------------------------------------------
 // Contratante
@@ -125,8 +112,3 @@ export const esquemaMudancaDeStatus = z.object({
 export type EntradaContratante = z.input<typeof esquemaContratante>;
 export type EntradaContrato = z.input<typeof esquemaContrato>;
 export type EntradaUnidade = z.input<typeof esquemaUnidade>;
-
-/** Primeira mensagem de erro do Zod — a que vai ao toast. */
-export function primeiraMensagem(erro: z.ZodError): string {
-  return erro.issues[0]?.message ?? "Verifique os dados informados.";
-}

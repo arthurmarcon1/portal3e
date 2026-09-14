@@ -8,12 +8,14 @@
  * Módulo puro de propósito: é a peça que o teste cobre sem banco nem rede.
  */
 
+import { apenasDigitos } from "@/lib/cpf-cnpj";
+
 /** Domínio interno dos funcionários. Não resolve DNS — não recebe e-mail. */
 const DOMINIO_SINTETICO = "portal3e";
 
-export function apenasDigitos(valor: string): string {
-  return valor.replace(/\D/g, "");
-}
+// Uma só implementação de "tira a máscara", compartilhada com a validação de
+// CPF/CNPJ. Reexportada porque o login já a usava por este caminho.
+export { apenasDigitos };
 
 /** E-mail sintético do funcionário: `<cpf>@func.<slug-da-org>.portal3e`. */
 export function emailSintetico(cpf: string, slugOrg: string): string {
