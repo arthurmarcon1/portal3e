@@ -30,52 +30,62 @@ gerados por `supabase gen types typescript`.
 
 ### Dois ambientes, papéis diferentes
 
-**Supabase local (`supabase start`) — é onde os testes rodam.** Banco descartável,
-recriado do zero a cada `npm test`: migrações na ordem e depois o seed. É o alvo de
-toda a suíte de integração.
+**Supabase local (`supabase start`) — o alvo bom dos testes.** Banco descartável,
+recriado do zero a cada `npm test`: migrações na ordem e depois o seed. Exige Docker.
 
-**Projeto na nuvem — demonstração e teste manual.** O projeto linkado nasceu como
-rascunho (migrações aplicadas e ajustadas com o schema no ar) e hoje serve para você
-navegar no Portal como as personas e mostrar a alguém. O seed dele é estável.
+**Projeto na nuvem — dev permanente.** Nasceu como rascunho (migrações aplicadas e
+ajustadas com o schema no ar). Serve para navegar no Portal como as personas, mostrar
+a alguém, **e como alvo de teste quando não há Docker na máquina** — ele é descartável
+por definição, então isso é uso legítimo, não gambiarra.
 
-- **Nenhum teste automatizado escreve na nuvem.** `npm test` é sempre local; ele nem
-  lê `.env.local`. O que aponta a suíte para outro lugar é `.env.test.local`, fora do
-  git — escape hatch para máquina sem Docker, com a conta de que lá o banco não é
-  resetado e os fixtures precisam limpar o que criaram.
 - **Nunca importe dado real de funcionário em nenhum dos dois.** Nem para "testar a
   importação da F1.3", nem uma planilha reduzida. Sem quadro real, sem CPF real,
   sem espelho real.
 - Mexer no seed muda o que os testes veem: as personas de `supabase/seed.sql` são
-  fixture da suíte inteira. Ver "Testes" abaixo.
+  fixture da suíte inteira.
 - **Produção será um projeto Supabase novo, criado na F3**, com as migrações
-  reaplicadas do zero, na ordem, em banco limpo. Como o `db reset` local faz isso a
-  cada execução, uma migração que só sobe por causa do histórico de um projeto
-  específico é pega aqui, e não lá — e é por isso que migração aplicada nunca é
-  editada.
+  reaplicadas do zero, na ordem, em banco limpo. É o que o `db reset` local já faz a
+  cada execução — e é por isso que ele é o alvo bom: uma migração que só sobe por
+  causa do histórico de um projeto específico é pega ali, e não em produção. Migração
+  aplicada nunca é editada.
 
 ### Testes
 
-| Comando | O que roda | Precisa de Docker? |
+`npm test` escolhe o alvo sozinho, por uma pergunta só — existe Docker aqui?
+
+| Docker | Alvo | `db reset` antes da suíte |
 |---|---|---|
-| `npm test` | tudo: sobe o local, `db reset`, unidade + integração | **sim** |
-| `npm run test:unidade` | só o que não toca banco | não |
-| `npm run test:integracao` | só integração, no alvo já configurado | sim (ou `.env.test.local`) |
+| presente | Supabase local | **sim** — migrações + seed do zero |
+| ausente | projeto dev na nuvem | **não** — com aviso alto na saída |
 
-**Os testes de integração exigem Docker e não rodam na máquina de 8GB** — o stack do
-Supabase não cabe. Nela, use `npm run test:unidade`; a integração fica para a máquina
-maior ou para o CI. `npm test` detecta a ausência de Docker e explica isso em vez de
-falhar com erro de conexão.
+| Comando | O que roda |
+|---|---|
+| `npm test` | tudo, no alvo detectado |
+| `npm run test:unidade` | só o que não toca banco (nenhuma credencial necessária) |
+| `npm run test:integracao` | só integração, no alvo já configurado |
 
-Regras da suíte:
+**Rodando contra a nuvem, ninguém reseta nada.** O que isso exige de todo teste:
+
+- **Fixture limpa o que criou**, inclusive quando o teste falha (`afterAll`, não o fim
+  do `it`). Sujeira deixada para trás faz o PRÓXIMO teste falhar por um motivo que não
+  é o dele — o pior tipo de teste intermitente.
+- **CPF de teste fora da faixa do seed** (que vai de `01000791998` a `01023757044`).
+  Escrever sobre um CPF do seed apaga uma persona e quebra a suíte inteira. O fixture
+  deve conferir no `beforeAll` que o CPF não existe e **falhar alto** se existir, em
+  vez de sobrescrever.
+- **Estado de persona volta ao lugar.** Dar escopo ao RH/DP para testar segregação é
+  legítimo; deixar o escopo lá depois não é.
+
+Outras regras da suíte:
 
 - Teste de integração fala com o Postgres de verdade porque **permissão e RLS são
   dado**: contra um dublê, o teste provaria o dublê. Ele falha alto quando não há
-  banco — nunca é pulado em silêncio.
-- Arquivo de integração termina em `.integracao.test.ts`. Eles rodam **em série**: o
-  banco é um só, e fixture que mexe em estado de persona (dar escopo a alguém, por
-  exemplo) atropela o arquivo vizinho se rodar em paralelo.
-- Fixture que escreve limpa o que criou, e usa CPF **fora da faixa do seed**. Escrever
-  sobre um CPF do seed apaga uma persona e quebra a suíte inteira.
+  banco — nunca é pulado em silêncio. Teste de RLS que não roda é pior que teste
+  ausente, porque passa a impressão de cobertura.
+- Arquivo de integração termina em `.integracao.test.ts` e roda **em série**: o banco é
+  um só, e fixture que mexe em estado de persona atropela o arquivo vizinho.
+- `service_role` só no setup dos fixtures. Dentro do caso de teste, client autenticado
+  como a persona — senão não é a RLS que está sendo testada.
 
 ---
 
