@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "node scripts/testes.mjs",
+    "test:unidade": "vitest run --project unidade",
+    "test:integracao": "vitest run --project integracao"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

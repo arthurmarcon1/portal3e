@@ -3,13 +3,14 @@
 A migração está em `supabase/migrations/0001_init.sql`. Este documento explica **por
 que** cada decisão foi tomada. Se você for mudar o schema, leia isto antes.
 
-> **Ambiente.** O projeto Supabase linkado hoje é **dev permanente**. Ele foi usado como
-> rascunho — migração aplicada e depois corrigida por cima, schema mexido com o banco no
-> ar — e hospeda o seed do qual a suíte de testes depende. **Nenhum dado real de
-> funcionário entra nele, em nenhuma fase.** Produção é um projeto novo, criado na F3,
-> com as migrações reaplicadas do zero em banco limpo; se a sequência não subir sozinha
-> lá, é sinal de que alguma correção só existe no histórico deste projeto e precisa
-> virar migração de verdade.
+> **Ambiente.** Os testes rodam contra o **Supabase local**, recriado do zero a cada
+> `npm test`: migrações na ordem e depois o seed. O projeto na nuvem é **demonstração e
+> teste manual**, com seed estável, e nenhum teste automatizado escreve nele.
+> **Nenhum dado real de funcionário entra em nenhum dos dois, em nenhuma fase.**
+> Produção é um projeto novo, criado na F3, com as migrações reaplicadas do zero em
+> banco limpo — o mesmo que o `db reset` local já faz toda execução, que é o que
+> impede uma correção de existir só no histórico de um projeto. Ver "Testes" no
+> CLAUDE.md.
 
 ---
 
@@ -122,6 +123,15 @@ Três camadas de autorização, da mais externa à decisiva. **O proxy não é u
    valida por conta própria — nunca por herança de camada externa.
 3. **RLS.** A que vale. Um bug nas duas primeiras não pode virar vazamento.
 
+**Policy de escrita nunca usa `for all`** (aprendido na marra, migração 0008). O
+`USING` de um `for all` vale para todos os comandos, SELECT inclusive, e policies
+permissivas se combinam por OR. Uma `*_escrita` em `for all` portanto **concede
+leitura** a quem tem a permissão de editar, e a `*_leitura` — com escopo, categoria e
+tudo o mais — nunca chega a ser avaliada, porque o OR já foi satisfeito. Medido no
+seed: interno com escopo em um contrato e `pessoas:editar` enxergava as 30 pessoas da
+organização em vez de 14; com `documentos:editar`, enxergaria documento `medico` e
+`bancario` de qualquer um, furando a invariante 4. Três comandos, três policies.
+
 **Onde entra o `src/proxy.ts`.** No Next 16 o antigo `middleware.ts` virou `proxy.ts`,
 com o export `proxy`. Ele renova a sessão do Supabase, barra quem não tem sessão fora
 de `/login` e `/recuperar-senha`, prende em `/primeiro-acesso` quem tem
@@ -198,6 +208,9 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Funcionário tenta `update` em `ciencias` | erro de permissão |
 | Contratante sem escopo cadastrado | 0 linhas em tudo |
 | RH sem escopo (interno) | todos os contratos da própria org |
+| Interno **com** escopo consulta `pessoas` | só as do escopo — mesmo tendo `pessoas:editar` |
+| Interno com `pessoas:editar` vê pessoa sem nenhuma alocação | 1 linha (ela) |
+| Contratante vê pessoa sem nenhuma alocação | 0 linhas |
 
 Sem esses testes passando, a fase não é considerada entregue.
 

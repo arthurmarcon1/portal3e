@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# alvo alternativo da suíte de integração (ver CLAUDE.md)
+.env.test.local

@@ -28,20 +28,54 @@ Leia `docs/01-blueprint-produto.md` antes de qualquer tarefa de produto e
 Sem Prisma, sem ORM extra: usar `@supabase/supabase-js` + `@supabase/ssr`, com tipos
 gerados por `supabase gen types typescript`.
 
-### O projeto Supabase atual é DEV permanente
+### Dois ambientes, papéis diferentes
 
-O projeto linkado hoje nasceu como rascunho: migrações foram aplicadas e ajustadas com
-o schema já no ar, e o seed de teste vive nele. Ele **continua sendo dev para sempre**.
+**Supabase local (`supabase start`) — é onde os testes rodam.** Banco descartável,
+recriado do zero a cada `npm test`: migrações na ordem e depois o seed. É o alvo de
+toda a suíte de integração.
 
-- **Nunca importe dado real de funcionário neste projeto.** Nem para "testar a
+**Projeto na nuvem — demonstração e teste manual.** O projeto linkado nasceu como
+rascunho (migrações aplicadas e ajustadas com o schema no ar) e hoje serve para você
+navegar no Portal como as personas e mostrar a alguém. O seed dele é estável.
+
+- **Nenhum teste automatizado escreve na nuvem.** `npm test` é sempre local; ele nem
+  lê `.env.local`. O que aponta a suíte para outro lugar é `.env.test.local`, fora do
+  git — escape hatch para máquina sem Docker, com a conta de que lá o banco não é
+  resetado e os fixtures precisam limpar o que criaram.
+- **Nunca importe dado real de funcionário em nenhum dos dois.** Nem para "testar a
   importação da F1.3", nem uma planilha reduzida. Sem quadro real, sem CPF real,
   sem espelho real.
-- A suíte de testes depende do seed dele (as personas de `supabase/seed.sql`).
-  Apagar ou alterar o seed quebra `npm test`.
+- Mexer no seed muda o que os testes veem: as personas de `supabase/seed.sql` são
+  fixture da suíte inteira. Ver "Testes" abaixo.
 - **Produção será um projeto Supabase novo, criado na F3**, com as migrações
-  reaplicadas do zero, na ordem, em banco limpo. É esse o teste de que a sequência de
-  migrações funciona sem o histórico de tentativas — e é por isso que migração aplicada
-  nunca é editada.
+  reaplicadas do zero, na ordem, em banco limpo. Como o `db reset` local faz isso a
+  cada execução, uma migração que só sobe por causa do histórico de um projeto
+  específico é pega aqui, e não lá — e é por isso que migração aplicada nunca é
+  editada.
+
+### Testes
+
+| Comando | O que roda | Precisa de Docker? |
+|---|---|---|
+| `npm test` | tudo: sobe o local, `db reset`, unidade + integração | **sim** |
+| `npm run test:unidade` | só o que não toca banco | não |
+| `npm run test:integracao` | só integração, no alvo já configurado | sim (ou `.env.test.local`) |
+
+**Os testes de integração exigem Docker e não rodam na máquina de 8GB** — o stack do
+Supabase não cabe. Nela, use `npm run test:unidade`; a integração fica para a máquina
+maior ou para o CI. `npm test` detecta a ausência de Docker e explica isso em vez de
+falhar com erro de conexão.
+
+Regras da suíte:
+
+- Teste de integração fala com o Postgres de verdade porque **permissão e RLS são
+  dado**: contra um dublê, o teste provaria o dublê. Ele falha alto quando não há
+  banco — nunca é pulado em silêncio.
+- Arquivo de integração termina em `.integracao.test.ts`. Eles rodam **em série**: o
+  banco é um só, e fixture que mexe em estado de persona (dar escopo a alguém, por
+  exemplo) atropela o arquivo vizinho se rodar em paralelo.
+- Fixture que escreve limpa o que criou, e usa CPF **fora da faixa do seed**. Escrever
+  sobre um CPF do seed apaga uma persona e quebra a suíte inteira.
 
 ---
 
@@ -49,6 +83,13 @@ o schema já no ar, e o seed de teste vive nele. Ele **continua sendo dev para s
 
 1. **RLS ligado em toda tabela.** Nenhuma tabela nova sem policy. Nenhuma consulta que
    dependa de o app "lembrar" de filtrar por empresa.
+   **Policy de escrita nunca usa `for all`.** No Postgres o `USING` de um `for all`
+   vale também para SELECT, e policies permissivas se somam por OR — então uma policy
+   de escrita escrita assim vira uma segunda porta de leitura, larga, que ignora todo
+   o cuidado de escopo e de categoria da policy `_leitura`. Se precisar dos três
+   comandos, são três policies: `for insert`, `for update`, `for delete`.
+   Foi assim que `documentos:editar` liberava documento `medico` de qualquer pessoa
+   até a migração 0008.
 2. **`service_role` nunca chega ao browser.** Só existe em Server Actions/route handlers
    e em jobs. Se precisar dela, explique no PR por quê.
 3. **Bucket privado sempre.** Arquivo só sai por URL assinada de TTL curto, gerada por
@@ -130,9 +171,9 @@ O Arthur é o líder do projeto. Você executa uma tarefa por vez.
   `docs/05-roadmap-prompts.md` e diga em 3 linhas o que vai fazer. Só então codifique.
 - **Depois de codar:** rode `npm run build`, `npm run lint` e os testes. Se quebrou,
   conserte antes de entregar. Relate o que foi feito e o que ficou pendente.
-  `npm test` precisa de `.env.local` preenchido: parte da suíte autentica as personas
-  do seed no Supabase de verdade, porque permissão é dado e testar contra dublê
-  provaria só o dublê. Teste que depende do banco falha alto — nunca é pulado.
+  `npm test` sobe o Supabase local, recria o banco do zero e roda tudo — ver a seção
+  "Testes" acima. Sem Docker na máquina, `npm run test:unidade` cobre o que não
+  depende de banco, e o que faltou tem de ser dito no relato.
 - **Migração de banco nunca é editada depois de aplicada.** Corrija com migração nova
   e numeração sequencial: `0007_ajusta_perfis.sql`.
 - **Se a tarefa exigir uma decisão de negócio que não está nos docs**, pare e pergunte.

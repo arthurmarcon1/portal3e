@@ -58,20 +58,6 @@ custa mais caro.
       mas em aberto pelo lado seguro. Responder **SIM** exige migração nova incluindo
       `jornada` naquela lista; é migração e não `insert` de propósito, porque mudar o
       teto do contratante é decisão de produto, não configuração de cliente.
-- [ ] **Interno com escopo enxerga pessoa sem alocação?** `pessoas_leitura` alcança o
-      interno por `app.pessoas_no_escopo()`, que é derivada de `alocacoes`. Uma pessoa
-      recém-cadastrada e ainda não alocada não pertence a escopo nenhum — logo,
-      **some da lista de quem tem escopo cadastrado**, que é o mesmo ovo e galinha que
-      a migração 0005 resolveu para `contratantes`.
-      **Hoje não aparece:** todo usuário interno do seed está em `escopo_total()`
-      (nenhum tem linha em `usuario_escopos`), então a F1.2 funciona. O problema nasce
-      na F2.1, quando passar a existir interno com escopo. Decidir: (a) interno com
-      `pessoas:ver` enxerga quem não tem nenhuma alocação na organização — uma migração
-      curta, análoga à 0005; (b) cadastro e alocação viram um passo só, e pessoa sem
-      alocação deixa de existir; ou (c) escopo de interno nunca restringe `pessoas`.
-      Não foi implementado nada: é regra de permissão, e regra de permissão não se
-      inventa (CLAUDE.md).
-
 - [ ] **Funcionário desligado:** mantém acesso por quanto tempo, e a quê? (Sugestão: 90
       dias, somente leitura dos próprios documentos.)
 - [ ] **Quem é o administrador geral** na 3e? Precisa ser mais de uma pessoa (nunca
@@ -133,6 +119,24 @@ custa mais caro.
 ---
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-14 — Pessoa sem alocação é visível para quem tem `pessoas:editar`**,
+  independentemente de escopo (migrações 0007 e 0009). Pessoa não alocada não pertence
+  a contrato nenhum, logo não há o que segregar; e esconder de quem cadastrou o
+  registro que ele acabou de criar é absurdo operacional. Assim que ganha alocação,
+  vale a regra de escopo normal. Contratante não enxerga: a decisão fala em
+  `pessoas:editar`, que nenhum perfil de contratante tem na matriz de docs/02, e a
+  policy ainda exige `tipo = 'interno'` para que isso não dependa de um `insert` em
+  `perfil_permissoes` amanhã. Coberto por `src/features/pessoas/escopo.integracao.test.ts`.
+
+- **2026-09-14 — `for all` em policy de escrita foi banido** (migração 0008). Descoberto
+  ao cobrir a decisão acima com teste: o `USING` de um `for all` vale para SELECT, e as
+  15 policies `*_escrita` do schema estavam, sem que ninguém pedisse, concedendo leitura
+  irrestrita a quem tivesse a permissão de editar. Medido: interno com escopo em um
+  contrato enxergava 30 pessoas em vez de 14; `documentos:editar` daria acesso a
+  documento `medico` e `bancario` de qualquer pessoa — invariante 4 furada no schema.
+  Todas foram trocadas por `for insert` + `for update` + `for delete` com os mesmos
+  predicados; nenhuma escrita mudou de comportamento.
 
 - **2026-09-04 — Acesso por categoria de documento virou configurável.**
   A migração inicial inferia acesso a dado sensível a partir de permissões de módulo,
