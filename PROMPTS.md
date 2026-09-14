@@ -108,7 +108,7 @@ Padrões obrigatórios:
 Vincular unidades a contratos pela tabela contrato_unidades, com seleção múltipla.
 ```
 
-## [ ] F1.2 — Pessoas e alocações
+## [x] F1.2 — Pessoas e alocações
 
 ```
 Implemente /admin/pessoas: listagem com filtro por contrato, unidade, função e
@@ -122,7 +122,7 @@ Regras:
 - histórico de alocações em ordem cronológica inversa na ficha
 ```
 
-## [ ] F1.3 — Importação por planilha
+## [x] F1.3 — Importação por planilha
 
 ```
 Implemente /admin/pessoas/importar: upload de XLSX/CSV com pré-visualização,
@@ -147,7 +147,7 @@ validação linha a linha e importação em lote.
 
 # FASE 2 — Perfis, permissões e auditoria
 
-## [ ] F2.1 — Administração de acesso
+## [x] F2.1 — Administração de acesso
 
 ```
 Implemente /admin/acessos:

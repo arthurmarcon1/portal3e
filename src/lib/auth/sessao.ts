@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 
+import { ACOES, MODULOS, type Acao, type Modulo } from "@/lib/auth/modulos";
 import { rotaInicial, type TipoUsuario } from "@/lib/auth/rotas";
 import { ErroDePermissao } from "@/lib/erros";
 import { criarClienteServidor } from "@/lib/supabase/server";
@@ -21,22 +22,10 @@ import { criarClienteServidor } from "@/lib/supabase/server";
 export { rotaInicial };
 export type { TipoUsuario };
 
-export const MODULOS = [
-  "pessoas",
-  "contratos",
-  "documentos",
-  "jornada",
-  "solicitacoes",
-  "comunicacao",
-  "sst",
-  "relatorios",
-  "administracao",
-] as const;
-
-export const ACOES = ["ver", "criar", "editar", "excluir", "exportar"] as const;
-
-export type Modulo = (typeof MODULOS)[number];
-export type Acao = (typeof ACOES)[number];
+// Reexportados porque o resto do código já os importava daqui. A definição
+// mora em `./modulos`, que é puro — a grade de permissões é Client Component.
+export { ACOES, MODULOS };
+export type { Acao, Modulo };
 
 export type UsuarioSessao = {
   id: string;

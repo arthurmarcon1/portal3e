@@ -37,6 +37,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
       { href: "/admin/unidades", rotulo: "Unidades" },
     );
   }
+  if (await temPermissao("administracao", "ver")) {
+    itens.push({ href: "/admin/acessos", rotulo: "Acessos" });
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">
