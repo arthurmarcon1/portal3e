@@ -5,10 +5,19 @@ import { revalidatePath } from "next/cache";
 import { registrarAuditoria } from "@/lib/audit";
 import { exigirPermissao } from "@/lib/auth/sessao";
 import { ErroDeNegocio, mensagemDeErro, type Resultado } from "@/lib/erros";
+import { ErroDePlanilha, lerPlanilha } from "@/lib/planilha";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 import {
+  analisarPlanilha,
+  COLUNAS,
+  ErroDeCabecalho,
+  type Analise,
+} from "./importacao";
+import { catalogoDeImportacao } from "./queries";
+import {
   esquemaAlocacao,
+  esquemaLoteImportacao,
   esquemaEncerramento,
   esquemaMudancaDeStatusPessoa,
   esquemaPessoa,
@@ -272,6 +281,120 @@ export async function encerrarAlocacao(entrada: unknown): Promise<Resultado> {
 
     revalidarPessoas(atual.pessoa_id);
     return { ok: true };
+  } catch (erro) {
+    return { ok: false, erro: mensagemDeErro(erro) };
+  }
+}
+
+// =====================================================================
+// Importação por planilha (F1.3)
+// =====================================================================
+
+/**
+ * Lê a planilha enviada e devolve o diagnóstico, sem gravar nada.
+ *
+ * A tela usa isto para mostrar, antes de importar, quantas linhas valem,
+ * quantas têm erro e qual é o erro de cada uma.
+ */
+export async function analisarPlanilhaDePessoas(
+  formData: FormData,
+): Promise<Resultado<Analise>> {
+  try {
+    await exigirPermissao("pessoas", "criar");
+
+    const arquivo = formData.get("arquivo");
+    if (!(arquivo instanceof File) || arquivo.size === 0) {
+      throw new ErroDeNegocio("Escolha uma planilha .xlsx ou .csv para enviar.");
+    }
+
+    const matriz = await lerPlanilha(arquivo);
+    const catalogo = await catalogoDeImportacao();
+
+    return { ok: true, dados: analisarPlanilha(matriz, catalogo) };
+  } catch (erro) {
+    // Erro de planilha e de cabeçalho já vêm com texto voltado ao usuário.
+    if (erro instanceof ErroDePlanilha || erro instanceof ErroDeCabecalho) {
+      return { ok: false, erro: erro.message };
+    }
+    return { ok: false, erro: mensagemDeErro(erro) };
+  }
+}
+
+/** Resumo que a tela mostra depois de importar, e que vai para a auditoria. */
+export type ResumoImportacao = {
+  total: number;
+  criados: number;
+  atualizados: number;
+  alocacoes_criadas: number;
+  ignorados: number;
+};
+
+/**
+ * Grava o lote — tudo ou nada.
+ *
+ * A transação mora em `public.importar_pessoas` (migração 0006): o
+ * supabase-js não abre transação, então um laço aqui gravaria meio quadro e
+ * pararia no erro. A função é SECURITY INVOKER, então a RLS continua
+ * decidindo cada escrita.
+ *
+ * As linhas chegam do navegador e são **validadas de novo** aqui: o que a
+ * pré-visualização aprovou não é prova de nada depois de uma viagem de ida e
+ * volta pelo cliente. Só as válidas são enviadas; as com erro entram no
+ * resumo como ignoradas.
+ */
+export async function importarPessoas(entrada: unknown): Promise<Resultado<ResumoImportacao>> {
+  const validado = esquemaLoteImportacao.safeParse(entrada);
+  if (!validado.success) return { ok: false, erro: primeiraMensagem(validado.error) };
+
+  try {
+    await exigirPermissao("pessoas", "criar");
+
+    const catalogo = await catalogoDeImportacao();
+    const analise = analisarPlanilha(
+      [[...COLUNAS], ...validado.data.linhas.map((l) => COLUNAS.map((c) => l[c]))],
+      catalogo,
+    );
+
+    const validas = analise.linhas.filter((l) => l.erros.length === 0);
+    const ignorados = analise.linhas.length - validas.length;
+
+    if (validas.length === 0) {
+      throw new ErroDeNegocio(
+        "Nenhuma linha válida para importar. Corrija a planilha e envie de novo.",
+      );
+    }
+
+    const supabase = await criarClienteServidor();
+    const { data, error } = await supabase.rpc("importar_pessoas", {
+      p_linhas: validas.map((l) => l.dados),
+    });
+
+    if (error) {
+      // A função devolve mensagem pronta ("Linha 12: contrato ... não
+      // encontrado"), e ela é útil na tela. Os códigos que ela levanta são os
+      // mesmos que `traduzirErroDeBanco` conhece.
+      const daFuncao = error.code === "23503" || error.code === "22023" || error.code === "42501";
+      return {
+        ok: false,
+        erro: daFuncao
+          ? `${error.message} Nada foi gravado.`
+          : traduzirErroDeBanco(error.code, error.message),
+      };
+    }
+
+    const resumo: ResumoImportacao = {
+      ...(data as Omit<ResumoImportacao, "ignorados">),
+      ignorados,
+    };
+
+    await registrarAuditoria({
+      acao: "importar",
+      entidade: "pessoas",
+      detalhes: { ...resumo, origem: "planilha" },
+    });
+
+    revalidarPessoas();
+    return { ok: true, dados: resumo };
   } catch (erro) {
     return { ok: false, erro: mensagemDeErro(erro) };
   }

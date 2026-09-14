@@ -128,6 +128,10 @@ validação linha a linha e importação em lote.
 
 **Critério de aceite da Fase 1**
 - [ ] O quadro real da 3e importado de planilha, sem digitação manual
+      — **não pode ser feito no projeto Supabase de hoje**, que é dev permanente e
+      não recebe dado real (CLAUDE.md). A F1.3 está implementada e coberta por teste
+      com dado fictício; este item só fecha no projeto de produção da F3. Ver
+      `docs/06-decisoes-pendentes.md`.
 - [ ] Testes de RLS da tabela em `docs/03` passando para os cenários de `pessoas`,
       `alocacoes`, `contratos` e `unidades`
 - [ ] Contratante de teste enxerga só as pessoas do contrato dele

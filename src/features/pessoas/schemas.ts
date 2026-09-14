@@ -109,3 +109,33 @@ export const esquemaEncerramento = z.object({
 export type EntradaPessoa = z.input<typeof esquemaPessoa>;
 export type EntradaAlocacao = z.input<typeof esquemaAlocacao>;
 export type EntradaEncerramento = z.input<typeof esquemaEncerramento>;
+
+// ---------------------------------------------------------------------
+// Importação por planilha (F1.3)
+// ---------------------------------------------------------------------
+
+/**
+ * O lote que volta do navegador depois da pré-visualização.
+ *
+ * Aqui só se confere a **forma** — que é um array de linhas com as oito
+ * colunas como texto. O conteúdo de cada linha é reavaliado por
+ * `analisarPlanilha` na própria action, com o catálogo do banco em mãos:
+ * aprovação na pré-visualização não sobrevive a uma viagem pelo cliente.
+ */
+const linhaImportacao = z.object({
+  nome: z.string(),
+  cpf: z.string(),
+  matricula: z.string(),
+  funcao: z.string(),
+  contrato: z.string(),
+  unidade: z.string(),
+  data_inicio: z.string(),
+  telefone: z.string(),
+});
+
+export const esquemaLoteImportacao = z.object({
+  linhas: z
+    .array(linhaImportacao)
+    .min(1, "Nenhuma linha para importar.")
+    .max(5000, "A planilha tem linhas demais. Divida em partes de até 5000."),
+});

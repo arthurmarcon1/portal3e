@@ -189,3 +189,35 @@ export async function contratosParaAlocacao(): Promise<ContratoComUnidades[]> {
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")),
   }));
 }
+
+/**
+ * O que o banco já tem, para a planilha ser conferida antes de qualquer
+ * escrita: contratos ativos com as unidades que atendem, e os CPFs já
+ * cadastrados (que viram atualização, não duplicata).
+ *
+ * Os CPFs vêm pela RLS como tudo o mais. Um interno com escopo parcial
+ * enxergaria menos CPFs e marcaria como "criar" alguém que já existe — a
+ * função de importação no banco resolve isso na hora da gravação, onde o
+ * `unique (org_id, cpf)` é a palavra final.
+ */
+export async function catalogoDeImportacao(): Promise<{
+  contratos: { numero: string; unidades: string[] }[];
+  cpfsExistentes: string[];
+}> {
+  const supabase = await criarClienteServidor();
+
+  const [contratos, pessoas] = await Promise.all([
+    contratosParaAlocacao(),
+    supabase.from("pessoas").select("cpf"),
+  ]);
+
+  if (pessoas.error) throw new Error(pessoas.error.message);
+
+  return {
+    contratos: contratos.map((c) => ({
+      numero: c.numero,
+      unidades: c.unidades.map((u) => u.nome),
+    })),
+    cpfsExistentes: (pessoas.data ?? []).map((p) => p.cpf),
+  };
+}

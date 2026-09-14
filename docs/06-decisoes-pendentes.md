@@ -32,6 +32,18 @@ custa mais caro.
       canal de SMS/WhatsApp, ou (c) assumir que recuperação de funcionário é sempre
       presencial pelo supervisor. Enquanto não decidir, vale (c) na prática.
 
+- [ ] **Onde o quadro real é importado pela primeira vez.** O critério de aceite da
+      Fase 1 pede "o quadro real da 3e importado de planilha", e o CLAUDE.md proíbe
+      dado real de funcionário no projeto Supabase atual — inclusive "para testar a
+      importação da F1.3". Os dois não podem valer ao mesmo tempo.
+      **Estado da implementação:** a F1.3 está pronta e provada com dado fictício
+      (`src/features/pessoas/importacao.integracao.test.ts` cobre a atomicidade, a
+      releitura do XLSX e o CSV em windows-1252). Falta só a carga real.
+      Decidir: (a) antecipar a criação do projeto de produção para fechar a Fase 1 nele,
+      (b) manter o item aberto até a F3, que é quando o projeto novo nasce de qualquer
+      forma — sugestão, já que nada depois da F1.3 precisa do quadro real para ser
+      construído. O que **não** é opção é importar o quadro no projeto de hoje.
+
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,

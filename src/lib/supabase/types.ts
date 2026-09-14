@@ -1234,7 +1234,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
     }
     Enums: {
       categoria_doc:

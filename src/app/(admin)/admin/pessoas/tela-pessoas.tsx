@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { BadgeStatus } from "@/components/badge-status";
@@ -212,16 +212,24 @@ export function TelaPessoas({
         }
         acao={
           podeCriar ? (
-            <Button type="button" onClick={() => setEmFormulario("nova")}>
-              <Plus aria-hidden strokeWidth={1.5} />
-              Nova pessoa
-            </Button>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" asChild>
+                <Link href="/admin/pessoas/importar">
+                  <Upload aria-hidden strokeWidth={1.5} />
+                  Importar planilha
+                </Link>
+              </Button>
+              <Button type="button" onClick={() => setEmFormulario("nova")}>
+                <Plus aria-hidden strokeWidth={1.5} />
+                Nova pessoa
+              </Button>
+            </div>
           ) : undefined
         }
         vazio={{
           titulo: "Nenhuma pessoa cadastrada ainda.",
           descricao: podeCriar
-            ? "Cadastre uma pessoa ou importe o quadro inteiro de uma planilha."
+            ? "Cadastre uma pessoa de cada vez ou importe o quadro inteiro de uma planilha."
             : "Quando o quadro for cadastrado, ele aparece aqui.",
         }}
       />
