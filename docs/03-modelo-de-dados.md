@@ -123,6 +123,14 @@ Três camadas de autorização, da mais externa à decisiva. **O proxy não é u
    valida por conta própria — nunca por herança de camada externa.
 3. **RLS.** A que vale. Um bug nas duas primeiras não pode virar vazamento.
 
+**Subconsulta em policy roda sob a RLS da tabela consultada.** Duas consequências, as
+duas já custaram migração: se a tabela consultada tem policy que volta para a primeira,
+o SELECT morre em recursão infinita (`documentos` × `documento_destinatarios`, corrigido
+na 0010); e se ela apenas filtra, a policy confunde "não existe" com "não enxergo" —
+foi assim que "pessoa sem alocação" quase virou "pessoa cuja alocação eu não vejo"
+(0007/0009). Nos dois casos a saída é a mesma: a pergunta que cruza tabela vira função
+`SECURITY DEFINER` em `app`, com `search_path` travado.
+
 **Policy de escrita nunca usa `for all`** (aprendido na marra, migração 0008). O
 `USING` de um `for all` vale para todos os comandos, SELECT inclusive, e policies
 permissivas se combinam por OR. Uma `*_escrita` em `for all` portanto **concede
@@ -211,6 +219,10 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Interno **com** escopo consulta `pessoas` | só as do escopo — mesmo tendo `pessoas:editar` |
 | Interno com `pessoas:editar` vê pessoa sem nenhuma alocação | 1 linha (ela) |
 | Contratante vê pessoa sem nenhuma alocação | 0 linhas |
+| Interno com `documentos:editar` e sem a categoria em `perfil_categorias` | 0 linhas para `medico`, `bancario`, `folha` — publicado **e** rascunho |
+| Quem tem `documentos:editar` lê o rascunho que criou | 1 linha |
+| Quem tem só `documentos:ver` lê rascunho | 0 linhas |
+| Funcionário lê coletivo direcionado ao contrato dele | 1 linha |
 
 Sem esses testes passando, a fase não é considerada entregue.
 

@@ -44,6 +44,33 @@ custa mais caro.
       forma — sugestão, já que nada depois da F1.3 precisa do quadro real para ser
       construído. O que **não** é opção é importar o quadro no projeto de hoje.
 
+- [ ] **Escopo de interno restringe a estrutura comercial?** Achado na varredura que
+      a 0008 exigiu. Antes dela, o `for all` da `*_escrita` dava leitura irrestrita, então
+      um interno com escopo enxergava TODOS os contratos, unidades e contratantes da
+      organização. Agora vale a `*_leitura`, que filtra por `app.contratos_permitidos()`
+      — ou seja, passou a valer o escopo, o que provavelmente é o certo, mas é mudança
+      de comportamento que ninguém decidiu.
+      Duas consequências a decidir juntas: (a) interno com escopo no contrato 042 deixa
+      de ver o contrato 077 nas telas de Contratos e Unidades; (b) ele não consegue
+      **criar** contrato, unidade ou contratante, porque o registro novo nasce fora do
+      escopo dele e o `INSERT ... RETURNING` não o enxerga de volta — mesmo ovo e galinha
+      da 0005 e da 0007.
+      **Hoje não aparece:** nenhum interno do seed tem escopo. Vira problema real quando
+      a F2.1 passar a cadastrar interno com escopo — o que a tela já permite.
+      Decidir: (a) escopo de interno não se aplica a `contratos`/`unidades`/`contratantes`,
+      só a pessoas e documentos; (b) aplica-se, e quem cadastra estrutura comercial tem
+      de ser interno sem escopo; ou (c) aplica-se, com o mesmo remendo da 0007 para o
+      registro recém-criado. Não implementei nada: é regra de permissão.
+
+- [ ] **`editar` sem `ver` deixou de enxergar.** Também da varredura da 0008. Em
+      `alocacoes`, `usuarios`, `usuario_perfis` e `usuario_escopos` a `*_leitura` exige a
+      ação `ver` (ou `administracao:ver`), enquanto a `*_escrita` exigia só `editar`. Um
+      perfil com `editar` e sem `ver` agora escreve e não lê — inclusive falhando em
+      `INSERT ... RETURNING`. Nenhum perfil do seed é assim, e a matriz de docs/02 sempre
+      dá V junto com E, então é latente. Decidir se vira invariante explícita ("toda ação
+      forte pressupõe `ver` no mesmo módulo") ou se as policies passam a aceitar `editar`
+      como suficiente para ler.
+
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,
