@@ -44,32 +44,18 @@ custa mais caro.
       forma — sugestão, já que nada depois da F1.3 precisa do quadro real para ser
       construído. O que **não** é opção é importar o quadro no projeto de hoje.
 
-- [ ] **Escopo de interno restringe a estrutura comercial?** Achado na varredura que
-      a 0008 exigiu. Antes dela, o `for all` da `*_escrita` dava leitura irrestrita, então
-      um interno com escopo enxergava TODOS os contratos, unidades e contratantes da
-      organização. Agora vale a `*_leitura`, que filtra por `app.contratos_permitidos()`
-      — ou seja, passou a valer o escopo, o que provavelmente é o certo, mas é mudança
-      de comportamento que ninguém decidiu.
-      Duas consequências a decidir juntas: (a) interno com escopo no contrato 042 deixa
-      de ver o contrato 077 nas telas de Contratos e Unidades; (b) ele não consegue
-      **criar** contrato, unidade ou contratante, porque o registro novo nasce fora do
-      escopo dele e o `INSERT ... RETURNING` não o enxerga de volta — mesmo ovo e galinha
-      da 0005 e da 0007.
-      **Hoje não aparece:** nenhum interno do seed tem escopo. Vira problema real quando
-      a F2.1 passar a cadastrar interno com escopo — o que a tela já permite.
-      Decidir: (a) escopo de interno não se aplica a `contratos`/`unidades`/`contratantes`,
-      só a pessoas e documentos; (b) aplica-se, e quem cadastra estrutura comercial tem
-      de ser interno sem escopo; ou (c) aplica-se, com o mesmo remendo da 0007 para o
-      registro recém-criado. Não implementei nada: é regra de permissão.
-
-- [ ] **`editar` sem `ver` deixou de enxergar.** Também da varredura da 0008. Em
-      `alocacoes`, `usuarios`, `usuario_perfis` e `usuario_escopos` a `*_leitura` exige a
-      ação `ver` (ou `administracao:ver`), enquanto a `*_escrita` exigia só `editar`. Um
-      perfil com `editar` e sem `ver` agora escreve e não lê — inclusive falhando em
-      `INSERT ... RETURNING`. Nenhum perfil do seed é assim, e a matriz de docs/02 sempre
-      dá V junto com E, então é latente. Decidir se vira invariante explícita ("toda ação
-      forte pressupõe `ver` no mesmo módulo") ou se as policies passam a aceitar `editar`
-      como suficiente para ler.
+- [ ] **`editar` sem `ver` não enxerga o que escreve — LATENTE, não corrigir sem caso
+      real** (decisão de 2026-09-15). Da varredura da 0008. Em `alocacoes`, `usuarios`,
+      `usuario_perfis` e `usuario_escopos` a `*_leitura` exige `ver` (ou
+      `administracao:ver`), enquanto a escrita exige só `editar`. Um perfil com `editar`
+      e sem `ver` no mesmo módulo escreveria e não leria — e criar alocação, usuário,
+      perfil ou escopo cairia em 42501 no `INSERT ... RETURNING`, mesma família do
+      rascunho (0010) e da estrutura comercial (0013).
+      **Por que fica aberto:** a matriz de docs/02 sempre dá V junto com E, e nenhum
+      perfil do seed é assim. Corrigir sem caso real é adivinhar qual das duas regras
+      vale. Reabrir quando alguém propuser um perfil com E sem V — aí decidir entre
+      (a) invariante explícita "toda ação forte pressupõe `ver` no mesmo módulo",
+      validada na grade de perfis, ou (b) policies de leitura aceitando `editar`.
 
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
@@ -147,6 +133,16 @@ custa mais caro.
 
 ## Decisões já tomadas (registro)
 
+- **2026-09-15 — Interno com escopo e `contratos:editar` enxerga e cadastra a estrutura
+  comercial da organização inteira** (migração 0013). Era a perda (a) da varredura da
+  0008: quem editava contratos com escopo não lia contrato/unidade/contratante fora dele
+  e não conseguia **criar** nenhum dos três — 42501 no `INSERT ... RETURNING`, medido com
+  Contratos/Coordenação e escopo no 042. Não era latente: a F2.1 já atribui escopo pela
+  tela. A leitura volta exatamente para quem a 0008 tirou (interno + `contratos:editar`);
+  interno com escopo e só `contratos:ver` segue vendo o escopo. Pessoas e documentos não
+  mudam — quem edita contratos com escopo no 042 continua sem ver pessoa do 077. Coberto
+  por `tests/rls/estrutura-comercial.integracao.test.ts`, pelas Server Actions reais.
+
 - **2026-09-15 — Bloqueio de login: 5 falhas em 15 minutos, sem desbloqueio manual.**
   Desbloqueio manual viraria fila de chamado no RH por algo que se resolve esperando.
   Em troca, a tela de login mostra o horário em que libera e a contagem regressiva, e diz
@@ -159,8 +155,8 @@ custa mais caro.
 
 - **2026-09-15 — Interno com escopo lê comunicado coletivo de fora do escopo.** Escopo
   segrega pessoa e documento individual, não aviso geral. Para contratante vale o
-  contrário (0012). Escrito como regra explícita em docs/02, "Escopo e documento
-  coletivo", e travado por teste em `tests/rls/documentos.integracao.test.ts`.
+  contrário (0012). Escrito como regra explícita em docs/02, "Escopo, documento
+  coletivo e estrutura comercial", e travado por teste em `tests/rls/documentos.integracao.test.ts`.
 
 - **2026-09-14 — Pessoa sem alocação é visível para quem tem `pessoas:editar`**,
   independentemente de escopo (migrações 0007 e 0009). Pessoa não alocada não pertence

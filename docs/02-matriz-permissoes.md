@@ -84,7 +84,7 @@ frequência consolidada do mês.
 
 ---
 
-## Escopo e documento coletivo — regra explícita
+## Escopo, documento coletivo e estrutura comercial — regra explícita
 
 **O escopo de um interno segrega pessoa e documento individual. Não segrega aviso
 geral.** Interno com escopo (ex.: só o contrato 042) **lê** comunicado coletivo dirigido a
@@ -97,6 +97,12 @@ não é dado de pessoa, e esconder de um coordenador o comunicado que outro cont
 recebeu não protege ninguém. O ramo `app.tipo() = 'interno'` em `documentos_leitura`
 (migração 0012) existe por esta regra, e `tests/rls/documentos.integracao.test.ts`
 ("interno com escopo e comunicado coletivo") falha se ele sumir.
+
+**Estrutura comercial também não é segregada para quem a edita.** Interno com escopo e
+`contratos:editar` lê e cadastra contratante, unidade e contrato da organização inteira
+(migração 0013) — sem isso não conseguiria criar nenhum dos três, porque o registro novo
+nasce fora do escopo. Com só `contratos:ver`, vê a estrutura do escopo. Em nenhum dos
+casos isso abre pessoa ou documento individual de fora do escopo.
 
 **Para o contratante a regra é a oposta:** coletivo só quando dirigido a contrato ou
 unidade do escopo dele (`app.documento_no_escopo`). Coletivo de outro cliente, ou sem

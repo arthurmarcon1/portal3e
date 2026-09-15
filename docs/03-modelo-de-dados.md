@@ -272,10 +272,12 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Funcionário lê coletivo direcionado ao contrato dele | 1 linha |
 | Contratante lê coletivo dirigido a contrato fora do escopo dele | 0 linhas — e 0 linhas no público-alvo (`documento_destinatarios`) |
 | Qualquer usuário tenta `update`/`delete` em `auditoria` | erro de permissão — inclusive Admin geral |
+| Interno com escopo no 042 e `contratos:editar` cria contratante, unidade e contrato | cria e lê de volta; lê o contrato 077; continua com 0 pessoas do 077 |
+| Interno com escopo no 042 só com `contratos:ver` | só o contrato 042 |
 
 Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema. Cada "0 linhas"
 tem um contraponto que enxerga o mesmo fixture — senão tabela vazia passaria por
-segregação. As três últimas linhas nasceram de defeitos que esses testes acharam, todos
+segregação. As linhas de coletivo e de `auditoria` nasceram de defeitos que esses testes acharam, todos
 corrigidos na 0012: o contratante lia coletivo de qualquer contrato (desde a 0001), o
 público-alvo era legível pela organização inteira (regressão da 0010), e ciência e
 auditoria recusavam escrita em silêncio — "0 linhas afetadas", sem erro — em vez de
