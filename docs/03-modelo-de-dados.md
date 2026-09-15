@@ -195,9 +195,41 @@ Ele já resolve `org_id`, `usuario_id`, `ip` e `user_agent` a partir do request.
 com `service_role` porque a tabela não aceita insert do usuário — o log não pode
 depender da boa vontade de quem está sendo auditado.
 
-**Eventos obrigatórios:** login, falha de login, download, visualização de documento
-sensível, publicação, mudança de permissão, mudança de escopo, ciência, mudança de
-status de solicitação, exportação de relatório, criação/desativação de usuário.
+**Eventos obrigatórios:** login, falha de login, login bloqueado, download, visualização
+de documento sensível, publicação, mudança de permissão, mudança de escopo, ciência,
+mudança de status de solicitação, exportação de relatório (inclusive da própria
+trilha), criação/desativação de usuário.
+
+**A trilha (`/admin/auditoria`, F2.2)** é lida com o client do usuário: quem enxerga é
+`auditoria_leitura` (própria organização + `administracao:ver`). Filtros por período
+(dia civil de Brasília), usuário, ação e entidade moram na URL, e o CSV lê os mesmos
+parâmetros — exportação e tela não discordam sobre o recorte. Exportar pede
+`administracao:exportar` no route handler, e o evento `exportar` é gravado **antes** de o
+arquivo sair; se o registro falha, o arquivo não sai.
+
+### Bloqueio de login por tentativas
+
+A regra lê a própria `auditoria` — não há contador em tabela separada, que divergiria do
+log no primeiro insert que falhasse.
+
+- **5 `falha_login` em 15 minutos bloqueiam** o identificador (CPF ou e-mail). Janela
+  deslizante: o bloqueio acaba quando a mais antiga dessas cinco sai da janela.
+- Durante o bloqueio **a senha não é testada** e a tentativa não conta como falha; grava
+  `login_bloqueado`. Contar faria o bloqueio de quem insiste — o dono da conta, quase
+  sempre — nunca terminar.
+- `login` e `senha_redefinida` zeram a contagem.
+- A chave é `detalhes.chave_login`, **HMAC** do e-mail de login com segredo derivado da
+  `service_role` — nunca o CPF em claro, e não sha256 simples, que se desfaz por força
+  bruta nos 10⁹ CPFs possíveis. Existe também para identificador sem cadastro: CPF
+  inventado bloqueia igual, senão a sexta tentativa revelaria quem existe. Pelo mesmo
+  motivo a falha de quem não tem cadastro grava o `org_id` da instalação — sem ele o
+  evento some da trilha.
+- **Falha aberta, e só aqui:** se a leitura da auditoria der erro, o login segue para o
+  Supabase Auth (que tem limite por IP) em vez de trancar a organização inteira. O erro
+  vai alto para o console.
+
+Índice parcial `auditoria_tentativas_login_idx` (0011) cobre a leitura, que roda em todo
+login. Os números estão em aberto em `docs/06`.
 
 ---
 

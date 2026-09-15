@@ -38,7 +38,10 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     );
   }
   if (await temPermissao("administracao", "ver")) {
-    itens.push({ href: "/admin/acessos", rotulo: "Acessos" });
+    itens.push(
+      { href: "/admin/acessos", rotulo: "Acessos" },
+      { href: "/admin/auditoria", rotulo: "Auditoria" },
+    );
   }
 
   return (

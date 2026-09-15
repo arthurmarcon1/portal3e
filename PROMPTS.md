@@ -162,7 +162,7 @@ Toda alteração de perfil ou escopo grava em auditoria com o estado anterior e 
 novo, no campo detalhes (jsonb).
 ```
 
-## [ ] F2.2 — Trilha de auditoria
+## [x] F2.2 — Trilha de auditoria
 
 ```
 Implemente /admin/auditoria: listagem com filtro por período, usuário, ação e

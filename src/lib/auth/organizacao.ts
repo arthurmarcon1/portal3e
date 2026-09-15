@@ -16,6 +16,26 @@ export function slugOrganizacao(): string {
 }
 
 /**
+ * Id da organização desta instalação, sem sessão.
+ *
+ * Existe para a falha de login de quem não tem cadastro: sem `org_id`, o
+ * evento vai para `auditoria` mas fica invisível na trilha, porque
+ * `auditoria_leitura` filtra pela organização de quem lê. Tentativa contra
+ * CPF inexistente é justamente a que mais interessa numa apuração.
+ *
+ * `null` se o slug não resolver — o boot já grita nesse caso.
+ */
+export async function idDaOrganizacao(): Promise<string | null> {
+  const admin = criarClienteAdmin();
+  const { data } = await admin
+    .from("organizacoes")
+    .select("id")
+    .eq("slug", slugOrganizacao())
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+/**
  * Guarda de boot: confere que `ORG_SLUG` existe em `organizacoes.slug`.
  *
  * Por que isto merece derrubar o servidor: com o slug errado, o e-mail

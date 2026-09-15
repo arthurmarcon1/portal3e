@@ -71,6 +71,25 @@ custa mais caro.
       forte pressupõe `ver` no mesmo módulo") ou se as policies passam a aceitar `editar`
       como suficiente para ler.
 
+- [ ] **Números do bloqueio de login.** Pedido pelo Arthur junto com a F2.2; os valores
+      não estavam em doc nenhum. **Estado atual da implementação:** 5 falhas em 15
+      minutos, janela deslizante, valendo para CPF **e** para e-mail (interno e
+      contratante também) — o mesmo teto de 5 que docs/02 já fixa para o código de uso
+      único. `login` e senha redefinida pela recuperação zeram. Detalhe em docs/03,
+      "Bloqueio de login por tentativas".
+      Decidir: (a) os números; (b) se interno/contratante ficam de fora (hoje não
+      ficam — a conta com mais privilégio é a que mais merece a barreira); (c) se RH ou
+      suporte precisam de um botão de desbloqueio manual, ou se "esperar 15 minutos ou
+      recuperar a senha" basta. Mudar (a) é trocar duas constantes em
+      `src/lib/auth/bloqueio.ts`.
+
+- [ ] **Suporte/Auditoria exporta a trilha de auditoria?** A matriz de docs/02 dá a esse
+      perfil só `V` em `administracao`. A F2.2 exige `administracao:exportar` para o CSV
+      (a ação mais forte é checada onde é executada), então **hoje Suporte/Auditoria vê a
+      trilha na tela mas não exporta** — só Admin geral exporta. Se o perfil que se chama
+      Auditoria deve exportar, é um `insert` em `perfil_permissoes` e uma linha a mais na
+      matriz, sem migração.
+
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,

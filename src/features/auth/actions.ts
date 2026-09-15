@@ -3,12 +3,14 @@
 import { redirect } from "next/navigation";
 
 import { registrarAuditoria } from "@/lib/audit";
+import { mensagemDeBloqueio } from "@/lib/auth/bloqueio";
 import { gerarCodigo, validarCodigo, VALIDADE_MINUTOS } from "@/lib/auth/codigos";
 import {
   mascararIdentificador,
   resolverIdentificador,
 } from "@/lib/auth/identificador";
-import { slugOrganizacao } from "@/lib/auth/organizacao";
+import { idDaOrganizacao, slugOrganizacao } from "@/lib/auth/organizacao";
+import { chaveDoLogin, situacaoDoLogin } from "@/lib/auth/tentativas";
 import { destinoPermitido } from "@/lib/auth/rotas";
 import { exigirUsuario, rotaInicial } from "@/lib/auth/sessao";
 import { enviarEmail } from "@/lib/email";
@@ -62,7 +64,30 @@ export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
   }
 
   const mascarado = mascararIdentificador(validado.data.identificador);
+  const chave = chaveDoLogin(identificador.email);
   const cadastro = await usuarioPorEmailLogin(identificador.email);
+  // Sem cadastro, o evento ainda precisa de organização para aparecer na
+  // trilha (ver `idDaOrganizacao`).
+  const orgId = cadastro?.org_id ?? (await idDaOrganizacao());
+
+  // Antes da senha: durante o bloqueio ela não é testada. Vale igual para
+  // identificador sem cadastro — senão a sexta tentativa revelaria quem existe.
+  const situacao = await situacaoDoLogin(chave);
+  if (situacao.bloqueado) {
+    await registrarAuditoria({
+      acao: "login_bloqueado",
+      entidade: "usuarios",
+      entidadeId: cadastro?.id ?? null,
+      usuarioId: cadastro?.id ?? null,
+      orgId,
+      detalhes: {
+        identificador: mascarado,
+        chave_login: chave,
+        bloqueado_ate: situacao.ate.toISOString(),
+      },
+    });
+    return { ok: false, erro: mensagemDeBloqueio(situacao.minutosRestantes) };
+  }
 
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -76,8 +101,8 @@ export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
       entidade: "usuarios",
       entidadeId: cadastro?.id ?? null,
       usuarioId: cadastro?.id ?? null,
-      orgId: cadastro?.org_id ?? null,
-      detalhes: { identificador: mascarado, motivo: "credencial_invalida" },
+      orgId,
+      detalhes: { identificador: mascarado, chave_login: chave, motivo: "credencial_invalida" },
     });
     return { ok: false, erro: ERRO_CREDENCIAL };
   }
@@ -90,7 +115,9 @@ export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
       entidade: "usuarios",
       entidadeId: cadastro?.id ?? null,
       usuarioId: cadastro?.id ?? null,
-      orgId: cadastro?.org_id ?? null,
+      orgId,
+      // Sem `chave_login`: a senha estava certa, então isto não é palpite, e
+      // não deve empurrar o identificador para o bloqueio.
       detalhes: { identificador: mascarado, motivo: "acesso_inativo" },
     });
     return {
@@ -115,7 +142,8 @@ export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
     entidadeId: cadastro.id,
     usuarioId: cadastro.id,
     orgId: cadastro.org_id,
-    detalhes: { tipo: cadastro.tipo, via: identificador.tipo },
+    // `chave_login` zera a contagem de falhas deste identificador.
+    detalhes: { tipo: cadastro.tipo, via: identificador.tipo, chave_login: chave },
   });
 
   if (atualizado?.precisa_trocar_senha ?? false) redirect("/primeiro-acesso");
@@ -355,7 +383,8 @@ export async function redefinirSenha(
       entidadeId: cadastro.id,
       usuarioId: cadastro.id,
       orgId: cadastro.org_id,
-      detalhes: { origem: "recuperacao" },
+      // Quem provou ser dono da conta pelo código não herda o bloqueio.
+      detalhes: { origem: "recuperacao", chave_login: chaveDoLogin(identificador.email) },
     });
   } catch (erro) {
     return { ok: false, erro: mensagemDeErro(erro) };

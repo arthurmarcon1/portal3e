@@ -1234,6 +1234,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auditoria_opcoes_de_filtro: {
+        Args: never
+        Returns: {
+          campo: string
+          valor: string
+        }[]
+      }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
     }
     Enums: {
