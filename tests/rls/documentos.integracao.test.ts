@@ -300,3 +300,55 @@ describe("rascunho", () => {
     ]);
   });
 });
+
+describe("interno com escopo e comunicado coletivo — regra de docs/02", () => {
+  // Decisão de 2026-09-15: escopo de interno segrega pessoa e documento
+  // individual, NÃO aviso geral. Este caso existe para ninguém "consertar" a
+  // policy achando que é vazamento. Para contratante a regra é a oposta (ver
+  // "não lê coletivo dirigido a contrato de outro cliente", acima).
+  beforeAll(async () => {
+    const existente = exigir(
+      await admin.from("usuario_escopos").select("id").eq("usuario_id", PERSONAS.rhDp.id),
+      "escopo do RH/DP",
+    );
+    if (existente.length > 0) {
+      throw new Error(
+        "RH/DP já tem escopo cadastrado — no seed ele é escopo total. Outro teste deixou " +
+          "sujeira; este não vai sobrescrever. Apague usuario_escopos do RH/DP e rode de novo.",
+      );
+    }
+    exigir(
+      await admin
+        .from("usuario_escopos")
+        .insert({ usuario_id: PERSONAS.rhDp.id, contrato_id: CONTRATOS.c042 })
+        .select("id"),
+      "escopo 042 do RH/DP",
+    );
+  });
+
+  afterAll(async () => {
+    await admin.from("usuario_escopos").delete().eq("usuario_id", PERSONAS.rhDp.id);
+  });
+
+  it("RH/DP com escopo só no 042 lê o comunicado coletivo dirigido ao 077", async () => {
+    const rh = await como(PERSONAS.rhDp.email);
+    expect(await idsVisiveis(rh, "documentos", [coletivo077])).toEqual([coletivo077]);
+  });
+
+  it("e continua sem ler documento individual de quem está fora do escopo", async () => {
+    const soNo077 = exigir(
+      await admin.from("alocacoes").select("pessoa_id").eq("contrato_id", CONTRATOS.c077).limit(1).single(),
+      "pessoa do 077",
+    ).pessoa_id;
+    const individual = await doc(admin, {
+      tipo_id: TIPOS.comunicado,
+      escopo: "individual",
+      pessoa_id: soNo077,
+      status: "publicado",
+      titulo: "RLS comunicado individual fora do escopo",
+    });
+
+    const rh = await como(PERSONAS.rhDp.email);
+    expect(await idsVisiveis(rh, "documentos", [individual])).toEqual([]);
+  });
+});

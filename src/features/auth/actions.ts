@@ -49,7 +49,13 @@ async function usuarioPorEmailLogin(email: string) {
 // Login
 // ---------------------------------------------------------------------
 
-export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
+/**
+ * Falha de login. `bloqueadoAte` (ISO) só vem no bloqueio por tentativas: a
+ * tela usa para mostrar a contagem regressiva.
+ */
+export type ResultadoLogin = Resultado | { ok: false; erro: string; bloqueadoAte: string };
+
+export async function entrar(entrada: EntradaLogin): Promise<ResultadoLogin> {
   const validado = esquemaLogin.safeParse(entrada);
   if (!validado.success) {
     return { ok: false, erro: primeiraMensagem(validado.error) };
@@ -86,7 +92,11 @@ export async function entrar(entrada: EntradaLogin): Promise<Resultado> {
         bloqueado_ate: situacao.ate.toISOString(),
       },
     });
-    return { ok: false, erro: mensagemDeBloqueio(situacao.minutosRestantes) };
+    return {
+      ok: false,
+      erro: mensagemDeBloqueio(situacao.ate, new Date()),
+      bloqueadoAte: situacao.ate.toISOString(),
+    };
   }
 
   const supabase = await criarClienteServidor();

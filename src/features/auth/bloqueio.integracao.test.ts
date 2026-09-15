@@ -198,6 +198,15 @@ describe("bloqueio por tentativas", () => {
     expect(resultado).toMatchObject({ ok: false, erro: expect.stringContaining("bloqueado") });
     expect(chamadasAoAuth).toBe(0);
 
+    // A tela mostra quando libera (decisão de 2026-09-15): o horário tem de vir,
+    // e no futuro — as falhas foram semeadas há 2 minutos, então ~13 min.
+    if (!("bloqueadoAte" in resultado) || typeof resultado.bloqueadoAte !== "string") {
+      throw new Error("bloqueio sem bloqueadoAte");
+    }
+    const ate = new Date(resultado.bloqueadoAte).getTime();
+    expect(ate - Date.now()).toBeGreaterThan(10 * 60_000);
+    expect(ate - Date.now()).toBeLessThanOrEqual(15 * 60_000);
+
     const { data } = await admin
       .from("usuarios")
       .select("ultimo_acesso")

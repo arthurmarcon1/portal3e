@@ -242,7 +242,9 @@ log no primeiro insert que falhasse.
   vai alto para o console.
 
 Índice parcial `auditoria_tentativas_login_idx` (0011) cobre a leitura, que roda em todo
-login. Os números estão em aberto em `docs/06`.
+login. Números e ausência de desbloqueio manual decididos em 2026-09-15 (docs/02,
+"Bloqueio de login por tentativas"). A tela de login mostra o horário em que libera e
+a contagem regressiva (`src/app/(auth)/login/aviso-bloqueio.tsx`).
 
 ---
 

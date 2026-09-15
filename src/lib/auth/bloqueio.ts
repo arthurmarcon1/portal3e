@@ -18,7 +18,8 @@
  * Login bem-sucedido e senha redefinida pela recuperação zeram a contagem.
  *
  * Os números vêm do mesmo teto que docs/02 já fixa para o código de uso único
- * (5 tentativas). Estão em aberto em docs/06 — mudar é trocar as constantes.
+ * (5 tentativas), e foram confirmados em 2026-09-15 (docs/02, "Bloqueio de login
+ * por tentativas"), junto com a decisão de não haver desbloqueio manual.
  *
  * Módulo puro de propósito: é a peça que o teste de unidade cobre sem banco.
  */
@@ -76,10 +77,24 @@ export function avaliarBloqueio(
   return { bloqueado: true, ate, minutosRestantes };
 }
 
-export function mensagemDeBloqueio(minutosRestantes: number): string {
-  const tempo = minutosRestantes === 1 ? "1 minuto" : `${minutosRestantes} minutos`;
+/**
+ * Mensagem para quem está bloqueado.
+ *
+ * Diz o horário em que libera, não só "espere": sem isso a pessoa acha que a
+ * conta morreu e liga para o RH. Não há desbloqueio manual (decisão de
+ * 2026-09-15, docs/06) — o caminho é esperar ou recuperar a senha.
+ */
+export function mensagemDeBloqueio(ate: Date, agora: Date): string {
+  const minutos = Math.max(1, Math.ceil((ate.getTime() - agora.getTime()) / 60_000));
+  const tempo = minutos === 1 ? "1 minuto" : `${minutos} minutos`;
+  const horario = ate.toLocaleTimeString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
   return (
-    `Muitas tentativas sem sucesso. Por segurança, o acesso fica bloqueado por ${tempo}. ` +
+    `Muitas tentativas sem sucesso. Por segurança, o acesso está bloqueado até ${horario} ` +
+    `(daqui a ${tempo}). A conta não foi desativada: depois disso é só entrar de novo. ` +
     "Se esqueceu a senha, use “Esqueci minha senha”."
   );
 }

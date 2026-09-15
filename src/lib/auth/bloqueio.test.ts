@@ -77,9 +77,16 @@ describe("avaliarBloqueio", () => {
 });
 
 describe("mensagemDeBloqueio", () => {
-  it("diz quanto tempo falta e aponta a recuperação", () => {
-    expect(mensagemDeBloqueio(1)).toContain("1 minuto.");
-    expect(mensagemDeBloqueio(12)).toContain("12 minutos");
-    expect(mensagemDeBloqueio(12)).toContain("Esqueci minha senha");
+  it("diz o horário de Brasília em que libera e quanto falta", () => {
+    const ate = new Date(AGORA.getTime() + 12 * 60_000); // 15:12 UTC = 12:12 em Brasília
+    const mensagem = mensagemDeBloqueio(ate, AGORA);
+    expect(mensagem).toContain("até 12:12");
+    expect(mensagem).toContain("daqui a 12 minutos");
+    expect(mensagem).toContain("A conta não foi desativada");
+    expect(mensagem).toContain("Esqueci minha senha");
+  });
+
+  it("no singular e nunca em zero", () => {
+    expect(mensagemDeBloqueio(new Date(AGORA.getTime() + 5_000), AGORA)).toContain("daqui a 1 minuto)");
   });
 });

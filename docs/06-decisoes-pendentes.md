@@ -71,36 +71,6 @@ custa mais caro.
       forte pressupõe `ver` no mesmo módulo") ou se as policies passam a aceitar `editar`
       como suficiente para ler.
 
-- [ ] **Números do bloqueio de login.** Pedido pelo Arthur junto com a F2.2; os valores
-      não estavam em doc nenhum. **Estado atual da implementação:** 5 falhas em 15
-      minutos, janela deslizante, valendo para CPF **e** para e-mail (interno e
-      contratante também) — o mesmo teto de 5 que docs/02 já fixa para o código de uso
-      único. `login` e senha redefinida pela recuperação zeram. Detalhe em docs/03,
-      "Bloqueio de login por tentativas".
-      Decidir: (a) os números; (b) se interno/contratante ficam de fora (hoje não
-      ficam — a conta com mais privilégio é a que mais merece a barreira); (c) se RH ou
-      suporte precisam de um botão de desbloqueio manual, ou se "esperar 15 minutos ou
-      recuperar a senha" basta. Mudar (a) é trocar duas constantes em
-      `src/lib/auth/bloqueio.ts`.
-
-- [ ] **Suporte/Auditoria exporta a trilha de auditoria?** A matriz de docs/02 dá a esse
-      perfil só `V` em `administracao`. A F2.2 exige `administracao:exportar` para o CSV
-      (a ação mais forte é checada onde é executada), então **hoje Suporte/Auditoria vê a
-      trilha na tela mas não exporta** — só Admin geral exporta. Se o perfil que se chama
-      Auditoria deve exportar, é um `insert` em `perfil_permissoes` e uma linha a mais na
-      matriz, sem migração.
-
-- [ ] **Interno com escopo lê documento coletivo fora do escopo?** Achado na F2.3. Para
-      contratante a resposta estava escrita (docs/02: "sempre limitado ao escopo") e foi
-      corrigida na 0012. Para interno não está: hoje um interno com escopo no contrato
-      042 lê o comunicado coletivo dirigido ao 077, publicado e em rascunho (se tiver
-      `documentos:editar`). Pode ser o certo — comunicado interno costuma ser para todos
-      —, mas contradiz o espírito de "interno com escopo vê só o escopo" que vale para
-      pessoas. **Hoje não aparece:** nenhum interno do seed tem escopo.
-      Decidir: (a) fica como está; (b) interno com escopo segue a mesma regra do
-      contratante (`app.documento_no_escopo`). (b) é uma migração de uma linha em
-      `documentos_leitura` e `documentos_leitura_nao_publicado`.
-
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,
@@ -176,6 +146,21 @@ custa mais caro.
 ---
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-15 — Bloqueio de login: 5 falhas em 15 minutos, sem desbloqueio manual.**
+  Desbloqueio manual viraria fila de chamado no RH por algo que se resolve esperando.
+  Em troca, a tela de login mostra o horário em que libera e a contagem regressiva, e diz
+  que a conta não foi desativada. Vale também para login por e-mail. Registrado em
+  docs/02, "Bloqueio de login por tentativas".
+
+- **2026-09-15 — Suporte/Auditoria não exporta a trilha.** Perfil de auditoria é leitura,
+  e trilha exportada é cópia de dado sensível saindo do sistema. Só Admin geral exporta
+  (`administracao:exportar`). Registrado em docs/02, "Auditoria: quem lê e quem exporta".
+
+- **2026-09-15 — Interno com escopo lê comunicado coletivo de fora do escopo.** Escopo
+  segrega pessoa e documento individual, não aviso geral. Para contratante vale o
+  contrário (0012). Escrito como regra explícita em docs/02, "Escopo e documento
+  coletivo", e travado por teste em `tests/rls/documentos.integracao.test.ts`.
 
 - **2026-09-14 — Pessoa sem alocação é visível para quem tem `pessoas:editar`**,
   independentemente de escopo (migrações 0007 e 0009). Pessoa não alocada não pertence

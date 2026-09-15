@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { AvisoErro } from "@/components/aviso-erro";
@@ -11,12 +11,19 @@ import { Button } from "@/components/ui/button";
 import { entrar } from "@/features/auth/actions";
 import { esquemaLogin, type EntradaLogin } from "@/features/auth/schemas";
 
+import { AvisoBloqueio } from "./aviso-bloqueio";
+
 export function FormularioLogin({ destino }: { destino?: string }) {
   const [erro, setErro] = useState<string | null>(null);
+  // O bloqueio é do identificador: vale enquanto for o mesmo CPF/e-mail digitado.
+  const [bloqueio, setBloqueio] = useState<{ ate: string; identificador: string } | null>(
+    null,
+  );
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<EntradaLogin>({
     resolver: zodResolver(esquemaLogin),
@@ -27,13 +34,23 @@ export function FormularioLogin({ destino }: { destino?: string }) {
   // resolve com valor — só o caminho de erro volta para cá.
   async function aoEnviar(dados: EntradaLogin) {
     setErro(null);
+    setBloqueio(null);
     const resultado = await entrar(dados);
-    if (resultado && !resultado.ok) setErro(resultado.erro);
+    if (!resultado || resultado.ok) return;
+    if ("bloqueadoAte" in resultado) {
+      setBloqueio({ ate: resultado.bloqueadoAte, identificador: dados.identificador.trim() });
+    } else {
+      setErro(resultado.erro);
+    }
   }
+
+  const identificadorDigitado = useWatch({ control, name: "identificador" });
+  const bloqueioAtual =
+    bloqueio && identificadorDigitado.trim() === bloqueio.identificador ? bloqueio : null;
 
   return (
     <form onSubmit={handleSubmit(aoEnviar)} noValidate className="grid gap-3">
-      <AvisoErro mensagem={erro} />
+      {bloqueioAtual ? <AvisoBloqueio ate={bloqueioAtual.ate} /> : <AvisoErro mensagem={erro} />}
 
       <input type="hidden" {...register("destino")} />
 
