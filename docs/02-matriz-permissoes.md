@@ -3,6 +3,14 @@
 Esta matriz é a **fonte da verdade**. Ela é carregada no seed
 (`perfis` + `perfil_permissoes`) e nenhum código deve conter regra de acesso hardcoded.
 
+**Conferida por teste, não por olho.** `tests/matriz-permissoes.integracao.test.ts` lê
+as tabelas deste arquivo e compara com `perfil_permissoes` e `perfil_categorias` do
+banco, célula a célula, apontando cada divergência (ex.: `Fiscal (fiscal) ·
+pessoas:exportar — docs/02 marca R, o banco NÃO tem`). Por isso o **formato** das tabelas
+é contrato: cabeçalho `| Módulo | …perfis |`, uma linha por módulo canônico, células com
+as letras `V C E X R` separadas por espaço ou `—`. Perfil novo = coluna nova aqui + linha
+em `COLUNA_PARA_PERFIL` no teste + seed; mudar só um dos três quebra a suíte.
+
 Legenda: `V` ver · `C` criar · `E` editar · `X` excluir · `R` exportar/relatório · `—` sem acesso
 
 ---

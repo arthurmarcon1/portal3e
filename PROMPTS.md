@@ -184,10 +184,10 @@ Adicione ao script npm test e ao CI.
 ```
 
 **Aceite da Fase 2**
-- [ ] Nenhuma regra de acesso hardcoded (busque comparações literais de perfil no código)
-- [ ] Todos os testes de RLS verdes
-- [ ] Mudança de permissão visível na auditoria com antes e depois
-- [ ] Matriz do seed idêntica à de `docs/02`
+- [x] Nenhuma regra de acesso hardcoded (busque comparações literais de perfil no código)
+- [x] Todos os testes de RLS verdes
+- [x] Mudança de permissão visível na auditoria com antes e depois
+- [x] Matriz do seed idêntica à de `docs/02` — `tests/matriz-permissoes.integracao.test.ts`
 
 ---
 
