@@ -90,6 +90,17 @@ custa mais caro.
       Auditoria deve exportar, é um `insert` em `perfil_permissoes` e uma linha a mais na
       matriz, sem migração.
 
+- [ ] **Interno com escopo lê documento coletivo fora do escopo?** Achado na F2.3. Para
+      contratante a resposta estava escrita (docs/02: "sempre limitado ao escopo") e foi
+      corrigida na 0012. Para interno não está: hoje um interno com escopo no contrato
+      042 lê o comunicado coletivo dirigido ao 077, publicado e em rascunho (se tiver
+      `documentos:editar`). Pode ser o certo — comunicado interno costuma ser para todos
+      —, mas contradiz o espírito de "interno com escopo vê só o escopo" que vale para
+      pessoas. **Hoje não aparece:** nenhum interno do seed tem escopo.
+      Decidir: (a) fica como está; (b) interno com escopo segue a mesma regra do
+      contratante (`app.documento_no_escopo`). (b) é uma migração de uma linha em
+      `documentos_leitura` e `documentos_leitura_nao_publicado`.
+
 ## Trava a Fase 2 (decidir antes de codar acessos)
 
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,

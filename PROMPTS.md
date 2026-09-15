@@ -172,7 +172,7 @@ Visível apenas para quem tem administracao:ver. A exportação também é audit
 Paginação numerada, limite de 100 por página. Sem scroll infinito.
 ```
 
-## [ ] F2.3 — Testes de RLS
+## [x] F2.3 — Testes de RLS
 
 ```
 Crie tests/rls/ com Vitest cobrindo TODOS os cenários da tabela "Como testar a RLS"

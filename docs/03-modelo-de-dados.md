@@ -3,9 +3,9 @@
 A migração está em `supabase/migrations/0001_init.sql`. Este documento explica **por
 que** cada decisão foi tomada. Se você for mudar o schema, leia isto antes.
 
-> **Ambiente.** Os testes rodam contra o **Supabase local**, recriado do zero a cada
-> `npm test`: migrações na ordem e depois o seed. O projeto na nuvem é **demonstração e
-> teste manual**, com seed estável, e nenhum teste automatizado escreve nele.
+> **Ambiente.** Com Docker, os testes rodam contra o **Supabase local**, recriado do zero
+> a cada `npm test`: migrações na ordem e depois o seed. Sem Docker, rodam contra o
+> **projeto dev na nuvem**, sem reset — e por isso todo fixture limpa o que criou.
 > **Nenhum dado real de funcionário entra em nenhum dos dois, em nenhuma fase.**
 > Produção é um projeto novo, criado na F3, com as migrações reaplicadas do zero em
 > banco limpo — o mesmo que o `db reset` local já faz toda execução, que é o que
@@ -255,6 +255,20 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Quem tem `documentos:editar` lê o rascunho que criou | 1 linha |
 | Quem tem só `documentos:ver` lê rascunho | 0 linhas |
 | Funcionário lê coletivo direcionado ao contrato dele | 1 linha |
+| Contratante lê coletivo dirigido a contrato fora do escopo dele | 0 linhas — e 0 linhas no público-alvo (`documento_destinatarios`) |
+| Qualquer usuário tenta `update`/`delete` em `auditoria` | erro de permissão — inclusive Admin geral |
+
+Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema. Cada "0 linhas"
+tem um contraponto que enxerga o mesmo fixture — senão tabela vazia passaria por
+segregação. As três últimas linhas nasceram de defeitos que esses testes acharam, todos
+corrigidos na 0012: o contratante lia coletivo de qualquer contrato (desde a 0001), o
+público-alvo era legível pela organização inteira (regressão da 0010), e ciência e
+auditoria recusavam escrita em silêncio — "0 linhas afetadas", sem erro — em vez de
+`42501`.
+
+**Catálogo não entra em "0 linhas em tudo".** `perfis`, `perfil_permissoes`,
+`perfil_categorias`, `documento_tipos` e a própria `organizacoes` são legíveis a todo
+usuário da organização: descrevem regras, não pessoas.
 
 Sem esses testes passando, a fase não é considerada entregue.
 

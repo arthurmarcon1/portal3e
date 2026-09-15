@@ -63,6 +63,10 @@ por definição, então isso é uso legítimo, não gambiarra.
 | `npm test` | tudo, no alvo detectado |
 | `npm run test:unidade` | só o que não toca banco (nenhuma credencial necessária) |
 | `npm run test:integracao` | só integração, no alvo já configurado |
+| `npm run test:rls` | só `tests/rls/` (a tabela "Como testar a RLS" de docs/03), no alvo detectado |
+
+No CI (`.github/workflows/ci.yml`) há Docker, então roda sempre contra o local
+resetado — e é o único lugar que hoje prova a cadeia de migrações em banco limpo.
 
 **Rodando contra a nuvem, ninguém reseta nada.** O que isso exige de todo teste:
 
@@ -86,6 +90,11 @@ Outras regras da suíte:
   um só, e fixture que mexe em estado de persona atropela o arquivo vizinho.
 - `service_role` só no setup dos fixtures. Dentro do caso de teste, client autenticado
   como a persona — senão não é a RLS que está sendo testada.
+- **"0 linhas" só prova algo se a linha existe.** Todo caso de "não enxerga" tem um
+  contraponto — outra persona, ou outra categoria, que enxerga o mesmo fixture. Sem
+  ele, uma tabela vazia passa por segregação.
+- **Um login por persona por arquivo.** O Auth limita sign-in a 30 por 5 minutos por
+  IP, e a suíte inteira divide esse limite; `tests/rls/apoio.ts` guarda a sessão.
 
 ---
 

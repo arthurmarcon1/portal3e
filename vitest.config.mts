@@ -30,7 +30,9 @@ const alias = {
   ),
 };
 
-const INTEGRACAO = "src/**/*.integracao.test.{ts,tsx}";
+// `tests/rls/` (F2.3) fica fora de `src/` por não testar um módulo: testa o
+// banco, persona por persona. Mesmo projeto, mesmas regras de série.
+const INTEGRACAO = ["src/**/*.integracao.test.{ts,tsx}", "tests/**/*.integracao.test.ts"];
 
 export default defineConfig({
   test: {
@@ -43,7 +45,7 @@ export default defineConfig({
           environment: "node",
           globals: false,
           include: ["src/**/*.{test,spec}.{ts,tsx}"],
-          exclude: ["**/node_modules/**", INTEGRACAO],
+          exclude: ["**/node_modules/**", ...INTEGRACAO],
           setupFiles: ["./vitest.setup.ts"],
         },
       },
@@ -54,7 +56,7 @@ export default defineConfig({
           name: "integracao",
           environment: "node",
           globals: false,
-          include: [INTEGRACAO],
+          include: INTEGRACAO,
           setupFiles: ["./vitest.setup.ts"],
           // Um banco só: arquivos de integração não se atropelam.
           fileParallelism: false,

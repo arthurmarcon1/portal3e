@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/testes.mjs",
     "test:unidade": "vitest run --project unidade",
-    "test:integracao": "vitest run --project integracao"
+    "test:integracao": "vitest run --project integracao",
+    "test:rls": "node scripts/testes.mjs tests/rls"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

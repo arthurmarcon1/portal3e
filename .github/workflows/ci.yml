@@ -1,0 +1,57 @@
+# CI do Portal 3e.
+#
+# O runner do GitHub tem Docker, então `npm test` pega o caminho bom sozinho:
+# Supabase local, `db reset` (migrações na ordem + seed) e a suíte inteira —
+# unidade, integração e os testes de RLS por persona (tests/rls/). É também o
+# único lugar hoje que prova a cadeia de migrações subindo em banco limpo, que
+# é como produção vai nascer na F3.
+#
+# Nenhum segredo é necessário: as credenciais saem do `supabase status` do
+# stack local. O CI nunca fala com o projeto dev na nuvem.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificacao:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          # Só para o build não depender de .env. Nenhuma página é prerenderizada
+          # com dado do banco; a chave real nunca entra aqui.
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: build-sem-banco
+
+      - name: Testes (Supabase local, banco recriado do zero)
+        run: npm test
+
+      - name: Para o Supabase local
+        if: always()
+        run: npx supabase stop --no-backup
