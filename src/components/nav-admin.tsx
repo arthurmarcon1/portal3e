@@ -12,7 +12,7 @@ export type ItemNav = { href: string; rotulo: string };
  *
  * Os itens chegam prontos do servidor, já filtrados por permissão: link que a
  * pessoa não pode abrir não aparece. Isso é conveniência de UI — quem barra
- * de verdade é o layout do módulo.
+ * de verdade é `paginaProtegida`, em cada página.
  */
 export function NavAdmin({ itens }: { itens: ItemNav[] }) {
   const caminho = usePathname();

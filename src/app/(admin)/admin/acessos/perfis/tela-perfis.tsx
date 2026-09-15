@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { alterarPermissoesDoPerfil } from "@/features/acessos/actions";
 import type { Perfil } from "@/features/acessos/queries";
-import { ACOES, MODULOS } from "@/lib/auth/modulos";
+import { ACOES, MODULOS, ROTULOS_ACAO, ROTULOS_MODULO } from "@/lib/auth/modulos";
 
 /**
  * Matriz módulo × ação de um perfil, em grade de checkboxes.
@@ -16,26 +16,6 @@ import { ACOES, MODULOS } from "@/lib/auth/modulos";
  * `exigirPermissao` usa e que o `check` de `perfil_permissoes` reproduz no
  * banco. Uma terceira cópia aqui divergiria no primeiro módulo novo.
  */
-
-const ROTULO_MODULO: Record<string, string> = {
-  pessoas: "Pessoas",
-  contratos: "Contratos",
-  documentos: "Documentos",
-  jornada: "Jornada",
-  solicitacoes: "Solicitações",
-  comunicacao: "Comunicação",
-  sst: "SST",
-  relatorios: "Relatórios",
-  administracao: "Administração",
-};
-
-const ROTULO_ACAO: Record<string, string> = {
-  ver: "Ver",
-  criar: "Criar",
-  editar: "Editar",
-  excluir: "Excluir",
-  exportar: "Exportar",
-};
 
 const TIPOS: Record<string, string> = {
   interno: "Equipe 3e",
@@ -157,7 +137,7 @@ function GradeDoPerfil({
                   scope="col"
                   className="px-3 py-2 text-center text-xs font-medium text-texto-suave"
                 >
-                  {ROTULO_ACAO[acao]}
+                  {ROTULOS_ACAO[acao]}
                 </th>
               ))}
             </tr>
@@ -166,7 +146,7 @@ function GradeDoPerfil({
             {MODULOS.map((modulo) => (
               <tr key={modulo} className="border-t border-borda">
                 <th scope="row" className="px-3 py-2 text-left font-normal">
-                  {ROTULO_MODULO[modulo] ?? modulo}
+                  {ROTULOS_MODULO[modulo]}
                 </th>
                 {ACOES.map((acao) => {
                   const chave = `${modulo}:${acao}`;
@@ -176,7 +156,7 @@ function GradeDoPerfil({
                         checked={marcadas.includes(chave)}
                         disabled={!podeEditar}
                         onCheckedChange={(v) => alternar(chave, v === true)}
-                        aria-label={`${ROTULO_ACAO[acao]} em ${ROTULO_MODULO[modulo] ?? modulo}`}
+                        aria-label={`${ROTULOS_ACAO[acao]} em ${ROTULOS_MODULO[modulo]}`}
                       />
                     </td>
                   );

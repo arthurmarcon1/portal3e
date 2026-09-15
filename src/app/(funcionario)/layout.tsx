@@ -6,19 +6,20 @@ import { exigirTipo } from "@/lib/auth/sessao";
 /**
  * Área do funcionário.
  *
- * O `exigirTipo` abaixo É a barreira de autorização desta área. Não é
- * redundância do proxy, e não pode ser removido em nome de simplificar:
- * sem ele, qualquer sessão válida do Portal renderiza a área do funcionário.
+ * O `exigirTipo` abaixo protege o que ESTE layout desenha (cabeçalho, nome
+ * do usuário). Ele não segura as páginas: no Next 16 o layout não
+ * controla se o resto da rota renderiza — os segmentos rodam em paralelo e
+ * entram no RSC payload mesmo que o layout redirecione. Quem segura cada
+ * página é `paginaProtegida`, que refaz o tipo e checa o módulo antes de a
+ * página começar (ver `src/lib/auth/pagina-protegida.tsx`).
  *
  * O proxy (`src/proxy.ts`) é conveniência de roteamento — ele manda a pessoa
  * para a própria área antes de a tela piscar. Some com o proxy inteiro e nada
- * vaza; some com esta linha e vaza. A documentação do Next diz o mesmo: Proxy
- * é interceptação de requisição, não camada de autorização (e já houve CVE de
- * bypass de middleware).
+ * vaza. A documentação do Next diz o mesmo: Proxy é interceptação de
+ * requisição, não camada de autorização (e já houve CVE de bypass de
+ * middleware).
  *
- * Depois desta vem a fronteira de módulo — `exigirPermissao` no layout de
- * cada módulo — e, por último, a RLS, que segura o dado mesmo se as duas
- * primeiras falharem.
+ * Por último, a RLS, que segura o dado mesmo se as camadas de cima falharem.
  */
 export default async function LayoutFuncionario({ children }: { children: ReactNode }) {
   const usuario = await exigirTipo("funcionario");

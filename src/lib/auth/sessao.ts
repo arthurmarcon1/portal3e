@@ -138,7 +138,10 @@ export async function temPermissao(modulo: Modulo, acao: Acao): Promise<boolean>
 }
 
 /**
- * Barreira de permissão das Server Actions e das telas internas.
+ * Barreira de permissão das Server Actions e dos route handlers.
+ *
+ * **Não use em layout nem em página**: lançada durante o render, vira 500 — e
+ * no layout nem segura a página. Tela usa `paginaProtegida`.
  *
  * Lança `ErroDePermissao`; quem chama devolve `{ ok: false, erro }` com
  * `mensagemDeErro`. Isto é a primeira camada — a segunda, que vale de fato, é

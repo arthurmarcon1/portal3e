@@ -6,7 +6,7 @@ import { gerarModeloXlsx } from "@/lib/planilha";
  * Modelo de planilha da importação (F1.3).
  *
  * Route handler **valida sozinho** (CLAUDE.md, invariante 9): não herda nada
- * do layout do módulo, e o proxy não é barreira de autorização. Sem sessão ou
+ * da guarda da página, e o proxy não é barreira de autorização. Sem sessão ou
  * sem `pessoas:criar`, não sai arquivo.
  *
  * Não há auditoria aqui de propósito: o modelo é uma planilha vazia, não

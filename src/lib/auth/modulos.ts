@@ -27,3 +27,24 @@ export const ACOES = ["ver", "criar", "editar", "excluir", "exportar"] as const;
 
 export type Modulo = (typeof MODULOS)[number];
 export type Acao = (typeof ACOES)[number];
+
+/** Nome legível de cada módulo — grade de perfis e tela de acesso negado. */
+export const ROTULOS_MODULO: Record<Modulo, string> = {
+  pessoas: "Pessoas",
+  contratos: "Contratos",
+  documentos: "Documentos",
+  jornada: "Jornada",
+  solicitacoes: "Solicitações",
+  comunicacao: "Comunicação",
+  sst: "SST",
+  relatorios: "Relatórios",
+  administracao: "Administração",
+};
+
+export const ROTULOS_ACAO: Record<Acao, string> = {
+  ver: "Ver",
+  criar: "Criar",
+  editar: "Editar",
+  excluir: "Excluir",
+  exportar: "Exportar",
+};

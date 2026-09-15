@@ -111,16 +111,29 @@ requisição e nada mais muda.
 
 ### Barreiras de acesso
 
-Três camadas de autorização, da mais externa à decisiva. **O proxy não é uma delas.**
+Três camadas de autorização, da mais externa à decisiva. **O proxy não é uma delas — e
+o layout também não.**
 
-1. **Fronteira de área — `layout.tsx` do grupo de rotas.** Chama `exigirTipo()`.
-   É o que separa funcionário, contratante e equipe interna. Sem esta linha, qualquer
-   sessão válida do Portal renderiza qualquer área.
-2. **Fronteira de módulo — `layout.tsx` do módulo.** Chama
-   `exigirPermissao(modulo, acao)`, que lê `usuario_perfis × perfil_permissoes` no
-   banco, nunca uma constante no código. Cobre toda a subárvore do módulo.
-   Server Action que não seja pré-sessão começa por `exigirUsuario()`, e route handler
-   valida por conta própria — nunca por herança de camada externa.
+1. **Página — `paginaProtegida` em toda `page.tsx`** das áreas logadas
+   (`src/lib/auth/pagina-protegida.tsx`). Refaz `exigirTipo()` (tipo errado → redirect
+   para a própria área) e, se a página declara módulo, confere
+   `temPermissao(modulo, acao)` em `usuario_perfis × perfil_permissoes` no banco, nunca
+   numa constante. Sem permissão, renderiza `SemPermissao` — a tela diz qual permissão
+   falta (`modulo:acao`) e a quem pedir. **Falta de permissão nunca é 500.** A página só
+   é chamada depois da checagem, então nenhuma consulta dela começa antes.
+   *Por que não no layout:* no Next 16 o layout não controla se o resto da rota
+   renderiza. Os segmentos são renderizados pelo router em paralelo, e um layout que
+   lança ou troca `children` não impede a página de rodar nem de entrar no RSC payload
+   (guia de autenticação do Next, "Layouts"). Medido na F2.2: com `exigirPermissao` no
+   layout de `/admin/auditoria`, o RH/DP recebia 500 com o RSC completo da página
+   dentro, resultado das consultas incluído — só não vazou dado porque a RLS cortou.
+   O `exigirTipo` do layout da área continua, mas protege só o que o layout desenha
+   (cabeçalho e navegação). `src/app/paginas-protegidas.test.ts` quebra a suíte se
+   uma página das áreas não usar o wrapper ou se um layout chamar `exigirPermissao`.
+2. **Server Action e route handler — por conta própria.** Server Action que não seja
+   pré-sessão começa por `exigirUsuario()` e checa a ação específica com
+   `exigirPermissao(modulo, acao)`, que lança e vira `{ ok: false, erro }`. Route
+   handler valida sozinho e responde 401/403 — nunca por herança de camada externa.
 3. **RLS.** A que vale. Um bug nas duas primeiras não pode virar vazamento.
 
 **Subconsulta em policy roda sob a RLS da tabela consultada.** Duas consequências, as
@@ -150,7 +163,7 @@ Isso é **conveniência de roteamento, não autorização**. A própria document
 descreve Proxy como interceptação de requisição, que pode inclusive rodar na CDN, fora
 do runtime da aplicação — e já houve CVE de bypass de middleware no Next. O teste é
 simples: **apagar `proxy.ts` inteiro não abre buraco nenhum**, só piora a navegação.
-Apagar um `exigirTipo` abre. Se algum dia a única coisa entre um usuário e um dado for
+Apagar um `paginaProtegida` abre. Se algum dia a única coisa entre um usuário e um dado for
 o proxy, isso é o bug, não a economia.
 
 ---

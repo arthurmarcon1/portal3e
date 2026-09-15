@@ -125,9 +125,15 @@ Outras regras da suíte:
    apagado. Documento novo = versão nova = ciência nova; o histórico anterior fica.
 8. **Nada de soft delete inventado.** Use `status` explícito nas entidades que preveem
    ciclo de vida (`ativo`, `inativo`, `arquivado`), documentado no modelo de dados.
-9. **Autorização mora no que renderiza, nunca no proxy.**
-   Fronteira de área é o layout do grupo de rotas (tipo de usuário).
-   Fronteira de módulo é o layout do módulo (`exigirPermissao`).
+9. **Autorização mora na página, nunca no layout nem no proxy.**
+   Toda `page.tsx` das áreas logadas é `export default paginaProtegida({ tipo, modulo,
+   acao }, …)`: tipo e permissão de módulo checados antes de a página rodar. No Next 16
+   o layout **não segura a página** — os segmentos renderizam em paralelo e entram no
+   RSC payload mesmo quando o layout lança ou troca `children` (documentação do Next;
+   medido aqui: o 500 do layout de `/admin/auditoria` levava o RSC inteiro da página).
+   Layout só protege o que ele mesmo desenha.
+   Falta de permissão é tela `SemPermissao`, dizendo o que falta e a quem pedir —
+   **nunca 500**. 500 é defeito, não autorização.
    Todo route handler valida sozinho — o proxy nunca é a única barreira, nem para rota
    de API.
    Server Action que não seja pré-sessão começa com `exigirUsuario()`.
@@ -161,20 +167,23 @@ Outras regras da suíte:
 
   | Camada | Arquivo | Chamada |
   |---|---|---|
-  | Área | `src/app/(admin)/layout.tsx` e irmãos | `exigirTipo("interno")` |
-  | Módulo | `src/app/(admin)/pessoas/layout.tsx` | `exigirPermissao("pessoas", "ver")` |
+  | Área (o que o layout desenha) | `src/app/(admin)/layout.tsx` e irmãos | `exigirTipo("interno")` |
+  | Página | toda `page.tsx` de `(admin)`, `(contratante)`, `(funcionario)` | `paginaProtegida({ tipo: "interno", modulo: "pessoas", acao: "ver" }, …)` |
   | Server Action | `src/features/<modulo>/actions.ts` | `exigirUsuario()` e depois `exigirPermissao(...)` para a ação específica |
   | Route handler | `src/app/api/**/route.ts` | valida sozinho, sempre |
 
-  A raiz de `/admin` fica em `exigirTipo` de propósito: ela é fronteira de **área**, e
-  não existe permissão única que sirva para os nove módulos. Exigir
-  `administracao:ver` ali trancaria RH/DP e Contratos fora do próprio painel — a matriz
-  de `docs/02` dá esse módulo só a Admin geral e Suporte/Auditoria.
+  A raiz de cada área usa `paginaProtegida({ tipo })`, sem módulo, de propósito: ela é
+  fronteira de **área**, e não existe permissão única que sirva para os nove módulos.
+  Exigir `administracao:ver` na raiz de `/admin` trancaria RH/DP e Contratos fora do
+  próprio painel — a matriz de `docs/02` dá esse módulo só a Admin geral e
+  Suporte/Auditoria.
 
-  **Módulo novo sob `/admin` nasce com o próprio `layout.tsx`** chamando
-  `exigirPermissao("<modulo>", "ver")`. Um layout cobre a subárvore inteira, então a
-  page de listagem, a de detalhe e as aninhadas ficam protegidas de uma vez — e a
-  ação mais forte (`criar`, `editar`, `excluir`, `exportar`) é checada de novo na
+  **Página nova nasce com `paginaProtegida`**, cada uma declarando a ação que a tela
+  exige (`ver` na listagem e no detalhe, `criar` numa tela que só serve para criar).
+  Não há herança de layout. `src/app/paginas-protegidas.test.ts` quebra a suíte se
+  alguma `page.tsx` das áreas não usar o wrapper com o tipo certo, ou se algum layout
+  chamar `exigirPermissao` — que lança, vira 500, e no layout nem segura a página.
+  A ação mais forte (`criar`, `editar`, `excluir`, `exportar`) é checada de novo na
   Server Action que a executa.
 - **Erro no formato `{ ok: false, erro: string }`.** Mensagem em português, voltada ao
   usuário, dizendo o que fazer. Nunca vazar erro cru do Postgres para a tela.

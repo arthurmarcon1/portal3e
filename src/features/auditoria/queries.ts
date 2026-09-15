@@ -12,7 +12,7 @@ import { intervaloDoPeriodo, POR_PAGINA, type FiltrosAuditoria } from "./filtros
  *
  * Sempre com o client do usuário: quem decide se ele lê a trilha é
  * `auditoria_leitura` (própria organização + `administracao:ver`), não um
- * filtro aqui. O layout do módulo barra antes, e a RLS segura se ele falhar.
+ * filtro aqui. `paginaProtegida` barra antes, e a RLS segura se ela falhar.
  */
 
 export type EventoAuditoria = {
