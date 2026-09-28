@@ -1,6 +1,5 @@
-import { registrarAuditoria } from "@/lib/audit";
+import { entregarArquivo, idValido, resposta as texto } from "@/features/documentos/entrega";
 import { getUsuario, temPermissao } from "@/lib/auth/sessao";
-import { criarClienteAdmin } from "@/lib/supabase/admin";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
 /**
@@ -16,21 +15,9 @@ import { criarClienteServidor } from "@/lib/supabase/server";
  *    categoria e escopo, e documento invisível é 404, igual a inexistente;
  * 3. tipo com `exige_2fa` devolve 428 — o código de uso único é a F3.3, e
  *    rascunho de holerite é holerite (invariante 4);
- * 4. URL assinada de 60 segundos, gerada com `service_role` porque o bucket
- *    não tem policy para ninguém (invariante 3);
- * 5. grava `auditoria` ANTES de entregar: se o registro falha, o arquivo não
- *    sai;
- * 6. redireciona.
+ * 4–6. URL assinada de 60 segundos, `auditoria` antes de entregar e
+ *    redirect — em `entregarArquivo`, o mesmo caminho do download (F3.2).
  */
-
-const TTL_SEGUNDOS = 60;
-
-function texto(mensagem: string, status: number) {
-  return new Response(mensagem, {
-    status,
-    headers: { "content-type": "text/plain; charset=utf-8" },
-  });
-}
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await getUsuario();
@@ -44,7 +31,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const { id } = await params;
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return texto("Documento não encontrado.", 404);
+  if (!idValido(id)) return texto("Documento não encontrado.", 404);
 
   const supabase = await criarClienteServidor();
   const { data: documento, error } = await supabase
@@ -67,30 +54,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     );
   }
 
-  const { data: assinada, error: erroAssinatura } = await criarClienteAdmin()
-    .storage.from("documentos")
-    .createSignedUrl(documento.arquivo_path, TTL_SEGUNDOS);
-  if (erroAssinatura || !assinada) {
-    console.error("[documentos] prévia: URL assinada falhou", id, erroAssinatura?.message);
-    return texto("Não foi possível abrir o documento. Tente novamente em alguns minutos.", 500);
-  }
-
-  const { ok } = await registrarAuditoria({
+  return entregarArquivo({
+    documentoId: documento.id,
+    arquivoPath: documento.arquivo_path,
     acao: "ver",
-    entidade: "documentos",
-    entidadeId: documento.id,
     detalhes: {
       previa: true,
       versao: documento.versao,
       categoria: documento.documento_tipos.categoria,
     },
   });
-  if (!ok) {
-    return texto(
-      "Não foi possível registrar o acesso, então o documento não foi aberto. Tente novamente em alguns minutos.",
-      503,
-    );
-  }
-
-  return Response.redirect(assinada.signedUrl, 302);
 }

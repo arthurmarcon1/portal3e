@@ -195,6 +195,16 @@ baixa direto do Storage. O upload da F3.1 é feito pela Server Action com `servi
 e só depois de o client do usuário ter criado a linha — a RLS decide antes do arquivo
 existir.
 
+**Implementado na F3.2** em `src/app/api/documentos/[id]/download/route.ts`. Sem
+`?baixar=1` o PDF abre inline (a tela de ciência embute assim) e o evento é `ver`; com
+ele, a URL assinada força download com o título como nome, e o evento é `download`.
+Documento que a RLS não mostra é 404 — igual a inexistente. Só `publicado` e
+`arquivado` saem por aqui. O passo 3 devolve 428 para todo tipo com `exige_2fa` até a
+F3.3 marcar sessões como verificadas. Os passos 4–6 moram em
+`src/features/documentos/entrega.ts`, usados também pela prévia. Coberto por
+`src/features/documentos/download.integracao.test.ts` (hash do arquivo entregue,
+auditoria com IP, 404 com contraponto, 428, 401).
+
 A **prévia do rascunho** (`GET /api/documentos/[id]/previa`, F3.1) segue os mesmos seis
 passos, restrita a rascunho e a `documentos:editar`, com `acao = 'ver'` e
 `detalhes.previa = true`. Tipo com `exige_2fa` devolve 428 até a F3.3.
