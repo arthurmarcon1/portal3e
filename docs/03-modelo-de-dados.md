@@ -308,6 +308,7 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Fiscal tenta ler `auditoria` | 0 linhas |
 | Usuário da organização X consulta contratos | nenhum da organização Y |
 | Funcionário tenta `update` em `ciencias` | erro de permissão |
+| Funcionário tenta `insert` em `ciencias`, ou chamar `registrar_ciencia`, com o próprio token | 42501 — contraponto: a Server Action grava, com IP/user-agent do request (0018) |
 | Contratante sem escopo cadastrado | 0 linhas em tudo |
 | RH sem escopo (interno) | todos os contratos da própria org |
 | Interno **com** escopo consulta `pessoas` | só as do escopo — mesmo tendo `pessoas:editar` |
@@ -349,18 +350,23 @@ Sem esses testes passando, a fase não é considerada entregue.
 
 ## Ciência (F3.4)
 
-Uma chamada só, `public.registrar_ciencia(documento, tipo, justificativa, ip, user_agent)`
-(0017), SECURITY INVOKER — cada passo passa pela RLS de quem responde:
+**Só o servidor grava ciência** (0018). `authenticated` não tem `insert` em `ciencias`
+nem executa a função — tentar dá 42501. O único caminho é a Server Action
+`src/features/documentos/ciencia.ts`, que chama, com `service_role`,
+`public.registrar_ciencia(usuario, documento, tipo, justificativa, ip, user_agent)`: o
+usuário sai da sessão validada no servidor e o IP/user-agent do request, nunca do
+navegador. A função é SECURITY DEFINER e confere sozinha o que a RLS conferia:
 
-1. só `funcionario` com `pessoa_id` responde;
-2. lê o documento pela RLS dele: não chega a ele = "Documento não encontrado";
+1. o usuário é `funcionario` ativo e tem `pessoa_id`;
+2. o documento é da organização dele e **chega** à pessoa pelas mesmas portas de
+   `documentos_leitura` — individual dela, ou coletivo que alcança a alocação vigente
+   (`app.documento_alcanca_pessoa`); não chega = "Documento não encontrado";
 3. só `publicado` (versão arquivada não recebe resposta nova) e só tipo com
    `exige_ciencia`;
 4. divergência exige justificativa de **20 caracteres** (a constraint da 0001, > 10, fica
    como piso);
-5. grava a ciência com `versao` e `arquivo_hash` **lidos do documento**, não do cliente;
-   segunda resposta = "Você já respondeu este documento" (`unique (documento_id,
-   pessoa_id)`);
+5. grava a ciência com `versao` e `arquivo_hash` **lidos do documento**; segunda resposta
+   = "Você já respondeu este documento" (`unique (documento_id, pessoa_id)`);
 6. divergência abre a solicitação do tipo em
    `documento_tipos.tipo_solicitacao_divergencia`, sem responsável e sem prazo (docs/06),
    **na mesma transação** — ciência é imutável, então não pode existir ciência gravada

@@ -253,9 +253,10 @@ describe("divergência", () => {
     expect(r.ok).toBe(false);
     expect(await cienciasDe(espelho)).toEqual([]);
 
-    // Pela função direto, sem a validação da action: o banco confere igual.
-    const maria = await como(MARIA.email);
-    const { error } = await maria.rpc("registrar_ciencia", {
+    // A função, pelo caminho do servidor (service_role), sem a validação da
+    // action na frente: o banco confere igual.
+    const { error } = await admin.rpc("registrar_ciencia", {
+      p_usuario: MARIA.usuarioId,
       p_documento: espelho,
       p_tipo: "divergencia",
       p_justificativa: "faltou dia 3",
@@ -336,6 +337,68 @@ describe("divergência", () => {
   });
 });
 
+describe("ciência só pelo servidor (0018)", () => {
+  it("o funcionário não insere ciência direto pela API: 42501, e nada é gravado", async () => {
+    const doc = await documento(TIPOS.comunicado, "F3.4 tentativa direta", { pessoaId: MARIA.pessoaId });
+    const { data: alvo } = await admin.from("documentos").select("versao, arquivo_hash").eq("id", doc).single();
+
+    const maria = await como(MARIA.email);
+    const { data, error } = await maria
+      .from("ciencias")
+      .insert({
+        org_id: ORG,
+        documento_id: doc,
+        documento_versao: alvo!.versao,
+        documento_hash: alvo!.arquivo_hash,
+        pessoa_id: MARIA.pessoaId,
+        usuario_id: MARIA.usuarioId,
+        tipo: "confirmacao",
+        ip: "10.9.8.7",
+        user_agent: "escolhido por mim",
+      })
+      .select("id");
+    expect(error?.code).toBe("42501");
+    expect(data).toBeNull();
+    expect(await cienciasDe(doc)).toEqual([]);
+  });
+
+  it("nem pela função: `authenticated` não a executa (42501)", async () => {
+    const doc = await documento(TIPOS.comunicado, "F3.4 tentativa pela função", { pessoaId: MARIA.pessoaId });
+    const maria = await como(MARIA.email);
+    const { error } = await maria.rpc("registrar_ciencia", {
+      p_usuario: MARIA.usuarioId,
+      p_documento: doc,
+      p_tipo: "confirmacao",
+      p_justificativa: "",
+      p_ip: "10.9.8.7",
+      p_user_agent: "escolhido por mim",
+    });
+    expect(error?.code).toBe("42501");
+    expect(await cienciasDe(doc)).toEqual([]);
+  });
+
+  it("contraponto: a Server Action grava, com IP e user-agent do request — o que o navegador manda é ignorado", async () => {
+    const doc = await documento(TIPOS.comunicado, "F3.4 pela action", { pessoaId: MARIA.pessoaId });
+    const { registrarCiencia } = await modulosComo(MARIA.email);
+    const dados = resposta(doc, "confirmacao");
+    // Campos que um navegador adulterado poderia mandar: a action não os lê.
+    dados.set("ip", "10.9.8.7");
+    dados.set("user_agent", "escolhido por mim");
+    dados.set("usuario_id", PESSOA_JOAO);
+
+    const r = await registrarCiencia(dados);
+    expect(r.ok, r.ok ? "" : r.erro).toBe(true);
+    expect(await cienciasDe(doc)).toEqual([
+      expect.objectContaining({
+        ip: "203.0.113.44",
+        user_agent: "Mozilla/5.0 (Linux; Android 11) teste-f34",
+        usuario_id: MARIA.usuarioId,
+        pessoa_id: MARIA.pessoaId,
+      }),
+    ]);
+  });
+});
+
 describe("quem responde", () => {
   it("documento de outra pessoa: recusado, nada gravado", async () => {
     const doJoao = await documento(TIPOS.comunicado, "F3.4 comunicado do João", { pessoaId: PESSOA_JOAO });
@@ -351,13 +414,18 @@ describe("quem responde", () => {
     expect(await cienciasDe(doJoao)).toEqual([]);
   });
 
-  it("interno e contratante não dão ciência, nem pela função direto", async () => {
+  it("interno e contratante não dão ciência — nem pela action, nem pela função", async () => {
     const doc = await documento(TIPOS.comunicado, "F3.4 comunicado para terceiros", { pessoaId: MARIA.pessoaId });
-    const { registrarCiencia } = await modulosComo(EMAILS.rhDp);
-    expect(await registrarCiencia(resposta(doc, "confirmacao"))).toMatchObject({ ok: false });
+    const rhActions = await modulosComo(EMAILS.rhDp);
+    expect(await rhActions.registrarCiencia(resposta(doc, "confirmacao"))).toMatchObject({ ok: false });
+    const fiscalActions = await modulosComo(EMAILS.fiscal);
+    expect(await fiscalActions.registrarCiencia(resposta(doc, "confirmacao"))).toMatchObject({ ok: false });
 
-    const fiscal = await como(EMAILS.fiscal);
-    const { error } = await fiscal.rpc("registrar_ciencia", {
+    // Mesmo que o servidor fosse chamado com o id de um interno, a função
+    // recusa: ela confere o tipo sozinha.
+    const { data: rh } = await admin.from("usuarios").select("id").eq("email_login", EMAILS.rhDp).single();
+    const { error } = await admin.rpc("registrar_ciencia", {
+      p_usuario: rh!.id,
       p_documento: doc,
       p_tipo: "confirmacao",
       p_justificativa: "",
@@ -366,6 +434,20 @@ describe("quem responde", () => {
     });
     expect(error?.code).toBe("55000");
     expect(await cienciasDe(doc)).toEqual([]);
+  });
+
+  it("a função confere sozinha que o documento chega à pessoa", async () => {
+    const doJoao = await documento(TIPOS.comunicado, "F3.4 outro do João", { pessoaId: PESSOA_JOAO });
+    const { error } = await admin.rpc("registrar_ciencia", {
+      p_usuario: MARIA.usuarioId,
+      p_documento: doJoao,
+      p_tipo: "confirmacao",
+      p_justificativa: "",
+      p_ip: null,
+      p_user_agent: "",
+    });
+    expect(error).toMatchObject({ code: "55000", message: "Documento não encontrado." });
+    expect(await cienciasDe(doJoao)).toEqual([]);
   });
 
   it("versão arquivada não recebe resposta nova", async () => {

@@ -116,16 +116,6 @@ custa mais caro.
       basta, ou se algum documento precisa de assinatura com certificado. Isso decide se
       a Fase 6 tem custo de certificadora.
 
-- [ ] **O IP da ciência é informado por quem grava.** `ciencias.ip` vem do servidor na
-      Server Action (o mesmo `x-forwarded-for` da auditoria), mas `ciencias_insert` (0001)
-      e `public.registrar_ciencia` (0017) aceitam o IP como valor: um funcionário com
-      conhecimento técnico, chamando a API do Supabase direto com o próprio token,
-      conseguiria gravar a ciência **dele** com IP inventado. Não afeta ciência de outra
-      pessoa (a RLS amarra `pessoa_id` e `usuario_id`). Achado na F3.4; vale decidir
-      junto com o **valor jurídico da ciência**: se o IP compõe a prova, a gravação deve
-      passar só pelo servidor (função chamável só com `service_role`, depois de a action
-      conferir sessão) e a policy de insert direto sai.
-
 ## Trava a Fase 4
 
 - [ ] **PontoTel tem API?** Se não, o R01 exportado serve como fonte? Quem exporta e quando?
@@ -230,6 +220,26 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   "contestação de documento" própria, no lugar de `outro`) é migração de enum.
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-28 — Ciência só é gravada pelo servidor** (migração 0018). O IP e o
+  user-agent da ciência eram informados por quem gravava: `ciencias_insert` (0001) e
+  `registrar_ciencia` (0017) aceitavam os valores como vinham, e um funcionário com o
+  próprio token gravava a ciência dele com IP escolhido. **Não é questão de peso
+  jurídico: evidência que o próprio interessado escolhe não é evidência, e a ciência é
+  o produto.** `authenticated` perdeu o `insert` em `ciencias` (REVOKE, como a
+  `auditoria`) e a execução de `registrar_ciencia`, que virou SECURITY DEFINER só para
+  `service_role`. O único caminho é a Server Action, que tira o usuário da sessão
+  validada e o IP/user-agent do request. A função confere sozinha que o usuário é
+  funcionário ativo e que o documento chega à pessoa dele. Coberto em
+  `src/features/documentos/ciencia.integracao.test.ts` (insert direto e chamada direta
+  → 42501; a action continua gravando, ignorando o que o navegador manda).
+
+- **2026-09-28 — Confirmar ciência pede dois toques.** O botão da tela abre um diálogo
+  ("Confirmar ciência?"), e só o segundo toque grava. Motivo: a ciência é imutável e tem
+  valor de prova, e um toque acidental — no ônibus, com o celular no bolso — virando
+  prova que ninguém desfaz é pior que os ~2 segundos a mais no teste cronometrado.
+  Divergência não pede o segundo toque: escrever a justificativa já é o gesto deliberado.
+  Não é o "li e concordo" que docs/04 proíbe — não bloqueia o botão nem força rolagem.
 
 - **2026-09-28 — O titular lê o próprio documento arquivado** (migração 0016). Não era
   decisão, era bug da 0015: publicar uma retificação arquiva a v1, e `documentos_leitura`

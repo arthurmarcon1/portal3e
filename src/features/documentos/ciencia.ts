@@ -18,15 +18,25 @@ import { MINIMO_JUSTIFICATIVA } from "./ciencia-regras";
  * Registro de ciência (F3.4).
  *
  * Zod → exigirUsuario → `public.registrar_ciencia` → auditoria →
- * revalidatePath. A função do banco (0017) grava a ciência e, na
- * divergência, a solicitação vinculada numa transação só, com a RLS de quem
- * responde — ciência é imutável, então não pode existir ciência gravada com
- * solicitação que falhou. Versão e hash vêm do documento, não daqui.
+ * revalidatePath. A função do banco grava a ciência e, na divergência, a
+ * solicitação vinculada numa transação só — ciência é imutável, então não
+ * pode existir ciência gravada com solicitação que falhou. Versão e hash vêm
+ * do documento, não daqui.
  *
- * **Onde entra `service_role`** (invariante 2): só no upload da foto para o
- * bucket `anexos`, que não tem policy para ninguém. O registro em `anexos`
- * sai com o client do usuário, e a policy (0017) exige que a solicitação
- * seja dele.
+ * **Esta action é o único caminho de escrita em `ciencias`** (0018).
+ * `authenticated` não insere na tabela nem executa a função: o IP e o
+ * user-agent da prova saem do request que chegou a este servidor, e o
+ * usuário, da sessão validada aqui (`exigirUsuario` → `auth.getUser()`).
+ * Nada disso vem do navegador — evidência que o próprio interessado escolhe
+ * não é evidência.
+ *
+ * **Onde entra `service_role`, e por quê** (invariante 2): (1) a chamada a
+ * `registrar_ciencia`, que só `service_role` executa. Sem a RLS de quem
+ * responde no caminho, a própria função confere que o usuário é funcionário
+ * ativo e que o documento chega à pessoa dele — as mesmas peças de
+ * `documentos_leitura`. (2) O upload da foto para o bucket `anexos`, que não
+ * tem policy para ninguém; o registro em `anexos` sai pelo client do
+ * usuário, e a policy (0017) exige que a solicitação seja dele.
  */
 
 const esquemaCiencia = z.discriminatedUnion("tipo", [
@@ -90,8 +100,8 @@ export async function registrarCiencia(
     }
 
     const cabecalhos = await headers();
-    const supabase = await criarClienteServidor();
-    const { data, error } = await supabase.rpc("registrar_ciencia", {
+    const { data, error } = await criarClienteAdmin().rpc("registrar_ciencia", {
+      p_usuario: usuario.id,
       p_documento: entrada.documento_id,
       p_tipo: entrada.tipo,
       p_justificativa: entrada.tipo === "divergencia" ? entrada.justificativa : "",

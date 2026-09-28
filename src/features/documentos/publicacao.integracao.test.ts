@@ -59,36 +59,31 @@ const TIPO_ESPELHO = "941fb37f-659c-5222-9dfd-f2fc3b893e37";
 const TIPO_ASO = "a5ea6ce3-223a-5b48-b69c-9be2c7bcc720";
 
 /**
- * Ciência registrada pelo client da própria Maria — o caminho legítimo, pela
- * `ciencias_insert`. A tela da F3.4 ainda não existe; a policy, sim.
+ * Ciência da Maria pelo caminho real: a Server Action, como ela. Desde a
+ * 0018 é o único jeito de gravar ciência — nem o client dela insere.
  */
 async function mariaResponde(
   documentoId: string,
   tipo: "confirmacao" | "divergencia",
   justificativa: string | null = null,
 ) {
-  const { data: doc } = await admin
-    .from("documentos")
-    .select("versao, arquivo_hash")
-    .eq("id", documentoId)
-    .single();
-  const maria = await como(EMAILS.maria);
-  const { data, error } = await maria
+  estado.cliente = await como(EMAILS.maria);
+  vi.resetModules();
+  const { registrarCiencia } = await import("./ciencia");
+  const f = new FormData();
+  f.set("documento_id", documentoId);
+  f.set("tipo", tipo);
+  if (justificativa) f.set("justificativa", justificativa);
+  const r = await registrarCiencia(f);
+  if (!r.ok) throw new Error(`ciência da Maria: ${r.erro}`);
+
+  const { data } = await admin
     .from("ciencias")
-    .insert({
-      org_id: ORG,
-      documento_id: documentoId,
-      documento_versao: doc!.versao,
-      documento_hash: doc!.arquivo_hash,
-      pessoa_id: MARIA.pessoaId,
-      usuario_id: MARIA.usuarioId,
-      tipo,
-      justificativa,
-    })
     .select("id")
+    .eq("documento_id", documentoId)
+    .eq("pessoa_id", MARIA.pessoaId)
     .single();
-  if (error) throw new Error(`ciência da Maria: ${error.message}`);
-  return data.id;
+  return data!.id;
 }
 
 let admin: Cliente;

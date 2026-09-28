@@ -1265,6 +1265,7 @@ export type Database = {
           p_justificativa: string
           p_tipo: Database["public"]["Enums"]["tipo_ciencia"]
           p_user_agent: string
+          p_usuario: string
         }
         Returns: {
           ciencia_id: string

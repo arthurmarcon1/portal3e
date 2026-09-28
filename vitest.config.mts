@@ -60,6 +60,12 @@ export default defineConfig({
           setupFiles: ["./vitest.setup.ts"],
           // Um banco só: arquivos de integração não se atropelam.
           fileParallelism: false,
+          // Cada caso fala com o banco de verdade — e, sem Docker, com o
+          // projeto na nuvem, com login, rota e auditoria no mesmo caso. Os
+          // 5 s padrão do Vitest estouraram por latência de rede (sa-east-1)
+          // num caso que dava o resultado certo: timeout aqui mede a rede,
+          // não o código.
+          testTimeout: 20_000,
         },
       },
     ],
