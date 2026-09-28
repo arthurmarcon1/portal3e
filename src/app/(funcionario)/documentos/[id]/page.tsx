@@ -60,6 +60,7 @@ export default paginaProtegida(
           <h1 className="sr-only">{documento.titulo}</h1>
           <p className="mb-2 text-texto-suave">{documento.titulo}</p>
           <Protocolo
+            cienciaId={documento.resposta.id}
             tipo={documento.resposta.tipo}
             protocolo={documento.resposta.protocolo}
             respondidoEm={documento.resposta.respondido_em}
@@ -118,7 +119,8 @@ export default paginaProtegida(
         {documento.resposta ? (
           <div className="mt-3">
             <Protocolo
-              tipo={documento.resposta.tipo}
+              cienciaId={documento.resposta.id}
+            tipo={documento.resposta.tipo}
               protocolo={documento.resposta.protocolo}
               respondidoEm={documento.resposta.respondido_em}
               solicitacaoProtocolo={documento.solicitacao_protocolo}

@@ -266,6 +266,10 @@ fuso de Brasília, e o CNPJ da organização no rodapé.
 Gerado sob demanda, não armazenado. Rota: GET /api/ciencias/[id]/comprovante.
 ```
 
+> **Como ficou (F3.5, 2026-09-28):** `@react-pdf/renderer` com as fontes padrão do PDF
+> (cobrem português sem baixar fonte). O botão "Baixar comprovante em PDF" aparece na
+> tela de protocolo e no resumo de documento já respondido, como secundário.
+
 **Critério de aceite da Fase 3**
 - [ ] Publicar um comunicado para 30 pessoas e ver as 30 pendências aparecerem
 - [ ] Funcionário confirma no celular em menos de 1 minuto, cronometrado

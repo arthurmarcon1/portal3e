@@ -381,6 +381,22 @@ de enviar. Falha da foto depois da ciência gravada vira aviso na tela de protoc
 erro. Evento `ciencia` na auditoria. Coberto por
 `src/features/documentos/ciencia.integracao.test.ts`.
 
+## Comprovante de ciência (F3.5)
+
+`GET /api/ciencias/[id]/comprovante` gera o PDF **sob demanda, sem guardar** — a prova
+é o registro imutável em `ciencias`; o PDF é só a forma de levá-la. A ciência, a pessoa,
+o documento e a organização são lidos com o client do usuário: a titular gera sempre;
+terceiro só com `documentos:ver`, escopo e a categoria do documento (0016). Qualquer
+peça que a RLS não entrega = 404 — o comprovante não sai pela metade.
+
+Conteúdo (docs/05): protocolo, nome, CPF **mascarado** (`***.007.919-**`), título, tipo e
+versão, o **hash que a ciência gravou** (não o do documento hoje — é o que prova a qual
+arquivo a pessoa respondeu), tipo de resposta, justificativa se houver, data e hora em
+Brasília, e o CNPJ da organização no rodapé. Sai com `cache-control: private, no-store`.
+O `download` (entidade `ciencias`) vai para a auditoria **antes** de o arquivo sair.
+Coberto por `src/features/documentos/comprovante.integracao.test.ts`, que confere que o
+hash impresso é o sha256 do arquivo entregue pela rota de download.
+
 ## Retenção e descarte
 
 `documento_tipos.retencao_meses` define o prazo por categoria. Uma rotina mensal

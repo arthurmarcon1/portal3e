@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   apenasDigitos,
   formatarCnpj,
+  mascararCpf,
   formatarCpf,
   validarCnpj,
   validarCpf,
@@ -77,5 +78,16 @@ describe("formatação", () => {
     // Cadastro torto não é escondido pela camada de exibição.
     expect(formatarCpf("123")).toBe("123");
     expect(formatarCnpj("123")).toBe("123");
+  });
+});
+
+describe("mascararCpf", () => {
+  it("mostra só os seis dígitos do meio", () => {
+    expect(mascararCpf("01000791998")).toBe("***.007.919-**");
+    expect(mascararCpf("010.007.919-98")).toBe("***.007.919-**");
+  });
+
+  it("o que não é CPF não vaza nada", () => {
+    expect(mascararCpf("123")).toBe("***.***.***-**");
   });
 });

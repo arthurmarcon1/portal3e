@@ -4,7 +4,9 @@ const nextConfig: NextConfig = {
   // `exceljs` é CommonJS e carrega streams do Node. Empacotá-lo no bundle do
   // servidor rende avisos e build lenta sem ganho nenhum — ele só roda no
   // servidor mesmo (F1.3: leitura da planilha de importação).
-  serverExternalPackages: ["exceljs"],
+  // `@react-pdf/renderer` pelo mesmo motivo: gera o comprovante (F3.5) só no
+  // servidor, com fontes e streams do Node.
+  serverExternalPackages: ["exceljs", "@react-pdf/renderer"],
 
   experimental: {
     serverActions: {

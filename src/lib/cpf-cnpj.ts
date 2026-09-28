@@ -79,6 +79,21 @@ export function formatarCpf(valor: string): string {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
+/**
+ * CPF mascarado para documento que sai do sistema: `***.007.919-**`.
+ *
+ * Mantém os seis dígitos do meio — o padrão que órgãos públicos usam para
+ * publicar CPF sob a LGPD — e esconde o começo e o verificador. Suficiente
+ * para a pessoa reconhecer o próprio comprovante, insuficiente para
+ * reconstruir o número. Valor que não é CPF vira só asteriscos: na dúvida,
+ * não vaza.
+ */
+export function mascararCpf(valor: string): string {
+  const d = apenasDigitos(valor);
+  if (d.length !== 11) return "***.***.***-**";
+  return `***.${d.slice(3, 6)}.${d.slice(6, 9)}-**`;
+}
+
 /** `00.000.000/0000-00` para a tela, na mesma regra do `formatarCpf`. */
 export function formatarCnpj(valor: string): string {
   const d = apenasDigitos(valor);

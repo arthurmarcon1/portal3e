@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { CircleCheck, FileDown, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { formatarDataHora } from "@/features/documentos/formato";
@@ -13,10 +13,13 @@ import { cn } from "@/lib/utils";
  * volta ao início. Sem ele é o resumo que aparece acima do documento quando a
  * pessoa volta a abrir algo que já respondeu.
  *
- * O comprovante em PDF entra na F3.5; até lá, o número é a prova que a pessoa
- * leva, e a tela diz isso.
+ * O comprovante em PDF (F3.5) sai de `/api/ciencias/[id]/comprovante`, que
+ * confere a RLS e registra o download. É botão secundário: o primário da
+ * tela de protocolo continua sendo voltar ao início (docs/04, um primário
+ * por tela).
  */
 export function Protocolo({
+  cienciaId,
   tipo,
   protocolo,
   respondidoEm,
@@ -24,6 +27,7 @@ export function Protocolo({
   aviso,
   destaque = false,
 }: {
+  cienciaId: string;
   tipo: "confirmacao" | "divergencia";
   protocolo: string;
   respondidoEm: string;
@@ -63,9 +67,18 @@ export function Protocolo({
         </p>
       ) : null}
 
+      <Button asChild variant="outline" className="h-12 w-full text-base">
+        <a href={`/api/ciencias/${cienciaId}/comprovante`} download>
+          <FileDown aria-hidden strokeWidth={1.5} className="size-5" />
+          Baixar comprovante em PDF
+        </a>
+      </Button>
+
       {destaque ? (
         <>
-          <p className="text-texto-suave">Anote este número ou tire um print desta tela para guardar.</p>
+          <p className="text-texto-suave">
+            Guarde o comprovante, ou anote este número ou tire um print desta tela.
+          </p>
           <Button asChild className="h-12 w-full text-base">
             <Link href="/inicio">Voltar ao início</Link>
           </Button>
