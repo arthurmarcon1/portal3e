@@ -51,7 +51,10 @@ sem acesso ao que mais usa. **SST não recebe `jornada`**: jornada não é assun
 saúde e segurança.
 
 O **próprio funcionário** sempre vê os documentos dele, inclusive das categorias
-restritas. Restrição é sobre terceiros, não sobre o titular do dado.
+restritas **e inclusive arquivados** — a versão que ele confirmou continua legível depois
+de uma retificação (0016). Rascunho, nunca. Restrição é sobre terceiros, não sobre o
+titular do dado. A ciência segue a mesma lógica: o titular lê a própria sempre; terceiro
+precisa da categoria do documento.
 
 **O teto do contratante não está nesta tabela e não é configurável.** Ele vive no ramo
 `contratante` de `app.categoria_permitida()`, que libera apenas `geral`, `contratual` e
@@ -134,8 +137,9 @@ escrita — interno, `documentos:editar`, categoria liberada e pessoa no escopo 
 | Retificar | `editar` | `editar` | insert de rascunho com `substitui_id` |
 | Descartar rascunho | `ver` (detalhe) | `editar` | delete só de `rascunho` |
 
-**Descartar rascunho pede `editar`, não `excluir`** — a policy de exclusão já era
-assim desde a 0008. Rascunho nunca alcançou ninguém. A confirmar em docs/06.
+**Descartar rascunho pede `editar`, não `excluir`** — decidido em 2026-09-28 (docs/06).
+Rascunho nunca alcançou ninguém. `excluir` fica reservado para destruir registro
+publicado, que o sistema não permite de propósito.
 
 ---
 

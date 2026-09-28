@@ -116,22 +116,6 @@ custa mais caro.
       basta, ou se algum documento precisa de assinatura com certificado. Isso decide se
       a Fase 6 tem custo de certificadora.
 
-- [ ] **Documento arquivado some para o próprio titular.** `documentos_leitura` só
-      libera `publicado`, então a v1 de uma retificação — e qualquer documento
-      arquivado — deixa de aparecer para o funcionário que deu ciência nela. O registro
-      e a ciência ficam no banco, visíveis a quem edita. Achado na F3.1.
-      Decidir antes da F3.4: o funcionário mantém acesso de leitura ao que ele já
-      respondeu (histórico) ou só vê a versão vigente?
-- [ ] **`ciencias_leitura` não olha categoria.** Interno com `documentos:ver` e escopo
-      lê a ciência — inclusive a **justificativa de divergência** — de documento de
-      categoria que ele não pode abrir (ex.: Suporte/Auditoria e ASO). Achado na F3.1,
-      não corrigido nela (não é o escopo da tarefa). Proposta: a policy passa a exigir
-      que o usuário leia o documento (`exists` em `documentos`), como o público-alvo
-      (0012). Corrigir antes da F3.4, que é quando ciência passa a existir.
-- [ ] **Descartar rascunho pede `documentos:editar`, não `excluir`** (F3.1, docs/02).
-      Mantém o que a policy de exclusão já fazia desde a 0008. Confirmar com o gestor;
-      se a resposta for `excluir`, só RH/DP perde o descarte (a matriz dá X só ao Admin).
-
 ## Trava a Fase 4
 
 - [ ] **PontoTel tem API?** Se não, o R01 exportado serve como fonte? Quem exporta e quando?
@@ -215,6 +199,30 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   de acessos (F2.1) — sem código.
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-28 — O titular lê o próprio documento arquivado** (migração 0016). Não era
+  decisão, era bug da 0015: publicar uma retificação arquiva a v1, e `documentos_leitura`
+  só liberava `publicado` — o funcionário que confirmou a v1 perdia o acesso ao que
+  confirmou, e a ciência dele apontava para algo invisível. Na primeira retificação de
+  espelho (rotina mensal) isso apagaria da vista de quem assinou a prova que o produto
+  existe para guardar. A regra "o titular sempre vê o próprio documento, qualquer
+  categoria" passou a valer para qualquer status já publicado (`publicado` e
+  `arquivado`; rascunho nunca). No coletivo, onde não há titular, vale para quem
+  **respondeu** o documento arquivado. Terceiros não mudam. Coberto em
+  `src/features/documentos/publicacao.integracao.test.ts`.
+
+- **2026-09-28 — Ciência respeita a categoria do documento** (migração 0016).
+  `ciencias_leitura` pedia `documentos:ver` e escopo, mas não categoria: a
+  justificativa de divergência num ASO — que pode conter informação de saúde — era
+  legível para Suporte/Auditoria e Contratos, que não abrem o ASO. Vinha da 0001.
+  Terceiro agora precisa de `app.categoria_permitida()` na categoria do documento,
+  como na leitura do próprio documento. O titular lê a própria ciência sempre.
+
+- **2026-09-28 — Descartar rascunho pede `documentos:editar`, não `excluir`.**
+  Confirmado pelo gestor. Rascunho nunca alcançou ninguém: descartá-lo é parte de
+  editar. `excluir` fica reservado para destruir registro **publicado** — o que o
+  sistema não permite, de propósito (0015: publicado só vira arquivado; ciência e
+  documento publicado são a prova). Registrado em docs/02.
 
 - **2026-09-28 — Escrita em `documentos` passou a exigir categoria e escopo**
   (migração 0015, F3.1). Até a 0014, as policies de escrita pediam só

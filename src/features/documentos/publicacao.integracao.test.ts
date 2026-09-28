@@ -50,6 +50,46 @@ const TIPOS = {
   holerite: "485e0b90-d471-5f86-ac73-b942a9d8759e",
 } as const;
 const PESSOA_JOAO = "8605334e-658a-5360-a78a-79e3ff3736e8";
+const ORG = "1fac8b3c-4860-5606-836b-ca4c8dd420d0";
+const MARIA = {
+  usuarioId: "2c739684-5dce-5ac4-a8f5-4bccfd9150e2",
+  pessoaId: "9af9c3c1-a1a7-5dd1-99a4-49cd1d80355c",
+};
+const TIPO_ESPELHO = "941fb37f-659c-5222-9dfd-f2fc3b893e37";
+const TIPO_ASO = "a5ea6ce3-223a-5b48-b69c-9be2c7bcc720";
+
+/**
+ * Ciência registrada pelo client da própria Maria — o caminho legítimo, pela
+ * `ciencias_insert`. A tela da F3.4 ainda não existe; a policy, sim.
+ */
+async function mariaResponde(
+  documentoId: string,
+  tipo: "confirmacao" | "divergencia",
+  justificativa: string | null = null,
+) {
+  const { data: doc } = await admin
+    .from("documentos")
+    .select("versao, arquivo_hash")
+    .eq("id", documentoId)
+    .single();
+  const maria = await como(EMAILS.maria);
+  const { data, error } = await maria
+    .from("ciencias")
+    .insert({
+      org_id: ORG,
+      documento_id: documentoId,
+      documento_versao: doc!.versao,
+      documento_hash: doc!.arquivo_hash,
+      pessoa_id: MARIA.pessoaId,
+      usuario_id: MARIA.usuarioId,
+      tipo,
+      justificativa,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(`ciência da Maria: ${error.message}`);
+  return data.id;
+}
 
 let admin: Cliente;
 const clientes = new Map<string, Cliente>();
@@ -125,6 +165,8 @@ afterAll(async () => {
   const ids = [...criados];
   const { data } = await admin.from("documentos").select("arquivo_path").in("id", ids);
   await admin.from("notificacoes").delete().in("referencia_id", ids);
+  // Ciência é imutável para `authenticated`; `service_role` limpa o fixture.
+  await admin.from("ciencias").delete().in("documento_id", ids);
   // Versão nova primeiro: `substitui_id` aponta para a anterior.
   await admin.from("documentos").delete().in("id", ids).not("substitui_id", "is", null);
   await admin.from("documentos").delete().in("id", ids);
@@ -318,7 +360,8 @@ describe("publicar um comunicado coletivo", () => {
       expect(avisos!.length).toBeGreaterThan(0);
       expect(avisos![0].assunto).toMatch(/^Documento retificado: /);
 
-      // A funcionária vê a versão 2, não a 1.
+      // A funcionária vê a versão 2, não a 1: ela não respondeu a v1, então
+      // não há prova a preservar (contraponto do caso da 0016, mais abaixo).
       const maria = await como(EMAILS.maria);
       const { data: visiveis } = await maria.from("documentos").select("id").in("id", [id, v2]);
       expect(visiveis).toEqual([{ id: v2 }]);
@@ -441,5 +484,144 @@ describe("escrita respeita categoria e escopo (0015)", () => {
     const rh = await como(EMAILS.rhDp);
     const { data: assinada } = await rh.storage.from("documentos").createSignedUrl(doc!.arquivo_path, 60);
     expect(assinada).toBeNull();
+  });
+});
+
+describe("titular lê o que já respondeu, mesmo arquivado (0016)", () => {
+  let v1: string;
+  let v2: string;
+  let ciencia: string;
+  let hashV1: string;
+
+  beforeAll(async () => {
+    const { criarRascunho, publicarDocumento } = await actionsComo(EMAILS.rhDp);
+    v1 = exigirOk(
+      await criarRascunho(
+        formulario({
+          tipo_id: TIPO_ESPELHO,
+          titulo: "F3.1 espelho da Maria",
+          escopo: "individual",
+          pessoa_id: MARIA.pessoaId,
+        }),
+      ),
+    ).id;
+    criados.add(v1);
+    exigirOk(await publicarDocumento({ documento_id: v1, prazo_ciencia: "" }));
+    hashV1 = (await admin.from("documentos").select("arquivo_hash").eq("id", v1).single()).data!
+      .arquivo_hash;
+    ciencia = await mariaResponde(v1, "confirmacao");
+  }, 30_000);
+
+  it("a versão 2 em rascunho não aparece para a titular", async () => {
+    const { retificarDocumento } = await actionsComo(EMAILS.rhDp);
+    v2 = exigirOk(
+      await retificarDocumento(formulario({ documento_id: v1, titulo: "F3.1 espelho da Maria (v2)" })),
+    ).id;
+    criados.add(v2);
+
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria.from("documentos").select("id").in("id", [v1, v2]);
+    expect(data).toEqual([{ id: v1 }]);
+  });
+
+  it("publicada a v2, a v1 arquivada continua legível para quem a confirmou", async () => {
+    const { publicarDocumento } = await actionsComo(EMAILS.rhDp);
+    exigirOk(await publicarDocumento({ documento_id: v2, prazo_ciencia: "" }));
+
+    const { data: estado } = await admin.from("documentos").select("status").eq("id", v1).single();
+    expect(estado!.status).toBe("arquivado");
+
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria.from("documentos").select("id, status, versao").in("id", [v1, v2]);
+    expect((data ?? []).sort((a, b) => a.versao - b.versao)).toEqual([
+      { id: v1, status: "arquivado", versao: 1 },
+      { id: v2, status: "publicado", versao: 2 },
+    ]);
+  });
+
+  it("a ciência da v1 continua rastreável: versão, hash e o documento a que aponta", async () => {
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria
+      .from("ciencias")
+      .select("id, tipo, documento_versao, documento_hash, protocolo, documentos(id, status)")
+      .eq("id", ciencia)
+      .single();
+    expect(data).toMatchObject({
+      tipo: "confirmacao",
+      documento_versao: 1,
+      documento_hash: hashV1,
+      documentos: { id: v1, status: "arquivado" },
+    });
+    expect(data!.protocolo).toMatch(/^\d{4}-\d{6}$/);
+  });
+
+  it("a v2 exige ciência nova: a da v1 não vale para ela", async () => {
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria.from("ciencias").select("id").eq("documento_id", v2);
+    expect(data).toEqual([]);
+  });
+
+  it("terceiro sem `editar` continua sem ver arquivado — a regra nova é só do titular", async () => {
+    const suporte = await como(EMAILS.suporte);
+    const { data } = await suporte.from("documentos").select("id").eq("id", v1);
+    expect(data).toEqual([]);
+  });
+});
+
+describe("ciência respeita a categoria do documento (0016)", () => {
+  let aso: string;
+  let divergencia: string;
+
+  beforeAll(async () => {
+    // ASO não tem tela no MVP (docs/06): o documento vem do fixture, a
+    // ciência vem do client da titular.
+    const { data, error } = await admin
+      .from("documentos")
+      .insert({
+        org_id: ORG,
+        tipo_id: TIPO_ASO,
+        escopo: "individual",
+        pessoa_id: MARIA.pessoaId,
+        titulo: "F3.1 ASO da Maria",
+        arquivo_path: `teste-f31/${crypto.randomUUID()}.pdf`,
+        arquivo_hash: "a".repeat(64),
+        status: "publicado",
+        publicado_em: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(`fixture ASO: ${error.message}`);
+    aso = data.id;
+    criados.add(aso);
+    divergencia = await mariaResponde(
+      aso,
+      "divergencia",
+      "O exame de audiometria listado não foi realizado por mim.",
+    );
+  }, 30_000);
+
+  it("Suporte/Auditoria (documentos:ver, sem médico) não lê a justificativa: 0 linhas", async () => {
+    const suporte = await como(EMAILS.suporte);
+    const { data } = await suporte.from("ciencias").select("id, justificativa").eq("id", divergencia);
+    expect(data).toEqual([]);
+  });
+
+  it("contraponto: RH/DP (tem médico) lê a mesma ciência", async () => {
+    const rh = await como(EMAILS.rhDp);
+    const { data } = await rh.from("ciencias").select("id").eq("id", divergencia);
+    expect(data).toEqual([{ id: divergencia }]);
+  });
+
+  it("a titular lê a própria ciência, qualquer categoria", async () => {
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria.from("ciencias").select("id, justificativa").eq("id", divergencia);
+    expect(data).toHaveLength(1);
+    expect(data![0].justificativa).toMatch(/audiometria/);
+  });
+
+  it("Contratos/Coordenação (documentos:ver, só jornada) também não lê", async () => {
+    const contratos = await como(EMAILS.contratos);
+    const { data } = await contratos.from("ciencias").select("id").eq("id", divergencia);
+    expect(data).toEqual([]);
   });
 });

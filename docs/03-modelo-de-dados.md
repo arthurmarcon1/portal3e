@@ -216,7 +216,8 @@ e `postgres` (seed, fixture, retenção) ficam de fora:
 - **Retificação** = insert com `substitui_id` apontando para um **publicado** do mesmo
   tipo, escopo e pessoa; `versao` calculada pelo banco. Índice único em `substitui_id`:
   uma versão por documento substituído. Publicar a nova **arquiva a anterior na mesma
-  transação** — as ciências dela ficam.
+  transação** — as ciências dela ficam, e o titular (ou, no coletivo, quem respondeu)
+  continua lendo a versão arquivada (0016).
 - **Notificação:** publicar insere uma linha em `notificacoes` (canal `portal`) para
   cada usuário ativo que o documento alcança (`app.pessoas_alcancadas`), na mesma
   transação. E-mail é da F4.3.
@@ -314,9 +315,12 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Qualquer interno insere documento já `publicado` | `42501` |
 | Quem publicou tenta mudar título, voltar a rascunho ou apagar um publicado | `55000` no update; 0 linhas no delete |
 | Quem lê o documento baixa o arquivo direto do bucket `documentos` | erro — só a rota do servidor entrega |
+| Funcionária confirma a v1, a retificação publicada arquiva a v1 | ela ainda lê a v1 e a ciência dela (versão e hash da v1); terceiro sem `editar` não vê a v1 (0016) |
+| Funcionária lê coletivo arquivado que **não** respondeu | 0 linhas — só a v2 |
+| Suporte/Auditoria (sem `medico`) lê a ciência de divergência de um ASO | 0 linhas — contraponto: RH/DP lê a mesma ciência (0016) |
 
 Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema; as linhas da
-0015 estão em `src/features/documentos/publicacao.integracao.test.ts`, que passa pelas
+0015 e da 0016 estão em `src/features/documentos/publicacao.integracao.test.ts`, que passa pelas
 Server Actions reais. Cada "0 linhas"
 tem um contraponto que enxerga o mesmo fixture — senão tabela vazia passaria por
 segregação. As linhas de coletivo e de `auditoria` nasceram de defeitos que esses testes acharam, todos
