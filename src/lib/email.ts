@@ -15,6 +15,8 @@ export type Mensagem = {
   assunto: string;
   /** Texto puro. Cliente antigo e leitor de tela leem melhor. */
   texto: string;
+  /** Versão HTML opcional (F4.3: o botão "Abrir no Portal"). O texto vai sempre junto. */
+  html?: string;
 };
 
 let cliente: Resend | null = null;
@@ -30,7 +32,7 @@ function resend(): Resend {
   return cliente;
 }
 
-export async function enviarEmail({ para, assunto, texto }: Mensagem): Promise<void> {
+export async function enviarEmail({ para, assunto, texto, html }: Mensagem): Promise<void> {
   const remetente = process.env.EMAIL_REMETENTE;
   if (!remetente) {
     throw new Error("EMAIL_REMETENTE não definida.");
@@ -41,6 +43,7 @@ export async function enviarEmail({ para, assunto, texto }: Mensagem): Promise<v
     to: para,
     subject: assunto,
     text: texto,
+    ...(html ? { html } : {}),
   });
 
   if (error) {

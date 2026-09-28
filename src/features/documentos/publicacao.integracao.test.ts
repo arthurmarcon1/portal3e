@@ -253,7 +253,18 @@ describe("publicar um comunicado coletivo", () => {
     const { data: avisos } = await admin
       .from("notificacoes")
       .select("usuario_id, canal, assunto")
-      .eq("referencia_id", id);
+      .eq("referencia_id", id)
+      .eq("canal", "portal");
+    // Com prazo, cada um também tem o e-mail pendente (F4.3, 0022).
+    const { data: emails } = await admin
+      .from("notificacoes")
+      .select("usuario_id, status, motivo")
+      .eq("referencia_id", id)
+      .eq("canal", "email");
+    expect((emails ?? []).every((e) => e.status === "pendente" && e.motivo === "publicado")).toBe(true);
+    expect((emails ?? []).map((e) => e.usuario_id).sort()).toEqual(
+      (usuarios ?? []).map((u) => u.id).sort(),
+    );
 
     expect((avisos ?? []).map((a) => a.usuario_id).sort()).toEqual(
       (usuarios ?? []).map((u) => u.id).sort(),
@@ -265,7 +276,11 @@ describe("publicar um comunicado coletivo", () => {
     const maria = await como(EMAILS.maria);
     const { data: docs } = await maria.from("documentos").select("id").eq("id", id);
     expect(docs).toEqual([{ id }]);
-    const { data: avisos } = await maria.from("notificacoes").select("id").eq("referencia_id", id);
+    const { data: avisos } = await maria
+      .from("notificacoes")
+      .select("id")
+      .eq("referencia_id", id)
+      .eq("canal", "portal");
     expect(avisos).toHaveLength(1);
     const { data: ciencias } = await maria.from("ciencias").select("id").eq("documento_id", id);
     expect(ciencias).toEqual([]);
@@ -351,7 +366,8 @@ describe("publicar um comunicado coletivo", () => {
       const { data: avisos } = await admin
         .from("notificacoes")
         .select("assunto")
-        .eq("referencia_id", v2);
+        .eq("referencia_id", v2)
+        .eq("canal", "portal");
       expect(avisos!.length).toBeGreaterThan(0);
       expect(avisos![0].assunto).toMatch(/^Documento retificado: /);
 

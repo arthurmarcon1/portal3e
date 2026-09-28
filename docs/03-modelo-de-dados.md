@@ -402,6 +402,38 @@ prazo).
 - Nomes na tela sem abrir `usuarios`: `public.responsaveis_possiveis()` e
   `public.pessoas_da_solicitacao(id)` devolvem id e nome, e só a quem vê a solicitação.
 
+## Notificações (F4.3)
+
+**O banco decide quem é avisado e de quê; o servidor envia.** Cada aviso é uma linha em
+`notificacoes` (`canal` portal e/ou email, `motivo`, `status = 'pendente'`), criada por:
+
+| Motivo | Quando | Quem cria |
+|---|---|---|
+| `publicado` | documento publicado **com prazo** (e-mail); todo publicado (portal) | `app.notificar_publicacao` (trigger, 0015/0022) |
+| `lembrete` | 3º dia da publicação, sem resposta, dentro do prazo (docs/06) | `public.gerar_avisos_de_prazo()` (job) |
+| `vencido` | prazo passou sem resposta | idem |
+| `respondida` | comentário visível da equipe, ou situação vai para "aguardando solicitante", aprovada ou recusada | `app.notificar_solicitacao` (trigger em `solicitacao_eventos`) |
+| `concluida` | situação vai para concluída | idem |
+
+Lembrete e vencido são únicos por pessoa, documento e canal (índice parcial) — o job pode
+rodar de hora em hora. Os de solicitação têm um freio de 5 minutos por motivo: comentar e
+mudar a situação no mesmo gesto é um e-mail só. O que o próprio solicitante faz e nota
+interna não avisam ninguém. O evento de status continua sendo do trigger da 0001; o de
+aviso só o lê.
+
+**Envio** (`src/features/notificacoes/envio.ts`, chamado por `GET /api/jobs/notificacoes`
+com `Authorization: Bearer $CRON_SECRET`; cron em `vercel.json`): só com
+`NOTIFICACOES_EMAIL=ativo` **e** `RESEND_API_KEY` **e** `EMAIL_REMETENTE`, e só entre 8h e
+20h de Brasília. Fora disso as linhas ficam `pendente`. Endereço: funcionário recebe em
+`pessoas.email_pessoal` (o login dele é sintético); os demais no e-mail de login. Sem
+endereço → `erro` com o motivo escrito, e o aviso do Portal continua. Falha do provedor
+tenta de novo e desiste na 3ª (`tentativas`, `erro`).
+
+**Modelo único** (`src/features/notificacoes/modelo.ts`): primeiro nome, uma frase, um
+botão "Abrir no Portal". Sem título de documento, sem conteúdo de solicitação, sem CPF,
+sem anexo, sem botão de confirmar. O prazo e o protocolo entram — não identificam
+ninguém.
+
 ## Ciência (F3.4)
 
 **Só o servidor grava ciência** (0018). `authenticated` não tem `insert` em `ciencias`

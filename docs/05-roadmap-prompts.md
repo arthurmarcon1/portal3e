@@ -323,6 +323,12 @@ nem botão de confirmar. Template único, texto curto, um botão "Abrir no Porta
 Registre cada envio em notificacoes.
 ```
 
+> **Como ficou (F4.3, 2026-09-29):** avisos criados pelo banco como linhas `pendente` em
+> `notificacoes`; envio pelo job `/api/jobs/notificacoes` (cron de hora em hora), **atrás da
+> flag** `NOTIFICACOES_EMAIL=ativo` e só com `RESEND_API_KEY`. Lembrete no **3º dia da
+> publicação** (decisão provisória de docs/06 — com o prazo padrão de 5 dias é o mesmo dia
+> que "2 dias do prazo"). Envio só de 8h a 20h de Brasília.
+
 **Critério de aceite da Fase 4**
 - [ ] Uma competência real publicada de ponta a ponta
 - [ ] Contestação de espelho vira solicitação com responsável e prazo

@@ -658,12 +658,15 @@ export type Database = {
           corpo: string | null
           criado_em: string
           enviada_em: string | null
+          erro: string | null
           id: string
           lida_em: string | null
+          motivo: string | null
           org_id: string
           referencia_id: string | null
           referencia_tipo: string | null
           status: string
+          tentativas: number
           usuario_id: string
         }
         Insert: {
@@ -672,12 +675,15 @@ export type Database = {
           corpo?: string | null
           criado_em?: string
           enviada_em?: string | null
+          erro?: string | null
           id?: string
           lida_em?: string | null
+          motivo?: string | null
           org_id: string
           referencia_id?: string | null
           referencia_tipo?: string | null
           status?: string
+          tentativas?: number
           usuario_id: string
         }
         Update: {
@@ -686,12 +692,15 @@ export type Database = {
           corpo?: string | null
           criado_em?: string
           enviada_em?: string | null
+          erro?: string | null
           id?: string
           lida_em?: string | null
+          motivo?: string | null
           org_id?: string
           referencia_id?: string | null
           referencia_tipo?: string | null
           status?: string
+          tentativas?: number
           usuario_id?: string
         }
         Relationships: [
@@ -1324,6 +1333,13 @@ export type Database = {
       categorias_permitidas: {
         Args: never
         Returns: Database["public"]["Enums"]["categoria_doc"][]
+      }
+      gerar_avisos_de_prazo: {
+        Args: never
+        Returns: {
+          lembretes: number
+          vencidos: number
+        }[]
       }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
       pessoas_da_solicitacao: {

@@ -152,6 +152,26 @@ custa mais caro.
 - [ ] **Fluxo da contestação de espelho:** quem trata, em quanto tempo, e o que acontece
       se procede (retifica no PontoTel e republica?).
 
+- [ ] **E-mail de verdade ainda não foi enviado nenhuma vez.** A F4.3 está completa, mas
+      `RESEND_API_KEY` está vazia: os avisos ficam `pendente` em `notificacoes`. Para
+      ligar: domínio verificado no Resend, `RESEND_API_KEY`, `EMAIL_REMETENTE` com esse
+      domínio, `NOTIFICACOES_EMAIL=ativo` e `CRON_SECRET`. O teste da F4.3 usa um
+      transporte de teste no lugar do Resend — o caminho inteiro roda, menos a chamada ao
+      provedor.
+- [ ] **O cron é de hora em hora (`vercel.json`), e o plano Hobby da Vercel só roda cron
+      diário.** No Hobby, lembrete e envio acontecem uma vez por dia. Decidir o plano (ou
+      um agendador externo chamando o job com o `CRON_SECRET`) antes do piloto.
+- [ ] **Funcionário sem `email_pessoal` só recebe o aviso no Portal** — e o seed, e
+      provavelmente o quadro real, não têm esse campo. Mesma pergunta da recuperação de
+      senha (Trava a Fase 0–1): exigir e-mail pessoal no cadastro, contratar SMS/WhatsApp,
+      ou aceitar que o aviso do funcionário é a pendência na home. **Não há ainda tela que
+      liste os avisos do Portal** (`canal = 'portal'`): a pendência de documento aparece
+      na home e o pedido "aguardando você" em Meus pedidos, mas a lista de avisos em si é
+      da Fase 5.
+- [x] **Janela de envio de e-mail: 8h às 20h de Brasília** — decisão minha na F4.3
+      (2026-09-29), para aviso não chegar de madrugada. Fora da janela, fica pendente
+      para a próxima rodada. Reverter é mudar `dentroDaJanela`.
+
 ## Trava a Fase 6 / comercialização
 
 - [ ] **Domínio e hospedagem.** Sugestão: `portal.3e.srv.br` ou domínio próprio do
