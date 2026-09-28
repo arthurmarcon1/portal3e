@@ -118,6 +118,27 @@ escopo nenhum, é 0 linhas — inclusive no público-alvo (`documento_destinatar
 
 ---
 
+## Documentos: que ação cada passo da publicação pede
+
+A matriz acima dá `documentos:V C E` juntos a todo perfil que publica; esta tabela diz
+qual das três cada passo confere (F3.1). A RLS é a mesma para todos os passos de
+escrita — interno, `documentos:editar`, categoria liberada e pessoa no escopo (0015).
+
+| Passo | Tela | Server Action | Banco |
+|---|---|---|---|
+| Listar e abrir documento | `ver` | — | `documentos_leitura` / rascunho só com `editar` |
+| Criar rascunho (upload) | `criar` | `criar` | insert só de `rascunho` |
+| Pré-visualizar rascunho | — | rota confere `editar` | leitura de rascunho |
+| Publicar | `ver` (detalhe) | `editar` | rascunho → publicado |
+| Arquivar | `ver` (detalhe) | `editar` | publicado → arquivado |
+| Retificar | `editar` | `editar` | insert de rascunho com `substitui_id` |
+| Descartar rascunho | `ver` (detalhe) | `editar` | delete só de `rascunho` |
+
+**Descartar rascunho pede `editar`, não `excluir`** — a policy de exclusão já era
+assim desde a 0008. Rascunho nunca alcançou ninguém. A confirmar em docs/06.
+
+---
+
 ## Funcionário (tipo de usuário: `funcionario`)
 
 Não usa a tabela de perfis. O acesso é fixo e sempre restrito a `pessoa_id = o próprio`:

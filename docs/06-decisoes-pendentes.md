@@ -116,6 +116,22 @@ custa mais caro.
       basta, ou se algum documento precisa de assinatura com certificado. Isso decide se
       a Fase 6 tem custo de certificadora.
 
+- [ ] **Documento arquivado some para o próprio titular.** `documentos_leitura` só
+      libera `publicado`, então a v1 de uma retificação — e qualquer documento
+      arquivado — deixa de aparecer para o funcionário que deu ciência nela. O registro
+      e a ciência ficam no banco, visíveis a quem edita. Achado na F3.1.
+      Decidir antes da F3.4: o funcionário mantém acesso de leitura ao que ele já
+      respondeu (histórico) ou só vê a versão vigente?
+- [ ] **`ciencias_leitura` não olha categoria.** Interno com `documentos:ver` e escopo
+      lê a ciência — inclusive a **justificativa de divergência** — de documento de
+      categoria que ele não pode abrir (ex.: Suporte/Auditoria e ASO). Achado na F3.1,
+      não corrigido nela (não é o escopo da tarefa). Proposta: a policy passa a exigir
+      que o usuário leia o documento (`exists` em `documentos`), como o público-alvo
+      (0012). Corrigir antes da F3.4, que é quando ciência passa a existir.
+- [ ] **Descartar rascunho pede `documentos:editar`, não `excluir`** (F3.1, docs/02).
+      Mantém o que a policy de exclusão já fazia desde a 0008. Confirmar com o gestor;
+      se a resposta for `excluir`, só RH/DP perde o descarte (a matriz dá X só ao Admin).
+
 ## Trava a Fase 4
 
 - [ ] **PontoTel tem API?** Se não, o R01 exportado serve como fonte? Quem exporta e quando?
@@ -199,6 +215,14 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   de acessos (F2.1) — sem código.
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-28 — Escrita em `documentos` passou a exigir categoria e escopo**
+  (migração 0015, F3.1). Até a 0014, as policies de escrita pediam só
+  `documentos:editar`: Contratos/Coordenação (categoria `jornada` apenas) conseguia
+  **inserir** holerite, e interno com escopo no 042 criava documento individual para
+  pessoa do 077 — só não lia de volta. Agora escrever pede o mesmo que ler rascunho.
+  Nenhum perfil perdeu escrita que a matriz dá. Coberto por
+  `src/features/documentos/publicacao.integracao.test.ts`.
 
 - **2026-09-15 — Interno com escopo e `contratos:editar` enxerga e cadastra a estrutura
   comercial da organização inteira** (migração 0013). Era a perda (a) da varredura da

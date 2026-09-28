@@ -30,6 +30,9 @@ const ACOES: Record<string, string> = {
   exportar: "Exportação",
   download: "Download",
   publicar: "Publicação",
+  arquivar: "Arquivamento",
+  retificar: "Retificação",
+  excluir: "Exclusão",
   ver: "Visualização",
 };
 

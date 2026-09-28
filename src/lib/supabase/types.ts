@@ -1244,7 +1244,19 @@ export type Database = {
           valor: string
         }[]
       }
+      categorias_permitidas: {
+        Args: never
+        Returns: Database["public"]["Enums"]["categoria_doc"][]
+      }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
+      resumo_do_documento: {
+        Args: { p_documento: string }
+        Returns: {
+          confirmadas: number
+          destinatarios: number
+          divergencias: number
+        }[]
+      }
     }
     Enums: {
       categoria_doc:

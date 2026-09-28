@@ -189,6 +189,42 @@ Dois buckets, ambos **privados**:
 
 Isso é o que transforma "quem baixou o quê" em fato registrado em vez de suposição.
 
+O bucket `documentos` é criado pela migração 0015, privado, só `application/pdf`, até
+8 MB, **sem nenhuma policy em `storage.objects`**: nem quem lê a linha do documento
+baixa direto do Storage. O upload da F3.1 é feito pela Server Action com `service_role`,
+e só depois de o client do usuário ter criado a linha — a RLS decide antes do arquivo
+existir.
+
+A **prévia do rascunho** (`GET /api/documentos/[id]/previa`, F3.1) segue os mesmos seis
+passos, restrita a rascunho e a `documentos:editar`, com `acao = 'ver'` e
+`detalhes.previa = true`. Tipo com `exige_2fa` devolve 428 até a F3.3.
+
+## Ciclo de vida do documento
+
+Garantido por trigger (0015), não pela tela — vale para `authenticated`; `service_role`
+e `postgres` (seed, fixture, retenção) ficam de fora:
+
+- **Insert só cria `rascunho`.** `publicado_em`/`publicado_por` são apagados no insert
+  e carimbados pelo banco na publicação (`now()`, `auth.uid()`).
+- **Publicado só vai para `arquivado`**, sem nenhuma outra coluna mudar junto.
+  Arquivado não muda mais. Só rascunho é apagado. Erro com `SQLSTATE 55000` e texto
+  pronto para a tela.
+- **Coletivo sem público não publica.** Público (`documento_destinatarios`) só muda
+  enquanto o documento é rascunho.
+- **Prazo:** vazio na publicação = hoje (Brasília) + `prazo_ciencia_dias` do tipo; nunca
+  antes de hoje; tipo sem ciência fica sem prazo.
+- **Retificação** = insert com `substitui_id` apontando para um **publicado** do mesmo
+  tipo, escopo e pessoa; `versao` calculada pelo banco. Índice único em `substitui_id`:
+  uma versão por documento substituído. Publicar a nova **arquiva a anterior na mesma
+  transação** — as ciências dela ficam.
+- **Notificação:** publicar insere uma linha em `notificacoes` (canal `portal`) para
+  cada usuário ativo que o documento alcança (`app.pessoas_alcancadas`), na mesma
+  transação. E-mail é da F4.3.
+
+Para a tela: `public.categorias_permitidas()` (as categorias que o usuário pode usar,
+perguntando a `app.categoria_permitida`) e `public.resumo_do_documento(id)` (alcançados,
+confirmações e divergências; zero linhas se a RLS não deixa ler o documento).
+
 ---
 
 ## Auditoria
@@ -274,8 +310,14 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Qualquer usuário tenta `update`/`delete` em `auditoria` | erro de permissão — inclusive Admin geral |
 | Interno com escopo no 042 e `contratos:editar` cria contratante, unidade e contrato | cria e lê de volta; lê o contrato 077; continua com 0 pessoas do 077 |
 | Interno com escopo no 042 só com `contratos:ver` | só o contrato 042 |
+| Interno com `documentos:editar` e sem a categoria cria documento dela (insert sem `RETURNING`) | `42501` — e o contraponto com a categoria cria (0015) |
+| Qualquer interno insere documento já `publicado` | `42501` |
+| Quem publicou tenta mudar título, voltar a rascunho ou apagar um publicado | `55000` no update; 0 linhas no delete |
+| Quem lê o documento baixa o arquivo direto do bucket `documentos` | erro — só a rota do servidor entrega |
 
-Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema. Cada "0 linhas"
+Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema; as linhas da
+0015 estão em `src/features/documentos/publicacao.integracao.test.ts`, que passa pelas
+Server Actions reais. Cada "0 linhas"
 tem um contraponto que enxerga o mesmo fixture — senão tabela vazia passaria por
 segregação. As linhas de coletivo e de `auditoria` nasceram de defeitos que esses testes acharam, todos
 corrigidos na 0012: o contratante lia coletivo de qualquer contrato (desde a 0001), o

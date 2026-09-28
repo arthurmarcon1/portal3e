@@ -31,6 +31,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
   if (await temPermissao("pessoas", "ver")) {
     itens.push({ href: "/admin/pessoas", rotulo: "Pessoas" });
   }
+  if (await temPermissao("documentos", "ver")) {
+    itens.push({ href: "/admin/documentos", rotulo: "Documentos" });
+  }
   if (await temPermissao("contratos", "ver")) {
     itens.push(
       { href: "/admin/contratantes", rotulo: "Contratantes" },

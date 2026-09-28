@@ -9,6 +9,9 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   ativo: { rotulo: "Ativo", classe: "border-sucesso/30 text-sucesso" },
   inativo: { rotulo: "Inativo", classe: "border-borda text-texto-suave" },
   arquivado: { rotulo: "Arquivado", classe: "border-borda text-texto-suave" },
+  // Documento (F3.1): rascunho ainda não alcançou ninguém.
+  rascunho: { rotulo: "Rascunho", classe: "border-alerta/30 text-alerta" },
+  publicado: { rotulo: "Publicado", classe: "border-sucesso/30 text-sucesso" },
 };
 
 export function BadgeStatus({ status }: { status: string }) {
