@@ -347,6 +347,34 @@ Sem esses testes passando, a fase não é considerada entregue.
 
 ---
 
+## Ciência (F3.4)
+
+Uma chamada só, `public.registrar_ciencia(documento, tipo, justificativa, ip, user_agent)`
+(0017), SECURITY INVOKER — cada passo passa pela RLS de quem responde:
+
+1. só `funcionario` com `pessoa_id` responde;
+2. lê o documento pela RLS dele: não chega a ele = "Documento não encontrado";
+3. só `publicado` (versão arquivada não recebe resposta nova) e só tipo com
+   `exige_ciencia`;
+4. divergência exige justificativa de **20 caracteres** (a constraint da 0001, > 10, fica
+   como piso);
+5. grava a ciência com `versao` e `arquivo_hash` **lidos do documento**, não do cliente;
+   segunda resposta = "Você já respondeu este documento" (`unique (documento_id,
+   pessoa_id)`);
+6. divergência abre a solicitação do tipo em
+   `documento_tipos.tipo_solicitacao_divergencia`, sem responsável e sem prazo (docs/06),
+   **na mesma transação** — ciência é imutável, então não pode existir ciência gravada
+   com a solicitação falhada.
+
+A Server Action (`src/features/documentos/ciencia.ts`) confere a foto **antes** de
+chamar a função — foto inválida não pode deixar meio registro — e sobe a foto aceita para
+o bucket privado `anexos` (0017) em `{org_id}/solicitacoes/{id}/{uuid}.jpg`, com o
+registro em `anexos` pelo client do usuário (`anexos_insert` exige que a solicitação seja
+visível a quem anexa). A tela reduz a foto no celular (lado maior 1.600 px, JPEG) antes
+de enviar. Falha da foto depois da ciência gravada vira aviso na tela de protocolo, não
+erro. Evento `ciencia` na auditoria. Coberto por
+`src/features/documentos/ciencia.integracao.test.ts`.
+
 ## Retenção e descarte
 
 `documento_tipos.retencao_meses` define o prazo por categoria. Uma rotina mensal

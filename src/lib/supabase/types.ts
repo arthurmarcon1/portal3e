@@ -505,6 +505,9 @@ export type Database = {
           org_id: string
           prazo_ciencia_dias: number | null
           retencao_meses: number | null
+          tipo_solicitacao_divergencia:
+            | Database["public"]["Enums"]["tipo_solicitacao"]
+            | null
         }
         Insert: {
           categoria: Database["public"]["Enums"]["categoria_doc"]
@@ -517,6 +520,9 @@ export type Database = {
           org_id: string
           prazo_ciencia_dias?: number | null
           retencao_meses?: number | null
+          tipo_solicitacao_divergencia?:
+            | Database["public"]["Enums"]["tipo_solicitacao"]
+            | null
         }
         Update: {
           categoria?: Database["public"]["Enums"]["categoria_doc"]
@@ -529,6 +535,9 @@ export type Database = {
           org_id?: string
           prazo_ciencia_dias?: number | null
           retencao_meses?: number | null
+          tipo_solicitacao_divergencia?:
+            | Database["public"]["Enums"]["tipo_solicitacao"]
+            | null
         }
         Relationships: [
           {
@@ -1249,6 +1258,22 @@ export type Database = {
         Returns: Database["public"]["Enums"]["categoria_doc"][]
       }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
+      registrar_ciencia: {
+        Args: {
+          p_documento: string
+          p_ip: unknown
+          p_justificativa: string
+          p_tipo: Database["public"]["Enums"]["tipo_ciencia"]
+          p_user_agent: string
+        }
+        Returns: {
+          ciencia_id: string
+          protocolo: string
+          respondido_em: string
+          solicitacao_id: string
+          solicitacao_protocolo: string
+        }[]
+      }
       resumo_do_documento: {
         Args: { p_documento: string }
         Returns: {

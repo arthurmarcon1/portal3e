@@ -26,8 +26,13 @@ export type Auditavel = {
   orgId?: string | null;
 };
 
-/** Primeiro IP do `x-forwarded-for`, ou `null` se o valor não servir para `inet`. */
-function extrairIp(cabecalhos: Headers): string | null {
+/**
+ * Primeiro IP do `x-forwarded-for`, ou `null` se o valor não servir para `inet`.
+ *
+ * Exportada porque a ciência (F3.4) grava o IP na própria linha de
+ * `ciencias`, e os dois registros não podem discordar sobre de onde veio.
+ */
+export function extrairIp(cabecalhos: Headers): string | null {
   const bruto =
     cabecalhos.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     cabecalhos.get("x-real-ip")?.trim() ??

@@ -246,6 +246,15 @@ como descrita, em /documentos/[id].
 Mobile first. Teste em viewport de 360px de largura.
 ```
 
+> **Como ficou (F3.4, 2026-09-28):** o PDF é desenhado com pdf.js em canvas — `<iframe>`
+> de PDF não abre no Chrome do Android — com botão "Ampliar o texto", porque A4 na largura
+> de 360px deixa o espelho ilegível. Pergunta e ações ficam numa barra presa ao pé da tela
+> (sem rolagem forçada). Confirmar pede um segundo toque num diálogo: a ciência é imutável
+> e um toque acidental não pode virar prova. A tela de protocolo mostra o número grande;
+> o botão do comprovante entra com a F3.5. Verificado em Chrome real a 360×740, sem
+> rolagem horizontal em nenhuma etapa; o teste cronometrado com pessoa de verdade fica
+> para a demonstração.
+
 ### F3.5 Comprovante em PDF
 
 ```

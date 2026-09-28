@@ -32,6 +32,7 @@ const ACOES: Record<string, string> = {
   publicar: "Publicação",
   arquivar: "Arquivamento",
   retificar: "Retificação",
+  ciencia: "Ciência",
   excluir: "Exclusão",
   ver: "Visualização",
 };
@@ -46,6 +47,7 @@ const ENTIDADES: Record<string, string> = {
   pessoas: "Pessoas",
   alocacoes: "Alocações",
   documentos: "Documentos",
+  ciencias: "Ciências",
   auditoria: "Auditoria",
 };
 

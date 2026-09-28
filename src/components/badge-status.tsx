@@ -12,6 +12,11 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   // Documento (F3.1): rascunho ainda não alcançou ninguém.
   rascunho: { rotulo: "Rascunho", classe: "border-alerta/30 text-alerta" },
   publicado: { rotulo: "Publicado", classe: "border-sucesso/30 text-sucesso" },
+  // Ciência, na área do funcionário (docs/04, "Status").
+  pendente: { rotulo: "Pendente", classe: "border-alerta/30 text-alerta" },
+  vencido: { rotulo: "Vencido", classe: "border-erro/30 text-erro" },
+  confirmacao: { rotulo: "Confirmado", classe: "border-sucesso/30 text-sucesso" },
+  divergencia: { rotulo: "Em divergência", classe: "border-erro/30 text-erro" },
 };
 
 export function BadgeStatus({ status }: { status: string }) {

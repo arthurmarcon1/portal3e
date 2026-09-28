@@ -20,7 +20,7 @@
  *    `serial`/`identity` cai junto com a tabela; a solta sobrevive ao wipe e
  *    colide com o `create sequence` da migração. A consulta é genérica: pega
  *    `protocolo_seq` e qualquer outra que alguém criar do mesmo jeito.
- * 2. **Arquivos dos buckets criados por migração** (`documentos`). O schema
+ * 2. **Arquivos dos buckets criados por migração** (`documentos`, `anexos`). O schema
  *    `storage` não entra no wipe: o bucket continua (a 0015 usa
  *    `on conflict`), mas os arquivos ficariam órfãos de linhas que não
  *    existem mais. Banco do zero é bucket vazio também.
@@ -48,7 +48,7 @@ const FORTE = "\x1b[1m";
 const FIM = "\x1b[0m";
 
 /** Buckets que as migrações criam. Bucket novo em migração = linha nova aqui. */
-const BUCKETS_DAS_MIGRACOES = ["documentos"];
+const BUCKETS_DAS_MIGRACOES = ["documentos", "anexos"];
 
 const passo = (t) => process.stdout.write(`${CINZA}→ ${t}${FIM}\n`);
 

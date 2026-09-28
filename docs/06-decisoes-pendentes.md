@@ -116,6 +116,16 @@ custa mais caro.
       basta, ou se algum documento precisa de assinatura com certificado. Isso decide se
       a Fase 6 tem custo de certificadora.
 
+- [ ] **O IP da ciência é informado por quem grava.** `ciencias.ip` vem do servidor na
+      Server Action (o mesmo `x-forwarded-for` da auditoria), mas `ciencias_insert` (0001)
+      e `public.registrar_ciencia` (0017) aceitam o IP como valor: um funcionário com
+      conhecimento técnico, chamando a API do Supabase direto com o próprio token,
+      conseguiria gravar a ciência **dele** com IP inventado. Não afeta ciência de outra
+      pessoa (a RLS amarra `pessoa_id` e `usuario_id`). Achado na F3.4; vale decidir
+      junto com o **valor jurídico da ciência**: se o IP compõe a prova, a gravação deve
+      passar só pelo servidor (função chamável só com `service_role`, depois de a action
+      conferir sessão) e a policy de insert direto sai.
+
 ## Trava a Fase 4
 
 - [ ] **PontoTel tem API?** Se não, o R01 exportado serve como fonte? Quem exporta e quando?
@@ -197,6 +207,27 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   **Quem decide:** diretoria da 3e.
   **O que muda:** segunda conta com perfil `admin_geral` em produção, criada pela tela
   de acessos (F2.1) — sem código.
+
+- **2026-09-28 — PROVISÓRIA — Divergência abre solicitação, por tipo de documento.**
+  Mapeamento em `documento_tipos.tipo_solicitacao_divergencia` (migração 0017) — dado,
+  não `switch` no código:
+  | Tipo de documento | Solicitação aberta pela divergência |
+  |---|---|
+  | `espelho_ponto` | `correcao_ponto` |
+  | `comunicado`, `norma_interna` | `outro` |
+  | `holerite` | — (não pede ciência) |
+  | `aso` | — (sem mapeamento até ganhar tela, na Fase 5; a divergência fica só na ciência) |
+  **Nunca `ocorrencia`:** em docs/02 ocorrência é o tipo que o contratante abre sobre a
+  operação e cai na fila dele. Divergência de funcionário sobre um documento é outro
+  assunto e outro responsável; misturar suja a fila do cliente.
+  A solicitação nasce **sem responsável e sem prazo**, com a justificativa como descrição,
+  na mesma transação da ciência (`public.registrar_ciencia`).
+  **Quem decide:** gestor da 3e, junto com o SLA da Fase 4.
+  **O que muda quando a Fase 4 decidir o SLA:** cada tipo de solicitação ganha prazo (e
+  talvez responsável padrão), e a solicitação da divergência passa a nascer com eles —
+  provavelmente mais uma coluna de configuração, não código. Quando holerite e ASO
+  ganharem fluxo, é `update` no mapeamento; tipo novo de solicitação (ex.: uma
+  "contestação de documento" própria, no lugar de `outro`) é migração de enum.
 
 ## Decisões já tomadas (registro)
 
