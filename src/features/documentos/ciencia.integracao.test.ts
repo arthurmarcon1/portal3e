@@ -125,6 +125,19 @@ async function documento(
   return data.id;
 }
 
+/** Hoje (Brasília) + N dias úteis — à parte do banco (SLA da 0020). */
+function diasUteis(n: number): string {
+  const hoje = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  const [a, m, d] = hoje.split("-").map(Number);
+  const data = new Date(Date.UTC(a, m - 1, d));
+  let faltam = n;
+  while (faltam > 0) {
+    data.setUTCDate(data.getUTCDate() + 1);
+    if (data.getUTCDay() !== 0 && data.getUTCDay() !== 6) faltam--;
+  }
+  return data.toISOString().slice(0, 10);
+}
+
 function resposta(
   documentoId: string,
   tipo: "confirmacao" | "divergencia",
@@ -267,7 +280,7 @@ describe("divergência", () => {
     expect(await cienciasDe(espelho)).toEqual([]);
   });
 
-  it("espelho abre solicitação correcao_ponto, sem responsável e sem prazo", async () => {
+  it("espelho abre solicitação correcao_ponto, sem responsável e com o prazo do SLA (3 dias úteis)", async () => {
     const espelho = await documento(TIPOS.espelho, "F3.4 espelho de agosto", { pessoaId: MARIA.pessoaId });
     const justificativa = "Faltou o sábado dia 16, trabalhei das 7h às 13h.";
     const { registrarCiencia } = await modulosComo(MARIA.email);
@@ -282,7 +295,7 @@ describe("divergência", () => {
       pessoa_id: MARIA.pessoaId,
       aberta_por: MARIA.usuarioId,
       responsavel_id: null,
-      prazo: null,
+      prazo: diasUteis(3),
       descricao: justificativa,
       protocolo: r.dados.solicitacao_protocolo,
     });

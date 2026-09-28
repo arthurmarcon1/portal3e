@@ -309,6 +309,10 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Usuário da organização X consulta contratos | nenhum da organização Y |
 | Funcionário tenta `update` em `ciencias` | erro de permissão |
 | Funcionário tenta `insert` em `ciencias`, ou chamar `registrar_ciencia`, com o próprio token | 42501 — contraponto: a Server Action grava, com IP/user-agent do request (0018) |
+| Contratante do 042 lê o pedido de férias (ou baixa o atestado) de funcionária do 042 | 0 linhas / 404 — contraponto: o RH lê e baixa (0021) |
+| Funcionário grava evento na linha do tempo (status falso, nota interna, comentário direto) | 42501 (0020) |
+| Qualquer um edita ou apaga evento da linha do tempo — inclusive o RH | 42501 (0020) |
+| Contratante abre ocorrência em contrato fora do escopo | recusado, nada gravado (0020) |
 | Contratante sem escopo cadastrado | 0 linhas em tudo |
 | RH sem escopo (interno) | todos os contratos da própria org |
 | Interno **com** escopo consulta `pessoas` | só as do escopo — mesmo tendo `pessoas:editar` |
@@ -363,6 +367,40 @@ duplicado entre lotes. Cada espelho segue o caminho da F3.1 (`gravarRascunho` em
 `src/features/documentos/gravacao.ts` → publicação): a RLS de `documentos` ainda pede
 `documentos:editar` e a categoria `jornada`. Título `Espelho de ponto — MM/AAAA`,
 `competencia` no 1º dia do mês, prazo padrão do tipo se vier vazio.
+
+## Solicitações (F4.2)
+
+Três áreas: funcionário (`/pedidos`), contratante (`/cliente/solicitacoes`), interno
+(`/admin/solicitacoes`, caixa de entrada com filtro por tipo, situação, responsável e
+prazo).
+
+- **Abertura (0020).** Toda solicitação nasce `aberta`, sem responsável, com
+  `prazo = hoje (Brasília) + N dias úteis` de `sla_solicitacoes` — trigger, quem abre não
+  escolhe. Funcionário abre só para si e só férias, afastamento, correção de ponto,
+  atualização cadastral e suporte, **sem contrato**. Contratante abre só ocorrência e
+  substituição, em contrato/unidade/pessoa do escopo. Interno, qualquer tipo, com
+  `solicitacoes:criar`.
+- **Leitura (0021).** Titular e quem abriu; interno com `solicitacoes:ver` por contrato
+  ou pela pessoa do escopo; **contratante só pelo contrato** — pedido pessoal não chega a
+  ele. Anexos e linha do tempo herdam.
+- **Tratamento.** Só interno com `solicitacoes:editar` muda situação e responsável.
+  Transições em `app.transicao_valida` (espelhada em `src/features/solicitacoes/fluxo.ts`
+  e conferida por teste); `concluida` e `cancelada` são finais. Tipo, solicitante,
+  pessoa e documento não mudam.
+- **Linha do tempo, imutável.** O evento de status é gravado **só** pelo trigger
+  `trg_solicitacao_status` (0001) e o de atribuição por `trg_solicitacao_atribuicao`
+  (0020); o código não duplica. Insert direto só de interno com `editar`, só
+  `comentario` (com `interno = true` para nota interna, que `eventos_leitura` esconde de
+  quem não é interno). UPDATE/DELETE revogados.
+- **Resposta do solicitante**: `public.responder_solicitacao` (DEFINER) — só quem abriu,
+  só em `pendente_solicitante`; grava o comentário e volta para `em_analise` numa
+  transação.
+- **Auditoria**: `criar`, `mudar_status` e `atribuir` (entidade `solicitacoes`) — a trilha
+  do sistema, separada da linha do tempo que o solicitante lê.
+- **Anexos**: foto ou PDF, conferidos pelo conteúdo; bucket `anexos`; saem só por
+  `GET /api/anexos/[id]` (RLS de `anexos`, URL de 60 s, auditoria antes).
+- Nomes na tela sem abrir `usuarios`: `public.responsaveis_possiveis()` e
+  `public.pessoas_da_solicitacao(id)` devolvem id e nome, e só a quem vê a solicitação.
 
 ## Ciência (F3.4)
 

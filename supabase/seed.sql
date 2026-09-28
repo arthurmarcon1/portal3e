@@ -41,6 +41,7 @@ begin
   delete from documentos           where org_id = v_org;
   delete from documento_tipos      where org_id = v_org;
   delete from regras_espelho       where org_id = v_org;
+  delete from sla_solicitacoes     where org_id = v_org;
   delete from alocacoes            where org_id = v_org;
   delete from pessoas              where org_id = v_org;
   delete from contrato_unidades    where contrato_id in (select id from contratos where org_id = v_org);
@@ -307,6 +308,20 @@ insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, 
 -- ---------------------------------------------------------------------
 insert into regras_espelho (org_id, expressao, campo) values
   ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', '(\d{3}\.?\d{3}\.?\d{3}-?\d{2})', 'cpf');
+
+-- ---------------------------------------------------------------------
+-- sla_solicitacoes (0020): PROVISÓRIO, decidido pelo Arthur em 2026-09-29
+-- (docs/06) — não pelo gestor. Dias úteis.
+-- ---------------------------------------------------------------------
+insert into sla_solicitacoes (org_id, tipo, dias_uteis) values
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'correcao_ponto', 3),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'ferias', 5),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'afastamento', 2),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'substituicao', 2),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'atualizacao_cadastral', 5),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'ocorrencia', 3),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'suporte', 3),
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'outro', 3);
 
 -- ---------------------------------------------------------------------
 -- Estrutura comercial fictícia

@@ -923,6 +923,35 @@ export type Database = {
           },
         ]
       }
+      sla_solicitacoes: {
+        Row: {
+          atualizado_em: string
+          dias_uteis: number
+          org_id: string
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+        }
+        Insert: {
+          atualizado_em?: string
+          dias_uteis: number
+          org_id: string
+          tipo: Database["public"]["Enums"]["tipo_solicitacao"]
+        }
+        Update: {
+          atualizado_em?: string
+          dias_uteis?: number
+          org_id?: string
+          tipo?: Database["public"]["Enums"]["tipo_solicitacao"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_solicitacoes_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitacao_eventos: {
         Row: {
           conteudo: string | null
@@ -1297,6 +1326,14 @@ export type Database = {
         Returns: Database["public"]["Enums"]["categoria_doc"][]
       }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
+      pessoas_da_solicitacao: {
+        Args: { p_solicitacao: string }
+        Returns: {
+          id: string
+          nome: string
+          tipo: Database["public"]["Enums"]["tipo_usuario"]
+        }[]
+      }
       registrar_ciencia: {
         Args: {
           p_documento: string
@@ -1312,6 +1349,17 @@ export type Database = {
           respondido_em: string
           solicitacao_id: string
           solicitacao_protocolo: string
+        }[]
+      }
+      responder_solicitacao: {
+        Args: { p_solicitacao: string; p_texto: string }
+        Returns: undefined
+      }
+      responsaveis_possiveis: {
+        Args: never
+        Returns: {
+          id: string
+          nome: string
         }[]
       }
       resumo_do_documento: {

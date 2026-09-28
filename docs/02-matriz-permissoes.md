@@ -89,6 +89,12 @@ Sempre limitado ao(s) contrato(s) e unidade(s) do escopo do usuário.
 - qualquer pessoa sem alocação ativa no contrato/unidade do escopo
 - qualquer registro de auditoria
 
+**Solicitações:** o contratante lê as do **contrato** (e unidade) do escopo — ocorrência,
+substituição, o que for do contrato. Pedido pessoal de funcionário (férias, afastamento,
+correção de ponto, atualização cadastral) nasce sem contrato e **não chega a ele**, mesmo
+que a pessoa esteja alocada no contrato (0021). O `E` de `solicitacoes` do contratante é
+responder quando a 3e pede — situação e responsável só a equipe interna muda (0020).
+
 O que o contratante **vê de uma pessoa**: nome, função, matrícula, unidade, situação
 (ativo/afastado/férias/desligado), data de início da alocação, foto (se houver) e
 frequência consolidada do mês.

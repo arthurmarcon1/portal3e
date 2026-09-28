@@ -32,3 +32,26 @@ export function validarImagem(conteudo: Uint8Array): ImagemAceita {
   if (riff === "RIFF" && webp === "WEBP") return { mime: "image/webp", extensao: "webp" };
   throw new ErroDeAnexo("O arquivo não é uma foto. Envie uma imagem JPG ou PNG, ou envie sem foto.");
 }
+
+export type AnexoAceito = { mime: ImagemAceita["mime"] | "application/pdf"; extensao: string };
+
+/**
+ * Anexo de solicitação (F4.2): foto ou PDF — o bucket `anexos` aceita os
+ * dois (0017). Conferido pelo conteúdo, como a foto da divergência.
+ */
+export function validarAnexo(conteudo: Uint8Array): AnexoAceito {
+  if (new TextDecoder("latin1").decode(conteudo.subarray(0, 5)) === "%PDF-") {
+    if (conteudo.byteLength > TAMANHO_MAXIMO) {
+      throw new ErroDeAnexo("O arquivo passa de 7 MB. Envie um arquivo menor.");
+    }
+    return { mime: "application/pdf", extensao: "pdf" };
+  }
+  try {
+    return validarImagem(conteudo);
+  } catch (erro) {
+    if (erro instanceof ErroDeAnexo && /não é uma foto/.test(erro.message)) {
+      throw new ErroDeAnexo("O anexo precisa ser uma foto (JPG, PNG) ou um PDF.");
+    }
+    throw erro;
+  }
+}

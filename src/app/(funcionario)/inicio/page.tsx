@@ -73,6 +73,17 @@ export default paginaProtegida(
           </section>
         )}
 
+        <Link
+          href="/pedidos"
+          className="mt-6 flex min-h-14 items-center justify-between rounded-lg border border-borda px-3"
+        >
+          <span>
+            <span className="block font-medium">Meus pedidos</span>
+            <span className="block text-sm text-texto-suave">Férias, afastamento, correção de ponto…</span>
+          </span>
+          <ChevronRight aria-hidden strokeWidth={1.5} className="size-5 text-texto-suave" />
+        </Link>
+
         {resolvidos.length > 0 ? (
           <section aria-labelledby="ultimos" className="mt-8">
             <h2 id="ultimos" className="mb-2 font-medium">

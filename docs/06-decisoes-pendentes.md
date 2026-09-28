@@ -62,7 +62,11 @@ custa mais caro.
 - [ ] **Subperfis internos definitivos.** A lista de seis está completa? Falta jurídico,
       comercial, qualidade?
 - [ ] **Fiscal do contrato** pode abrir solicitação de substituição, ou apenas registrar
-      ocorrência para a 3e tratar?
+      ocorrência para a 3e tratar? **Estado (F4.2):** segue o texto da F4.2 em docs/05
+      ("contratante: abrir ocorrência e substituição no escopo dele") — todo perfil de
+      contratante com `solicitacoes:criar`, o Fiscal incluído, abre os dois. Se a resposta
+      for "fiscal só ocorrência", a matriz precisa de granularidade que hoje não tem
+      (`solicitacoes:criar` não distingue tipo): é migração, não `insert`.
 - [ ] **Contratante vê espelho individual?** Movida para "Trava a Fase 3" — é a
       única pendência daquela fase que ainda bloqueia funcionalidade. Ver lá.
 - [x] **Funcionário desligado** — **PROVISÓRIA (2026-09-28)**, ver "Decisões
@@ -134,9 +138,17 @@ custa mais caro.
       a Contratos (é `insert` em `perfil_permissoes` + linha na matriz) ou corrigir a
       prosa.
 - [ ] **Calendário de fechamento:** em que dia do mês o espelho fica pronto para publicar?
-- [ ] **SLA por tipo de solicitação** (dias úteis):
-      férias __ · afastamento __ · correção de ponto __ · substituição __ · suporte __
-- [ ] **Quem aprova férias** — RH, coordenação, ou varia por contrato?
+- [x] **SLA por tipo de solicitação** — **PROVISÓRIO, decidido pelo Arthur (não pelo
+      gestor) em 2026-09-29**. Ver "Decisões provisórias".
+- [ ] **Feriados no prazo das solicitações.** O prazo conta dias úteis como segunda a
+      sexta (`app.somar_dias_uteis`, 0020); feriado nacional e municipal ainda não entra.
+      Decidir a fonte do calendário (tabela por organização, com os municipais de cada
+      unidade?) antes de o SLA virar indicador de desempenho.
+- [ ] **Quem aprova férias** — RH, coordenação, ou varia por contrato? **Estado (F4.2,
+      decisão do Arthur em 2026-09-29):** sem responsável automático; o pedido cai na
+      caixa de entrada interna (`/admin/solicitacoes`) como "sem responsável", e quem tem
+      `solicitacoes:editar` atribui. Quando decidir, o responsável padrão por tipo (ou por
+      contrato) é configuração nova — não está implementada.
 - [ ] **Fluxo da contestação de espelho:** quem trata, em quanto tempo, e o que acontece
       se procede (retifica no PontoTel e republica?).
 
@@ -222,16 +234,52 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   **Nunca `ocorrencia`:** em docs/02 ocorrência é o tipo que o contratante abre sobre a
   operação e cai na fila dele. Divergência de funcionário sobre um documento é outro
   assunto e outro responsável; misturar suja a fila do cliente.
-  A solicitação nasce **sem responsável e sem prazo**, com a justificativa como descrição,
-  na mesma transação da ciência (`public.registrar_ciencia`).
+  A solicitação nasce **sem responsável**, com a justificativa como descrição, na mesma
+  transação da ciência (`public.registrar_ciencia`). Desde a 0020 nasce **com o prazo do
+  SLA** do tipo (ex.: `correcao_ponto`, 3 dias úteis).
   **Quem decide:** gestor da 3e, junto com o SLA da Fase 4.
-  **O que muda quando a Fase 4 decidir o SLA:** cada tipo de solicitação ganha prazo (e
-  talvez responsável padrão), e a solicitação da divergência passa a nascer com eles —
-  provavelmente mais uma coluna de configuração, não código. Quando holerite e ASO
+  **SLA:** decidido (provisório) em 2026-09-29 — a divergência já nasce com o prazo do
+  tipo. Falta o responsável padrão, que segue em aberto. Quando holerite e ASO
   ganharem fluxo, é `update` no mapeamento; tipo novo de solicitação (ex.: uma
   "contestação de documento" própria, no lugar de `outro`) é migração de enum.
 
+- **2026-09-29 — PROVISÓRIA (decidida pelo Arthur, não pelo gestor) — SLA por tipo de
+  solicitação, em dias úteis.** Em `sla_solicitacoes` (0020), por organização:
+  | Tipo | Dias úteis |
+  |---|---|
+  | `correcao_ponto` | 3 |
+  | `ferias` | 5 |
+  | `afastamento` | 2 |
+  | `substituicao` | 2 |
+  | `atualizacao_cadastral` | 5 |
+  | `ocorrencia` | 3 |
+  | `suporte`, `outro` | 3 |
+  O banco calcula o prazo na abertura (hoje em Brasília + N dias úteis, segunda a sexta)
+  e quem abre não escolhe. Vale também para a solicitação que a divergência de ciência
+  abre — que até a 0020 nascia sem prazo.
+  **Quem decide:** gestor da 3e.
+  **O que muda:** outro valor é `update` em `sla_solicitacoes`, sem código; prazo de
+  solicitação já aberta não muda retroativamente. Feriados e responsável padrão por tipo
+  estão em aberto (Trava a Fase 4).
+
 ## Decisões já tomadas (registro)
+
+- **2026-09-29 — Contratante lê solicitação pelo contrato, nunca pela pessoa**
+  (migração 0021). O teste da F4.2 mediu: o fiscal do 042 lia o pedido de férias da
+  Maria e **baixava o atestado** do pedido de afastamento dela. `solicitacoes_leitura`
+  (0001) liberava a terceiros as solicitações de toda pessoa do escopo — certo para o
+  interno que trata o pedido, errado para o contratante, que via férias, afastamento
+  (dado de saúde), correção de ponto e atualização cadastral (telefone, endereço). Agora
+  contratante lê só pelo contrato (e unidade) do escopo; o pedido pessoal do funcionário
+  nasce sem contrato e não chega a ele. Anexos e linha do tempo herdam.
+
+- **2026-09-29 — Linha do tempo de solicitação à prova de falsificação** (migração
+  0020). `eventos_insert` (0001) deixava qualquer um que visse a solicitação gravar
+  qualquer evento — um funcionário forjava `mudanca_status` ou "nota interna". Agora só
+  interno com `solicitacoes:editar` insere, e só comentário; status e atribuição vêm dos
+  triggers; o solicitante responde por `public.responder_solicitacao`. UPDATE e DELETE
+  revogados (42501). E `solicitacoes_update` passou a ser só de interno — contratante
+  tinha `editar` e mudava status e responsável de solicitação do contrato dele.
 
 - **2026-09-28 — Ciência só é gravada pelo servidor** (migração 0018). O IP e o
   user-agent da ciência eram informados por quem gravava: `ciencias_insert` (0001) e
