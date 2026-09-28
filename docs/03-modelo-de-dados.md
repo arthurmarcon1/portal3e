@@ -348,6 +348,22 @@ Sem esses testes passando, a fase não é considerada entregue.
 
 ---
 
+## Espelhos em lote (F4.1)
+
+`/admin/jornada/publicar` (`jornada:criar`). Três passos, e o do meio não se pula:
+**analisar** manda ao servidor só os nomes dos arquivos, que casa cada um com as pessoas
+que a RLS mostra ao usuário pela regra de `regras_espelho` (0019: regex com a chave no
+1º grupo + campo `cpf`/`matricula`) e devolve casados, **não casados com motivo**
+(sem chave, sem pessoa no alcance, repetido no lote, já publicado na competência) e
+pessoas esperadas sem arquivo — só id e nome vão à tela, nunca CPF. A tela **sempre**
+mostra a lista de não casados antes do botão de publicar. **Publicar** envia os PDFs em
+lotes de até ~6 MB (a Server Action tem teto de 8 MB; o ZIP é aberto no navegador) e cada
+lote **refaz o casamento no servidor** com o estado de agora — é isso que impede espelho
+duplicado entre lotes. Cada espelho segue o caminho da F3.1 (`gravarRascunho` em
+`src/features/documentos/gravacao.ts` → publicação): a RLS de `documentos` ainda pede
+`documentos:editar` e a categoria `jornada`. Título `Espelho de ponto — MM/AAAA`,
+`competencia` no 1º dia do mês, prazo padrão do tipo se vier vazio.
+
 ## Ciência (F3.4)
 
 **Só o servidor grava ciência** (0018). `authenticated` não tem `insert` em `ciencias`

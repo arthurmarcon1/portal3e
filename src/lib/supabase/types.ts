@@ -884,6 +884,45 @@ export type Database = {
           },
         ]
       }
+      regras_espelho: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          campo: string
+          expressao: string
+          org_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          campo: string
+          expressao: string
+          org_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          campo?: string
+          expressao?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regras_espelho_atualizado_por_fkey"
+            columns: ["atualizado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "regras_espelho_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solicitacao_eventos: {
         Row: {
           conteudo: string | null

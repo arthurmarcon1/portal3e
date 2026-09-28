@@ -120,7 +120,19 @@ custa mais caro.
 
 - [ ] **PontoTel tem API?** Se não, o R01 exportado serve como fonte? Quem exporta e quando?
 - [ ] **Nomenclatura dos arquivos de espelho** que saem do fechamento (precisa conter
-      CPF ou matrícula de forma previsível).
+      CPF ou matrícula de forma previsível). **Estado (F4.1):** o casamento é uma
+      expressão regular configurável por organização (`regras_espelho`, 0019), com a
+      chave no 1º grupo e o campo CPF ou matrícula. Padrão provisório no seed: o CPF,
+      com ou sem pontuação, em qualquer lugar do nome. Quando a regra real vier, é
+      "Salvar como padrão" na tela — sem código.
+- [ ] **Quem publica espelho: a prosa de docs/02 e a matriz discordam.** docs/02 diz que
+      Contratos/Coordenação "publica espelho e trata contestação", mas a matriz dá a esse
+      perfil só `V R` em `jornada`. A F4.1 seguiu a **matriz** (a tabela é a fonte da
+      verdade e é conferida por teste): publicar em lote pede `jornada:criar`, que hoje é de
+      Admin geral e RH/DP. Contratos continua publicando espelho **avulso** pela tela de
+      documentos (tem `documentos:C E` e a categoria `jornada`). Decidir: dar `jornada:C`
+      a Contratos (é `insert` em `perfil_permissoes` + linha na matriz) ou corrigir a
+      prosa.
 - [ ] **Calendário de fechamento:** em que dia do mês o espelho fica pronto para publicar?
 - [ ] **SLA por tipo de solicitação** (dias úteis):
       férias __ · afastamento __ · correção de ponto __ · substituição __ · suporte __

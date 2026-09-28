@@ -40,6 +40,7 @@ begin
   delete from solicitacoes         where org_id = v_org;
   delete from documentos           where org_id = v_org;
   delete from documento_tipos      where org_id = v_org;
+  delete from regras_espelho       where org_id = v_org;
   delete from alocacoes            where org_id = v_org;
   delete from pessoas              where org_id = v_org;
   delete from contrato_unidades    where contrato_id in (select id from contratos where org_id = v_org);
@@ -298,6 +299,14 @@ insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, 
   ('485e0b90-d471-5f86-ac73-b942a9d8759e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'holerite', 'Holerite', 'folha', false, true, 60, null, null),
   -- Só o tipo: tela chega na Fase 5, com o módulo de SST.
   ('a5ea6ce3-223a-5b48-b69c-9be2c7bcc720', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'aso', 'ASO', 'medico', true, false, 240, 5, null);
+
+-- ---------------------------------------------------------------------
+-- regras_espelho (0019): padrão provisório até o gestor mandar a
+-- nomenclatura real do PontoTel — o CPF, com ou sem pontuação, em qualquer
+-- lugar do nome do arquivo.
+-- ---------------------------------------------------------------------
+insert into regras_espelho (org_id, expressao, campo) values
+  ('1fac8b3c-4860-5606-836b-ca4c8dd420d0', '(\d{3}\.?\d{3}\.?\d{3}-?\d{2})', 'cpf');
 
 -- ---------------------------------------------------------------------
 -- Estrutura comercial fictícia
