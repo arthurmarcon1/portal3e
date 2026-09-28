@@ -38,6 +38,11 @@ ajustadas com o schema no ar). Serve para navegar no Portal como as personas, mo
 a alguém, **e como alvo de teste quando não há Docker na máquina** — ele é descartável
 por definição, então isso é uso legítimo, não gambiarra.
 
+- **Recriar o dev do zero é `npm run db:reset:nuvem`**, nunca `supabase db reset
+  --linked` cru. O wipe remoto deixa órfãos (sequência sem coluna dona, arquivos nos
+  buckets) e a 0001 morre com 42P07 no meio, deixando o banco sem schema. O script
+  limpa os órfãos e só roda contra o projeto de `SUPABASE_PROJECT_REF`; o porquê está
+  no cabeçalho de `scripts/db-reset-nuvem.mjs`.
 - **Nunca importe dado real de funcionário em nenhum dos dois.** Nem para "testar a
   importação da F1.3", nem uma planilha reduzida. Sem quadro real, sem CPF real,
   sem espelho real.
