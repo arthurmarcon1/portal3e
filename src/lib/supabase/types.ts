@@ -503,6 +503,7 @@ export type Database = {
           id: string
           nome: string
           org_id: string
+          prazo_ciencia_dias: number | null
           retencao_meses: number | null
         }
         Insert: {
@@ -514,6 +515,7 @@ export type Database = {
           id?: string
           nome: string
           org_id: string
+          prazo_ciencia_dias?: number | null
           retencao_meses?: number | null
         }
         Update: {
@@ -525,6 +527,7 @@ export type Database = {
           id?: string
           nome?: string
           org_id?: string
+          prazo_ciencia_dias?: number | null
           retencao_meses?: number | null
         }
         Relationships: [

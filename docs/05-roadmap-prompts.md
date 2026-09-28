@@ -215,6 +215,10 @@ abre o modal de código.
 
 ### F3.3 Código de uso único
 
+> **Dependência da F3.1, não opcional** (decisão provisória de 2026-09-28, docs/06):
+> `holerite` entra no MVP como categoria `folha` com `exige_2fa = true`. Holerite
+> publicado sem a F3.3 pronta fica sem caminho de download.
+
 ```
 Implemente a verificação reforçada:
 - POST /api/verificacao/enviar: gera código de 6 dígitos, guarda apenas o hash em

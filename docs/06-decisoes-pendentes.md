@@ -63,42 +63,53 @@ custa mais caro.
       comercial, qualidade?
 - [ ] **Fiscal do contrato** pode abrir solicitação de substituição, ou apenas registrar
       ocorrência para a 3e tratar?
-- [ ] **Contratante vê espelho individual?** Ou apenas frequência consolidada? Isso muda
-      a policy de `documentos` e é o ponto mais sensível da matriz.
-      **Estado atual da implementação: NÃO, por padrão.** O espelho ficou na categoria
-      `jornada` (migração 0004) e o ramo `contratante` de `app.categoria_permitida()`
-      libera apenas `geral`, `contratual` e `sst` — então a pergunta segue em aberto,
-      mas em aberto pelo lado seguro. Responder **SIM** exige migração nova incluindo
-      `jornada` naquela lista; é migração e não `insert` de propósito, porque mudar o
-      teto do contratante é decisão de produto, não configuração de cliente.
-- [ ] **Funcionário desligado:** mantém acesso por quanto tempo, e a quê? (Sugestão: 90
-      dias, somente leitura dos próprios documentos.)
-- [ ] **Quem é o administrador geral** na 3e? Precisa ser mais de uma pessoa (nunca
-      exatamente uma, por continuidade).
+- [ ] **Contratante vê espelho individual?** Movida para "Trava a Fase 3" — é a
+      única pendência daquela fase que ainda bloqueia funcionalidade. Ver lá.
+- [x] **Funcionário desligado** — **PROVISÓRIA (2026-09-28)**, ver "Decisões
+      provisórias". Implementação adiada para a Fase 5.
+- [x] **Quem é o administrador geral** — **PROVISÓRIA (2026-09-28)**: só o Arthur, ver
+      "Decisões provisórias". **Segundo nome obrigatório antes do piloto.**
 
 ## Trava a Fase 3 (decidir antes de documentos)
 
-- [ ] **Documentos do MVP.** Quais entram na primeira versão? Sugestão mínima:
-      espelho de ponto, comunicado geral, norma interna. Holerite e ASO na Fase 4.
-- [ ] **Prazo padrão de ciência** em dias corridos ou úteis, e qual valor.
-- [ ] **Quais tipos exigem código de uso único.** Sugestão: folha, bancário e rescisão.
-      No seed, `exige_2fa = true` apenas em `holerite` e `termo_rescisao`.
-
-- [ ] **Confirmar a categoria de 3 tipos de documento.** O seed precisou de um valor e
-      eu escolhi pelo lado fechado, mas nenhum dos três está decidido em docs/02:
-      | Tipo | Categoria no seed | Consequência | Alternativa |
+- [ ] **Contratante vê espelho individual? — ÚNICA PENDÊNCIA DA FASE 3 QUE AINDA
+      BLOQUEIA FUNCIONALIDADE.** Quem decide: gestor da 3e.
+      O gestor respondeu "pode ver após aprovação", sem dizer **aprovação de quem**.
+      As duas leituras possíveis produzem policies diferentes:
+      (a) após a **ciência confirmada do funcionário** — espelho contestado nunca chega
+      ao cliente; (b) após o **fechamento pela 3e** — o cliente veria inclusive espelho
+      que o funcionário contestou. A leitura errada expõe espelho contestado a um
+      cliente, então nada foi implementado.
+      **Estado atual, mantido de propósito:** `jornada` segue fora do teto do
+      contratante em `app.categoria_permitida()` (só `geral`, `contratual`, `sst`), sem
+      exceção condicional. Contratante não lê espelho nenhum.
+      **Como será implementado quando vier a resposta:** como condição por documento na
+      `documentos_leitura` — o espelho é legível ao contratante do escopo **se existir
+      ciência do tipo `confirmacao`** para aquela versão (ou a condição equivalente
+      da leitura escolhida). **Não** incluindo `jornada` na lista do contratante:
+      isso liberaria a categoria inteira, contestado ou não. Migração nova, com teste
+      de RLS dos dois lados (confirmado aparece; divergente e sem resposta, não).
+- [x] **Documentos do MVP** — **PROVISÓRIA (2026-09-28)**, ver "Decisões provisórias".
+      Espelho, comunicado, norma interna e holerite (só download); ASO só cadastrado.
+- [x] **Prazo padrão de ciência** — **PROVISÓRIA (2026-09-28)**: 5 dias corridos,
+      lembrete no 3º dia, padrão por tipo e editável na publicação.
+- [x] **Quais tipos exigem código de uso único** — **PROVISÓRIA (2026-09-28)**: no MVP,
+      só `holerite` (categoria `folha`). Isso fez da F3.3 dependência da F3.1.
+- [x] **Categoria dos tipos de documento** — **PROVISÓRIA (2026-09-28)** para os 5 do
+      MVP. `norma_interna` fica `geral`. `termo_rescisao` e `contrato_trabalho` **saíram
+      do seed**: não estão no MVP, e a pergunta sobre a categoria deles (abaixo)
+      volta a valer quando entrarem:
+      | Tipo | Categoria sugerida | Consequência | Alternativa |
       |---|---|---|---|
       | `termo_rescisao` | `folha` | Admin, RH/DP e Financeiro veem; contratante não | `pessoal` tira o Financeiro |
       | `contrato_trabalho` | `pessoal` | só Admin e RH/DP; contratante não vê salário | `contratual` abriria para o contratante |
-      | `norma_interna` | `geral` | aberta a todo perfil com `documentos:ver` | `sst`, se norma for sempre de segurança |
-      As duas primeiras importam: `contratual` e `geral` são visíveis ao contratante.
-      Se qualquer uma estiver errada, é um `update` em `documento_tipos`, sem migração.
-
-- [ ] **`exige_ciencia` por tipo.** O seed marcou `true` nos 7 tipos, por falta de
-      definição em docs/02. Se ASO ou contrato de trabalho não devem gerar pendência
-      de ciência, corrigir antes da Fase 3.
-- [ ] **Prazo de guarda por categoria** (em meses), com o jurídico:
-      contratual __ · pessoal __ · médico __ · folha __ · SST __ · geral __
+- [x] **`exige_ciencia` por tipo** — **PROVISÓRIA (2026-09-28)**: `true` em espelho,
+      comunicado e norma interna; `false` em holerite. ASO segue `true` no seed, mas não
+      tem tela até a Fase 5 — reconfirmar quando o módulo de SST chegar.
+- [ ] **Prazo de guarda por categoria** (em meses), com o jurídico. **Valores
+      provisórios por tipo** desde 2026-09-28: 60 meses nos 4 tipos do MVP e 240 no
+      ASO. O jurídico ainda precisa fechar por categoria:
+      contratual __ · pessoal __ · médico __ · folha __ · SST __ · geral __ · jornada __
 - [ ] **O que fazer com quem não confirma** dentro do prazo. Cobra o supervisor?
       Escala para a coordenação? Gera relatório e para por aí?
 - [ ] **Valor jurídico da ciência.** Conferir com o jurídico se protocolo + hash + log
@@ -130,6 +141,62 @@ custa mais caro.
 - [ ] **Contrato de operador de dados** entre a prestadora e as contratantes.
 
 ---
+
+## Decisões provisórias (registro)
+
+Fechadas para destravar a Fase 3, **todas reversíveis**. Cada uma diz quem dá a
+resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas.
+
+- **2026-09-28 — PROVISÓRIA — Tipos de documento do MVP** (`documento_tipos` no seed).
+  | Tipo | Categoria | `exige_ciencia` | `exige_2fa` | `retencao_meses` | `prazo_ciencia_dias` | No MVP |
+  |---|---|---|---|---|---|---|
+  | `espelho_ponto` | `jornada` | sim | não | 60 | 5 | sim |
+  | `comunicado` | `geral` | sim | não | 60 | 5 | sim |
+  | `norma_interna` | `geral` | sim | não | 60 | 5 | sim |
+  | `holerite` | `folha` | **não** | **sim** | 60 | — | só download |
+  | `aso` | `medico` | sim | não | 240 | 5 | só o tipo, sem tela — Fase 5 (SST) |
+  Holerite é recibo de pagamento, não documento de anuência: não pede ciência. Sendo
+  `folha`, exige código de uso único — por isso **a F3.3 virou dependência da F3.1**,
+  não mais opcional (docs/05).
+  **Quem decide:** gestor da 3e (lista e ciência) e jurídico (retenção).
+  **O que muda na resposta definitiva:** flags, categoria e retenção são `update` em
+  `documento_tipos`, sem migração — mas documento já publicado não muda de prazo
+  retroativamente. Tipo novo (ex.: `termo_rescisao`, `contrato_trabalho`, que saíram do
+  seed) é `insert`, depois de decidida a categoria dele. A única mudança que seria
+  migração é tirar o 2FA de `folha` como regra, e isso não está em discussão.
+
+- **2026-09-28 — PROVISÓRIA — Prazo de ciência: 5 dias corridos da publicação,
+  lembrete no 3º dia.** Padrão por tipo em `documento_tipos.prazo_ciencia_dias` (migração
+  0014); a tela de publicação preenche `documentos.prazo_ciencia` com esse padrão e
+  deixa editar. Tipo sem ciência não tem prazo. O lembrete é da F4.3 — com o prazo
+  padrão, "3º dia" e "2 dias antes do prazo" (texto da F4.3 em docs/05) são o mesmo dia;
+  quando o prazo for editado, vale **3º dia da publicação**, até decisão em contrário.
+  **Quem decide:** gestor da 3e.
+  **O que muda:** outro valor é `update` em `prazo_ciencia_dias`. Se o definitivo vier em
+  **dias úteis**, é código (cálculo com calendário de feriados), não configuração.
+
+- **2026-09-28 — PROVISÓRIA — NÃO IMPLEMENTADA — Funcionário desligado: 90 dias após o
+  encerramento da alocação, somente leitura dos próprios documentos.** Pendência da
+  **Fase 5**, não bloqueia nada da Fase 3. Envolve três peças que não existem: saber
+  quando a última alocação encerrou, contar o prazo, e rebaixar o acesso (sem ciência
+  nova, sem solicitação, só leitura dos individuais) e depois desativar o usuário.
+  **Estado hoje:** nada rebaixa acesso. Enquanto o usuário estiver ativo, ele lê os
+  próprios documentos individuais; coletivo já some quando a alocação encerra
+  (`app.documento_alcanca_pessoa` ignora alocação `encerrada`).
+  **Quem decide:** gestor da 3e, com o jurídico (acesso a holerite após desligamento).
+  **O que muda:** o prazo vira parâmetro; o escopo do acesso define as policies.
+
+- **2026-09-28 — PROVISÓRIA — Administrador geral: só o Arthur.** No seed, continua
+  existindo **uma** persona `admin_geral` (`admin_geral@3e.com.br`, fictícia): a suíte
+  depende dela, e credencial real não entra no seed — que tem senha pública no
+  repositório. A conta real do Arthur nasce no projeto de produção, na F3.
+  **Ponto único de falha:** hoje há uma pessoa só com acesso administrativo. Se ela
+  estiver indisponível, ninguém muda permissão, escopo nem cria usuário interno.
+  **Precisa de um segundo nome antes do piloto**, por continuidade (docs/02: "Nunca deve
+  ser uma pessoa só").
+  **Quem decide:** diretoria da 3e.
+  **O que muda:** segunda conta com perfil `admin_geral` em produção, criada pela tela
+  de acessos (F2.1) — sem código.
 
 ## Decisões já tomadas (registro)
 
@@ -193,6 +260,7 @@ custa mais caro.
 
 - **2026-09-04 — Prazo de guarda continua indefinido.** `documento_tipos.retencao_meses`
   está `null` no seed de propósito, até o jurídico fechar os valores desta lista.
+  *Superado em 2026-09-28 por valores provisórios — ver "Decisões provisórias".*
 
 ---
 
@@ -205,4 +273,4 @@ custa mais caro.
 | PontoTel sem integração viável | Atrasa a Fase 4 | Publicação em lote resolve desde o dia 1; integração é otimização, não requisito |
 | Vazamento de dado sensível | Grave, jurídico e comercial | Testes de RLS por persona no CI, bucket privado, log de download, revisão da matriz antes de cada release |
 | Cadastro inicial sujo (CPF errado, pessoa desligada) | Trava o primeiro acesso | Validação na importação, relatório de inconsistências antes de publicar qualquer coisa |
-| Você virar o único que sabe operar | Risco de continuidade | Dois administradores gerais, documentação nesta pasta sempre atualizada |
+| Você virar o único que sabe operar | Risco de continuidade — **materializado**: hoje há um administrador geral só (decisão provisória de 2026-09-28) | Segundo administrador geral **antes do piloto**, documentação nesta pasta sempre atualizada |

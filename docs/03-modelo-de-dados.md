@@ -299,4 +299,13 @@ storage frio ou apaga, conforme a política. O registro em `documentos` e as `ci
 **permanecem** — o que se descarta é o arquivo, não a prova de que ele existiu e foi
 lido.
 
-Valores a definir com o jurídico antes da Fase 3: ver `docs/06-decisoes-pendentes.md`.
+Valores **provisórios** desde 2026-09-28, por tipo: 60 meses nos tipos do MVP e 240 no
+ASO. O jurídico ainda fecha os definitivos por categoria — ver
+`docs/06-decisoes-pendentes.md`, "Decisões provisórias".
+
+## Prazo de ciência
+
+`documento_tipos.prazo_ciencia_dias` (0014) é o **padrão** do tipo, em dias corridos;
+`documentos.prazo_ciencia` é a **data** efetiva daquele documento, preenchida na
+publicação a partir do padrão e editável. Tipo sem ciência não tem prazo (constraint).
+Provisório: 5 dias, lembrete no 3º dia (docs/06).

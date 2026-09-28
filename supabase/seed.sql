@@ -283,23 +283,19 @@ insert into perfil_categorias (perfil_id, categoria) values
 
 -- ---------------------------------------------------------------------
 -- documento_tipos
--- retencao_meses fica NULL de propósito: o prazo de guarda por categoria é
--- decisão do jurídico, ainda aberta em docs/06.
+-- Tipos do MVP, decisão PROVISÓRIA de 2026-09-28 (docs/06, "Decisões
+-- provisórias"): flags, retenção e prazo padrão de ciência. termo_rescisao e
+-- contrato_trabalho saíram — não estão no MVP e a categoria deles segue aberta.
 -- ---------------------------------------------------------------------
-insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, exige_2fa, retencao_meses) values
-  -- Categoria e flags definidas na migração 0004.
-  ('941fb37f-659c-5222-9dfd-f2fc3b893e37', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'espelho_ponto', 'Espelho de ponto', 'jornada', true, false, null),
-  ('fa73e13b-2b1c-54fe-b0f3-ed9702d3dab2', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'comunicado', 'Comunicado', 'geral', true, false, null),
-  -- Aberta: mesma visibilidade de 'geral' e 'sst'.
-  ('d71f6f1d-1129-5685-a465-bd727e0ddfb1', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'norma_interna', 'Norma interna', 'geral', true, false, null),
-  -- docs/02: medico = ASO, CID, atestado.
-  ('a5ea6ce3-223a-5b48-b69c-9be2c7bcc720', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'aso', 'ASO', 'medico', true, false, null),
-  -- docs/02: 2FA para folha e benefícios.
-  ('485e0b90-d471-5f86-ac73-b942a9d8759e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'holerite', 'Holerite', 'folha', true, true, null),
-  -- Fecha para contratante; Financeiro precisa ver as verbas.
-  ('c54b23ba-0906-5f3b-a177-9c5f87924ba0', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'termo_rescisao', 'Termo de rescisão', 'folha', true, true, null),
-  -- Contém salário: fora do alcance do contratante.
-  ('50464eac-5b11-56ab-a6ca-55b5d2413d9b', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'contrato_trabalho', 'Contrato de trabalho', 'pessoal', true, false, null);
+insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, exige_2fa, retencao_meses, prazo_ciencia_dias) values
+  -- Categoria definida na migração 0004. Fechada para contratante (docs/06).
+  ('941fb37f-659c-5222-9dfd-f2fc3b893e37', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'espelho_ponto', 'Espelho de ponto', 'jornada', true, false, 60, 5),
+  ('fa73e13b-2b1c-54fe-b0f3-ed9702d3dab2', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'comunicado', 'Comunicado', 'geral', true, false, 60, 5),
+  ('d71f6f1d-1129-5685-a465-bd727e0ddfb1', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'norma_interna', 'Norma interna', 'geral', true, false, 60, 5),
+  -- Recibo de pagamento não é anuência: sem ciência. folha => código de uso único.
+  ('485e0b90-d471-5f86-ac73-b942a9d8759e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'holerite', 'Holerite', 'folha', false, true, 60, null),
+  -- Só o tipo: tela chega na Fase 5, com o módulo de SST.
+  ('a5ea6ce3-223a-5b48-b69c-9be2c7bcc720', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'aso', 'ASO', 'medico', true, false, 240, 5);
 
 -- ---------------------------------------------------------------------
 -- Estrutura comercial fictícia
