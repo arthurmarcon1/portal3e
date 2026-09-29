@@ -129,14 +129,10 @@ custa mais caro.
       chave no 1º grupo e o campo CPF ou matrícula. Padrão provisório no seed: o CPF,
       com ou sem pontuação, em qualquer lugar do nome. Quando a regra real vier, é
       "Salvar como padrão" na tela — sem código.
-- [ ] **Quem publica espelho: a prosa de docs/02 e a matriz discordam.** docs/02 diz que
-      Contratos/Coordenação "publica espelho e trata contestação", mas a matriz dá a esse
-      perfil só `V R` em `jornada`. A F4.1 seguiu a **matriz** (a tabela é a fonte da
-      verdade e é conferida por teste): publicar em lote pede `jornada:criar`, que hoje é de
-      Admin geral e RH/DP. Contratos continua publicando espelho **avulso** pela tela de
-      documentos (tem `documentos:C E` e a categoria `jornada`). Decidir: dar `jornada:C`
-      a Contratos (é `insert` em `perfil_permissoes` + linha na matriz) ou corrigir a
-      prosa.
+- [x] **Quem publica espelho** — **decidido pelo Arthur em 2026-09-29: a matriz está
+      certa, a prosa de docs/02 estava errada.** Publicação em lote é ato de DP
+      (`jornada:criar`, Admin geral e RH/DP); a Coordenação trata contestação, que é outra
+      coisa. Prosa de docs/02 corrigida; nenhuma permissão mudou.
 - [ ] **Calendário de fechamento:** em que dia do mês o espelho fica pronto para publicar?
 - [x] **SLA por tipo de solicitação** — **PROVISÓRIO, decidido pelo Arthur (não pelo
       gestor) em 2026-09-29**. Ver "Decisões provisórias".
@@ -409,7 +405,8 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 - **2026-09-04 — Categoria `jornada` criada para espelho de ponto** (migração 0004).
   Espelho não é `folha`, não é `pessoal` e não é `geral`. Encaixá-lo em `folha` ou
   `pessoal` teria tirado o acesso de Contratos/Coordenação, que é justamente o time que
-  publica espelho e trata contestação. Ver a nota na pergunta sobre o contratante acima.
+  lê espelho e trata contestação. *(Corrigido em 2026-09-29: o texto original dizia que a
+  Coordenação "publica" espelho; publicar em lote é ato de DP — ver "Trava a Fase 4".)* Ver a nota na pergunta sobre o contratante acima.
 
 - **2026-09-04 — Prazo de guarda continua indefinido.** `documento_tipos.retencao_meses`
   está `null` no seed de propósito, até o jurídico fechar os valores desta lista.
@@ -425,5 +422,24 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 | Escopo inflar com "só mais essa telinha" | Atrasa o MVP | Fases fechadas com critério de aceite; o que não está no blueprint vira Fase 5+ |
 | PontoTel sem integração viável | Atrasa a Fase 4 | Publicação em lote resolve desde o dia 1; integração é otimização, não requisito |
 | Vazamento de dado sensível | Grave, jurídico e comercial | Testes de RLS por persona no CI, bucket privado, log de download, revisão da matriz antes de cada release |
+| Segregação herdada da entidade vizinha | Vazamento entre públicos — **materializado duas vezes na Fase 4** | Ver a nota abaixo da tabela |
 | Cadastro inicial sujo (CPF errado, pessoa desligada) | Trava o primeiro acesso | Validação na importação, relatório de inconsistências antes de publicar qualquer coisa |
 | Você virar o único que sabe operar | Risco de continuidade — **materializado**: hoje há um administrador geral só (decisão provisória de 2026-09-28) | Segundo administrador geral **antes do piloto**, documentação nesta pasta sempre atualizada |
+
+**Segregação se desenha do zero para cada entidade escrita pelos três públicos.** Padrão
+exposto pela Fase 4: quando uma entidade nova é escrita por funcionário, contratante e
+equipe interna, a segregação dela não pode ser herdada da entidade vizinha — nem da policy
+que já existia na migração inicial, nem da regra de outra tabela que "parece igual". As
+duas falhas da fase foram desse tipo:
+
+- **0020** — `solicitacao_eventos` herdava o "quem vê a solicitação pode escrever na linha
+  do tempo": qualquer um que visse o pedido inseria evento de status falso ou "nota
+  interna"; e o contratante podia dar `update` em solicitação.
+- **0021** — `solicitacoes_leitura` herdava de `pessoas` a leitura pelo escopo da
+  **pessoa**, certa para o interno e errada para o contratante: o fiscal do 042 lia o
+  pedido de férias da Maria e baixava o atestado do afastamento dela.
+
+Como aplicar: para cada entidade nova, escrever a matriz *público × comando × escopo*
+(funcionário, contratante, interno × select, insert, update, delete × por pessoa, por
+contrato, por unidade) antes da migração, e ter um teste por célula com contraponto. **A
+Fase 5 mexe justamente na área do contratante** — toda consulta dela entra nessa conta.

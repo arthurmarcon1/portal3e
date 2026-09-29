@@ -46,8 +46,9 @@ com organograma diferente é `insert`, não migração.
 
 `jornada` (migração 0004) existe porque espelho de ponto não cabe em nenhuma das
 outras: não é pagamento, não é documento pessoal e não é aberto. Fosse `folha` ou
-`pessoal`, Contratos/Coordenação — que publica espelho e trata contestação — ficaria
-sem acesso ao que mais usa. **SST não recebe `jornada`**: jornada não é assunto de
+`pessoal`, Contratos/Coordenação — que lê espelho e trata contestação — ficaria
+sem acesso ao que mais usa. **Publicar espelho em lote é ato de DP** (`jornada:criar`,
+Admin geral e RH/DP); a Coordenação trata a contestação, que é outra coisa. **SST não recebe `jornada`**: jornada não é assunto de
 saúde e segurança.
 
 O **próprio funcionário** sempre vê os documentos dele, inclusive das categorias
