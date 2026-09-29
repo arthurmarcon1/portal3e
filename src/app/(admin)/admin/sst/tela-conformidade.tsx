@@ -15,10 +15,19 @@ const COR: Record<Situacao, string> = { vencido: "text-erro", a_vencer: "text-al
 /** Padrão "pendentes": o que pede ação primeiro. */
 const PENDENTES = "pendentes";
 
-export function TelaConformidade({ linhas }: { linhas: LinhaDeConformidade[] }) {
+/** `situacaoInicial` vem da URL (`?situacao=vencido`), para o contador do início abrir já filtrado. */
+export function TelaConformidade({
+  linhas,
+  situacaoInicial,
+}: {
+  linhas: LinhaDeConformidade[];
+  situacaoInicial?: string;
+}) {
   const [contrato, setContrato] = useState(TODOS);
   const [unidade, setUnidade] = useState(TODOS);
-  const [situacao, setSituacao] = useState<string>(PENDENTES);
+  const [situacao, setSituacao] = useState<string>(() =>
+    situacaoInicial && Object.hasOwn(ROTULO_SITUACAO, situacaoInicial) ? situacaoInicial : PENDENTES,
+  );
 
   const opcoesContrato = useMemo(() => {
     const vistos = new Map<string, string>();

@@ -5,12 +5,17 @@ import type { TipoDeFiltro } from "./definicoes";
  *
  * Período: `de` e `ate` em aaaa-mm-dd, padrão dos últimos 30 dias, no máximo
  * 366 dias. Competência: `competencia` em aaaa-mm, padrão o mês corrente.
+ * Situação: `situacao=vencidas` estreita a situação atual ao que passou do
+ * prazo; sem o parâmetro, todas.
  */
 
 export type Recorte =
   | { tipo: "nenhum" }
   | { tipo: "periodo"; de: string; ate: string }
-  | { tipo: "competencia"; competencia: string };
+  | { tipo: "competencia"; competencia: string }
+  | { tipo: "situacao"; situacao: SituacaoDoRecorte };
+
+export type SituacaoDoRecorte = "todas" | "vencidas";
 
 export const MAX_DIAS = 366;
 const DATA = /^\d{4}-\d{2}-\d{2}$/;
@@ -32,6 +37,14 @@ export function lerRecorte(
   hoje: string,
 ): { ok: true; recorte: Recorte } | { ok: false; erro: string } {
   if (tipo === "nenhum") return { ok: true, recorte: { tipo } };
+
+  if (tipo === "situacao") {
+    const situacao = params.get("situacao") || "todas";
+    if (situacao !== "todas" && situacao !== "vencidas") {
+      return { ok: false, erro: "Situação inválida. Use todas ou vencidas." };
+    }
+    return { ok: true, recorte: { tipo, situacao } };
+  }
 
   if (tipo === "competencia") {
     const competencia = params.get("competencia") || hoje.slice(0, 7);
@@ -57,6 +70,7 @@ function br(iso: string): string {
 export function descreverRecorte(r: Recorte): string {
   if (r.tipo === "periodo") return `Período de ${br(r.de)} a ${br(r.ate)}`;
   if (r.tipo === "competencia") return `Competência ${br(r.competencia)}`;
+  if (r.tipo === "situacao" && r.situacao === "vencidas") return "Situação atual · só vencidas";
   return "Situação atual";
 }
 
@@ -64,5 +78,6 @@ export function descreverRecorte(r: Recorte): string {
 export function paraQuery(r: Recorte): string {
   if (r.tipo === "periodo") return `de=${r.de}&ate=${r.ate}`;
   if (r.tipo === "competencia") return `competencia=${r.competencia}`;
+  if (r.tipo === "situacao" && r.situacao === "vencidas") return "situacao=vencidas";
   return "";
 }

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { RELATORIOS } from "./definicoes";
-import { lerRecorte } from "./filtros";
-import { montarPendencias, montarQuadro, montarSolicitacoes, type Pendencia } from "./montagem";
+import { descreverRecorte, lerRecorte, paraQuery } from "./filtros";
+import { montarPendencias, montarQuadro, montarSolicitacoes, pendenciaVencida, type Pendencia } from "./montagem";
 import { gerarCsv, type Relatorio } from "./relatorio";
 
 const HOJE = "2026-09-30";
@@ -46,6 +46,27 @@ describe("lerRecorte", () => {
       recorte: { tipo: "competencia", competencia: "2026-09" },
     });
     expect(lerRecorte("competencia", new URLSearchParams("competencia=2026-13"), HOJE).ok).toBe(false);
+  });
+
+  it("situação: padrão todas; vencidas vai e volta pela URL (o contador do início abre já filtrado)", () => {
+    expect(lerRecorte("situacao", new URLSearchParams(), HOJE)).toEqual({
+      ok: true,
+      recorte: { tipo: "situacao", situacao: "todas" },
+    });
+    const lido = lerRecorte("situacao", new URLSearchParams("situacao=vencidas"), HOJE);
+    expect(lido).toEqual({ ok: true, recorte: { tipo: "situacao", situacao: "vencidas" } });
+    if (!lido.ok) return;
+    expect(paraQuery(lido.recorte)).toBe("situacao=vencidas");
+    expect(descreverRecorte(lido.recorte)).toBe("Situação atual · só vencidas");
+    expect(lerRecorte("situacao", new URLSearchParams("situacao=qualquer"), HOJE).ok).toBe(false);
+  });
+});
+
+describe("pendenciaVencida", () => {
+  it("vence no dia seguinte ao prazo; sem prazo, nunca", () => {
+    expect(pendenciaVencida({ prazo_ciencia: "2026-09-29" }, HOJE)).toBe(true);
+    expect(pendenciaVencida({ prazo_ciencia: HOJE }, HOJE)).toBe(false);
+    expect(pendenciaVencida({ prazo_ciencia: null }, HOJE)).toBe(false);
   });
 });
 

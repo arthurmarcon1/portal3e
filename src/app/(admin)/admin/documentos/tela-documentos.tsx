@@ -24,17 +24,26 @@ const OPCOES_STATUS = [
  * retificar acontecem no detalhe, que mostra o arquivo e o público antes.
  *
  * Abre sem os arquivados: versão substituída por retificação vai para
- * `arquivado`, e mostrá-la ao lado da atual confunde qual vale.
+ * `arquivado`, e mostrá-la ao lado da atual confunde qual vale. Situação e
+ * tipo podem vir da URL (`?situacao=rascunho`, `?tipo=Espelho de ponto`),
+ * para os links do início abrirem já filtrados; valor desconhecido é
+ * ignorado.
  */
 export function TelaDocumentos({
   dados,
   podeCriar,
+  filtroInicial,
 }: {
   dados: DocumentoLinha[];
   podeCriar: boolean;
+  filtroInicial: { situacao?: string; tipo?: string };
 }) {
-  const [status, setStatus] = useState(TODOS);
-  const [tipo, setTipo] = useState(TODOS);
+  const [status, setStatus] = useState(() =>
+    OPCOES_STATUS.some((o) => o.id === filtroInicial.situacao) ? filtroInicial.situacao! : TODOS,
+  );
+  const [tipo, setTipo] = useState(() =>
+    dados.some((d) => d.tipo_nome === filtroInicial.tipo) ? filtroInicial.tipo! : TODOS,
+  );
 
   const opcoesTipo = useMemo(
     () =>

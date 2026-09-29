@@ -68,7 +68,14 @@ export function encerrada(status: StatusSolicitacao): boolean {
   return FINAIS.includes(status);
 }
 
+/**
+ * Situações em que o prazo ainda corre: nem encerrada, nem já decidida
+ * (aprovada/recusada só esperam a conclusão). O contador do início consulta
+ * o banco com esta mesma lista.
+ */
+export const COM_PRAZO_CORRENDO: readonly StatusSolicitacao[] = ["aberta", "em_analise", "pendente_solicitante"];
+
 /** Vencida = prazo antes de hoje (Brasília) e ainda em aberto. */
 export function vencida(prazo: string | null, status: StatusSolicitacao, hoje: string): boolean {
-  return prazo !== null && prazo < hoje && !encerrada(status) && status !== "aprovada" && status !== "recusada";
+  return prazo !== null && prazo < hoje && COM_PRAZO_CORRENDO.includes(status);
 }

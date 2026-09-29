@@ -15,7 +15,8 @@ export const metadata: Metadata = { title: "SST · Portal 3e" };
  */
 export default paginaProtegida(
   { tipo: "interno", modulo: "sst", acao: "ver" },
-  async function PaginaSst() {
+  async function PaginaSst({ searchParams }: { searchParams: Promise<{ situacao?: string }> }) {
+    const { situacao } = await searchParams;
     const linhas = await painelDeConformidade();
     const resumo = resumoPorUnidade(linhas);
 
@@ -60,7 +61,7 @@ export default paginaProtegida(
         </section>
 
         <h2 className="mb-3 text-lg">Por pessoa</h2>
-        <TelaConformidade linhas={linhas} />
+        <TelaConformidade key={situacao ?? ""} linhas={linhas} situacaoInicial={situacao} />
       </main>
     );
   },

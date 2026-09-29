@@ -56,13 +56,18 @@ export type Pendencia = {
   matricula: string | null;
 };
 
+/** Passou do prazo de ciência (hoje em Brasília). Sem prazo, nunca vence. */
+export function pendenciaVencida(p: { prazo_ciencia: string | null }, hoje: string): boolean {
+  return p.prazo_ciencia !== null && p.prazo_ciencia < hoje;
+}
+
 export function montarPendencias(pendencias: Pendencia[], lotacoes: Lotacao[], hoje: string, recorte: string): Relatorio {
   const lot = porLotacao(lotacoes);
   const detalhe: Valor[][] = [];
   const resumo = new Map<string, { contrato: string; unidade: string; pessoas: Set<string>; pendencias: number; vencidas: number }>();
 
   for (const p of pendencias) {
-    const vencida = p.prazo_ciencia !== null && p.prazo_ciencia < hoje;
+    const vencida = pendenciaVencida(p, hoje);
     for (const l of lot.get(p.pessoa_id) ?? [SEM_LOTACAO]) {
       detalhe.push([
         l.contrato,

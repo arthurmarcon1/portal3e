@@ -139,6 +139,19 @@ function FormularioRecorte({ recorte }: { recorte: Recorte }) {
           <Label htmlFor="competencia" className="text-xs text-texto-suave">Competência</Label>
           <Input id="competencia" name="competencia" type="month" defaultValue={recorte.competencia} className="h-9 w-44 tabular-nums" />
         </div>
+      ) : recorte.tipo === "situacao" ? (
+        <div className="grid gap-1">
+          <Label htmlFor="situacao" className="text-xs text-texto-suave">Situação</Label>
+          <select
+            id="situacao"
+            name="situacao"
+            defaultValue={recorte.situacao}
+            className="h-9 w-44 rounded-md border border-borda bg-fundo px-2 text-sm"
+          >
+            <option value="todas">Todas</option>
+            <option value="vencidas">Só vencidas</option>
+          </select>
+        </div>
       ) : null}
       <Button type="submit" variant="outline" className="h-9">Aplicar</Button>
     </form>

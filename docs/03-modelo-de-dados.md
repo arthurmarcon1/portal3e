@@ -526,6 +526,11 @@ de `resumo_do_documento`: `public.relatorio_pendencias_de_ciencia()` é INVOKER 
 vem da parte DEFINER, `app.pendentes_do_documento`. O teste confere o total do Admin geral
 contra uma contagem feita à parte, direto das tabelas.
 
+**Recorte das pendências:** `?situacao=vencidas` estreita à situação atual ao que passou do
+prazo (`pendenciaVencida`, a mesma regra da coluna "Situação"); sem o parâmetro, todas. Tela
+e exportação leem o recorte pela mesma `lerRecorte`, então o arquivo sai com o filtro que
+estava na tela. É o destino do contador "ciências vencidas" do início interno.
+
 **Abrir na tela** não grava auditoria — exceto o de acessos e downloads, que grava `ver`
 (`entidade = 'relatorios'`) com o recorte, e não mostra o dado se o registro falhar
 (`auditaVisualizacao` em `src/features/relatorios/definicoes.ts`).

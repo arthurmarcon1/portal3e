@@ -15,35 +15,37 @@ import {
   type StatusSolicitacao,
   type TipoSolicitacao,
 } from "@/features/solicitacoes/fluxo";
+import { COMIGO, SEM_RESPONSAVEL, type FiltroDaCaixa } from "@/features/solicitacoes/filtro-da-caixa";
 import type { SolicitacaoLinha } from "@/features/solicitacoes/queries";
 import { cn } from "@/lib/utils";
 
 const helper = criarColunas<SolicitacaoLinha>();
 
 const EM_ABERTO = "em_aberto";
-const SEM_RESPONSAVEL = "sem";
-const COMIGO = "comigo";
 
 /**
  * Caixa de entrada da equipe interna (F4.2): filtro por tipo, situação,
  * responsável e prazo. Abre mostrando o que está em aberto — o que já
- * encerrou só aparece se pedido.
+ * encerrou só aparece se pedido. Responsável e prazo podem vir da URL
+ * (`filtroInicial`), para o contador do início abrir já no recorte dele.
  */
 export function TelaCaixa({
   dados,
   responsaveis,
   usuarioId,
   hoje,
+  filtroInicial,
 }: {
   dados: SolicitacaoLinha[];
   responsaveis: { id: string; nome: string }[];
   usuarioId: string;
   hoje: string;
+  filtroInicial: FiltroDaCaixa;
 }) {
   const [tipo, setTipo] = useState(TODOS);
   const [status, setStatus] = useState(EM_ABERTO);
-  const [responsavel, setResponsavel] = useState(TODOS);
-  const [prazo, setPrazo] = useState(TODOS);
+  const [responsavel, setResponsavel] = useState<string>(filtroInicial.responsavel || TODOS);
+  const [prazo, setPrazo] = useState<string>(filtroInicial.prazo || TODOS);
   const nomes = useMemo(() => new Map(responsaveis.map((r) => [r.id, r.nome])), [responsaveis]);
 
   const visiveis = useMemo(

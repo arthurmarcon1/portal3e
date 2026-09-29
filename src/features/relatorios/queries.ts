@@ -14,6 +14,7 @@ import {
   montarQuadro,
   montarSolicitacoes,
   montarSst,
+  pendenciaVencida,
   type CienciaRegistrada,
   type Lotacao,
 } from "./montagem";
@@ -75,9 +76,12 @@ async function pendencias(r: Recorte): Promise<Relatorio> {
   const supabase = await criarClienteServidor();
   const { data, error } = await supabase.rpc("relatorio_pendencias_de_ciencia").limit(LIMITE);
   if (error) throw new Error(error.message);
-  const linhas = dentroDoLimite(data);
+  const hoje = hojeEmBrasilia();
+  const todas = dentroDoLimite(data);
+  const soVencidas = r.tipo === "situacao" && r.situacao === "vencidas";
+  const linhas = soVencidas ? todas.filter((l) => pendenciaVencida(l, hoje)) : todas;
   const lot = await lotacoesVigentes([...new Set(linhas.map((l) => l.pessoa_id))]);
-  return montarPendencias(linhas, lot, hojeEmBrasilia(), descreverRecorte(r));
+  return montarPendencias(linhas, lot, hoje, descreverRecorte(r));
 }
 
 async function ciencias(r: Recorte): Promise<Relatorio> {

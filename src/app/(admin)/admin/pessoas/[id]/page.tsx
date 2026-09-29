@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
+import { Button } from "@/components/ui/button";
 import { contratosParaAlocacao, buscarPessoa } from "@/features/pessoas/queries";
 import { temPermissao } from "@/lib/auth/sessao";
 import { formatarCpf } from "@/lib/cpf-cnpj";
@@ -23,7 +24,9 @@ export const metadata: Metadata = { title: "Ficha da pessoa · Portal 3e" };
  * própria, volta no histórico do navegador e é renderizada no servidor. Só as
  * ilhas que abrem diálogo — ações do cabeçalho e alocações — são cliente.
  *
- * Documentos e Solicitações ficam como espaço reservado até a F3 e a F4.
+ * Documentos e Solicitações ainda são espaço reservado: a aba aponta para a
+ * tela do módulo, onde o dado já está. Texto de tela não cita fase nem
+ * arquivo de desenvolvimento — quem lê é o usuário.
  */
 
 const ABAS = [
@@ -125,15 +128,19 @@ export default paginaProtegida(
 
         {aba === "documentos" ? (
           <Reservado
-            titulo="Os documentos desta pessoa aparecem aqui."
-            descricao="Espelhos, comunicados e demais documentos entram com a publicação e a ciência, na Fase 3."
+            titulo="Os documentos desta pessoa ainda não aparecem na ficha."
+            descricao="Para consultar espelhos, comunicados e demais documentos dela, abra Documentos e busque pelo nome."
+            href="/admin/documentos"
+            acao="Abrir Documentos"
           />
         ) : null}
 
         {aba === "solicitacoes" ? (
           <Reservado
-            titulo="As solicitações desta pessoa aparecem aqui."
-            descricao="Férias, afastamento e correção de ponto entram com o módulo de solicitações, na Fase 4."
+            titulo="As solicitações desta pessoa ainda não aparecem na ficha."
+            descricao="Para consultar férias, afastamentos e correções de ponto dela, abra Solicitações e busque pelo nome."
+            href="/admin/solicitacoes"
+            acao="Abrir Solicitações"
           />
         ) : null}
       </main>
@@ -141,12 +148,15 @@ export default paginaProtegida(
   },
 );
 
-/** Aba que ainda não tem módulo. Diz o que vai aparecer e quando (docs/04). */
-function Reservado({ titulo, descricao }: { titulo: string; descricao: string }) {
+/** Aba sem conteúdo próprio ainda. Diz o que aconteceu e onde encontrar (docs/04, estado vazio). */
+function Reservado({ titulo, descricao, href, acao }: { titulo: string; descricao: string; href: string; acao: string }) {
   return (
     <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
       <p className="font-medium">{titulo}</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">{descricao}</p>
+      <Button asChild variant="outline" className="mt-4">
+        <Link href={href}>{acao}</Link>
+      </Button>
     </div>
   );
 }

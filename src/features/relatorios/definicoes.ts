@@ -11,7 +11,7 @@ import type { Acao, Modulo } from "@/lib/auth/modulos";
  */
 
 export type ChaveRelatorio = "pendencias" | "ciencias" | "solicitacoes" | "quadro" | "sst" | "acessos";
-export type TipoDeFiltro = "nenhum" | "periodo" | "competencia";
+export type TipoDeFiltro = "nenhum" | "periodo" | "competencia" | "situacao";
 export type Permissao = { modulo: Modulo; acao: Acao };
 
 export type DefinicaoDeRelatorio = {
@@ -36,7 +36,7 @@ export const RELATORIOS: readonly DefinicaoDeRelatorio[] = [
     chave: "pendencias",
     titulo: "Pendências de ciência",
     descricao: "Quem ainda não respondeu a documentos publicados, por contrato, unidade e pessoa.",
-    filtro: "nenhum",
+    filtro: "situacao",
     ver: { modulo: "documentos", acao: "ver" },
     exportar: { modulo: "documentos", acao: "ver" },
   },

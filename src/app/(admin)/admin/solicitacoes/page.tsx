@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { hojeEmBrasilia } from "@/features/documentos/funcionario";
+import { lerFiltroDaCaixa } from "@/features/solicitacoes/filtro-da-caixa";
 import { listarSolicitacoes, responsaveisPossiveis } from "@/features/solicitacoes/queries";
 import { temPermissao } from "@/lib/auth/sessao";
 import { paginaProtegida } from "@/lib/auth/pagina-protegida";
@@ -11,7 +12,11 @@ export const metadata: Metadata = { title: "Solicitações · Portal 3e" };
 
 export default paginaProtegida(
   { tipo: "interno", modulo: "solicitacoes", acao: "ver" },
-  async function PaginaSolicitacoes(_props, usuario) {
+  async function PaginaSolicitacoes(
+    { searchParams }: { searchParams: Promise<{ responsavel?: string; prazo?: string }> },
+    usuario,
+  ) {
+    const filtro = lerFiltroDaCaixa(await searchParams);
     const podeEditar = await temPermissao("solicitacoes", "editar");
     const [dados, responsaveis] = await Promise.all([
       listarSolicitacoes(),
@@ -25,7 +30,15 @@ export default paginaProtegida(
           Pedidos de funcionários e de contratantes, e as divergências de ciência. O prazo sai do
           SLA de cada tipo, em dias úteis.
         </p>
-        <TelaCaixa dados={dados} responsaveis={responsaveis} usuarioId={usuario.id} hoje={hojeEmBrasilia()} />
+        {/* `key`: outro filtro na URL remonta a caixa, em vez de manter o estado anterior. */}
+        <TelaCaixa
+          key={`${filtro.responsavel}:${filtro.prazo}`}
+          dados={dados}
+          responsaveis={responsaveis}
+          usuarioId={usuario.id}
+          hoje={hojeEmBrasilia()}
+          filtroInicial={filtro}
+        />
       </main>
     );
   },

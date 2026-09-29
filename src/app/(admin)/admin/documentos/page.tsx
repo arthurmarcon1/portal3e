@@ -10,7 +10,12 @@ export const metadata: Metadata = { title: "Documentos · Portal 3e" };
 
 export default paginaProtegida(
   { tipo: "interno", modulo: "documentos", acao: "ver" },
-  async function PaginaDocumentos() {
+  async function PaginaDocumentos({
+    searchParams,
+  }: {
+    searchParams: Promise<{ situacao?: string; tipo?: string }>;
+  }) {
+    const { situacao, tipo } = await searchParams;
     const [dados, podeCriar] = await Promise.all([
       listarDocumentos(),
       temPermissao("documentos", "criar"),
@@ -23,7 +28,12 @@ export default paginaProtegida(
           Comunicados, normas, espelhos e holerites publicados no Portal, com a versão e o
           prazo de ciência de cada um.
         </p>
-        <TelaDocumentos dados={dados} podeCriar={podeCriar} />
+        <TelaDocumentos
+          key={`${situacao ?? ""}:${tipo ?? ""}`}
+          dados={dados}
+          podeCriar={podeCriar}
+          filtroInicial={{ situacao, tipo }}
+        />
       </main>
     );
   },

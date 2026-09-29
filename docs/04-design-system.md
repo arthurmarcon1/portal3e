@@ -93,6 +93,67 @@ primário por tela.
 
 ---
 
+## Página inicial de cada área
+
+A tela de início não é estática: ela mostra **o que pede atenção**, dá **sensação de
+progresso** e leva **rápido para onde a pessoa vai trabalhar**. Tudo dentro das regras
+rígidas acima — nada aqui as relaxa.
+
+- **Sem mecânica de jogo.** Nada de pontos, medalhas, ranking, sequência de dias ou
+  mensagem de parabéns. Progresso é informação, não prêmio.
+- **Progresso é barra sóbria mais número.** Trilho neutro com borda, preenchimento em
+  `--texto-suave`, sem gradiente, sem cor forte, sem animação de entrada — e sempre o
+  número escrito ao lado ("312 de 340 responderam · 92%"). A barra dá a proporção de
+  relance; quem informa é o número. Componente: `src/components/barra-progresso.tsx`.
+  Percentual arredonda para baixo: 100% só quando ninguém falta.
+- **Número zerado não some.** "0 solicitações vencidas" é informação; o bloco
+  desaparecido parece defeito. O que some é o bloco inteiro de um módulo que o perfil não
+  tem.
+- **Todo contador leva à tela correspondente já filtrada** no recorte que ele conta:
+  "3 ciências vencidas" abre o relatório de pendências com `?situacao=vencidas`, não a
+  tela genérica. O número do contador e o total da tela de destino são o mesmo — há teste
+  de integração para isso.
+- **Cor de alerta só em contador que pede ação e passou de zero**, e sempre com o rótulo.
+- **Texto de tela nunca cita arquivo interno de desenvolvimento** (`docs/…`, fase do
+  roadmap, número de migração). Quem lê é o usuário.
+
+### A ciência nunca é incentivada
+
+**O Portal nunca premia rapidez de confirmação** — nem com ponto, selo, ranking,
+destaque, elogio ("Você está em dia!") ou comparação com colegas. Ciência é ato de
+registro: o valor dela está em a pessoa ter lido e concordado, ou registrado
+divergência. Incentivar a confirmar empurra a clicar sem ler, desestimula a divergência
+e enfraquece o protocolo. O início do funcionário pode **informar** a situação ("12 de 14
+documentos respondidos"); nunca premiar, apressar ou comparar.
+
+### Início da equipe interna (`/admin`)
+
+```
+Bom dia, Arthur
+Terça-feira, 29 de setembro · Nada aguardando você hoje.   ← só se tudo zerado
+
+Sua fila
+  Solicitações                      Ciência
+  [ 2  em aberto com você   > ]     [ 41  ciências pendentes > ]
+  [ 0  sem responsável      > ]     [  3  ciências vencidas  > ]
+  [ 1  solicitação vencida  > ]
+  Documentos                        SST
+  [ 1  rascunho a publicar  > ]     [ 0 ASOs e treinamentos vencidos > ] ...
+
+Ciência em andamento                          Ver todas as pendências
+  Espelho de ponto — 08/2026      Espelho de ponto · prazo 10/09
+  [██████████████████░░]  92%
+  312 de 340 responderam · 28 pendentes
+
+Atalhos
+  [ Novo documento ] [ Publicar espelhos ] [ Caixa de solicitações ] ...
+```
+
+Cada bloco conforme o perfil (filtro de tela; quem barra é `paginaProtegida` no destino e
+a RLS no número). "Ciência em andamento" agrupa os espelhos individuais de um fechamento
+por tipo + título, e mostra cada comunicado coletivo sozinho — as quatro campanhas de
+prazo mais próximo.
+
 ## Área do funcionário — desenho
 
 Menu inferior fixo, quatro itens, nada de menu hambúrguer:
