@@ -170,6 +170,8 @@ Menu inferior fixo, quatro itens, nada de menu hambúrguer:
 │  Portal 3e          [sair]  │
 ├─────────────────────────────┤
 │  Olá, Maria                 │
+│  12 de 14 documentos        │   ← situação: informa, não premia
+│  respondidos                │
 │                             │
 │  ┌───────────────────────┐  │
 │  │ 1 pendência           │  │   ← card só aparece se houver
@@ -177,6 +179,12 @@ Menu inferior fixo, quatro itens, nada de menu hambúrguer:
 │  │ Confirmar até 10/09   │  │
 │  │ [ Ver e confirmar ]   │  │
 │  └───────────────────────┘  │
+│                             │
+│  ┌──────────┐ ┌──────────┐  │   ← atalhos grandes, depois
+│  │ Fazer um │ │ Meus     │  │     da pendência
+│  │ pedido   │ │ pedidos  │  │
+│  │          │ │ 1 esper. │  │
+│  └──────────┘ └──────────┘  │
 │                             │
 │  Sua alocação               │
 │  Contrato 042 · Hospital X  │
@@ -193,6 +201,12 @@ Menu inferior fixo, quatro itens, nada de menu hambúrguer:
 
 Princípio: **a pendência é a home.** Quem abre o Portal abre porque tem algo para
 resolver. Se não tem pendência, a tela diz isso em uma linha e some do caminho.
+
+A linha de situação logo abaixo da saudação é só o número ("12 de 14 documentos
+respondidos") — sem "parabéns", sem "você está em dia", sem cor de sucesso (ver "A
+ciência nunca é incentivada"). Os atalhos vêm **depois** das pendências, nunca antes:
+"Meus pedidos" mostra quantos pedidos esperam resposta da pessoa, ou quantos estão em
+andamento.
 
 ### Tela de ciência (a mais importante do produto)
 

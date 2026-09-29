@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ClipboardList, MessageSquarePlus } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,9 @@ import {
   hojeEmBrasilia,
   pendencias,
 } from "@/features/documentos/funcionario";
+import { plural } from "@/features/inicio/saudacao";
+import { encerrada } from "@/features/solicitacoes/fluxo";
+import { listarSolicitacoes } from "@/features/solicitacoes/queries";
 import { paginaProtegida } from "@/lib/auth/pagina-protegida";
 import { cn } from "@/lib/utils";
 
@@ -26,18 +29,32 @@ const ULTIMOS = 5;
  * direto à tela de ciência. Sem pendência, uma linha diz isso e sai do
  * caminho. É o começo do teste cronometrado da Fase 3: do login à ciência em
  * menos de um minuto.
+ *
+ * A linha de situação ("12 de 14 documentos respondidos") **informa, não
+ * premia** (docs/04, "A ciência nunca é incentivada"): sem elogio, sem selo,
+ * sem pressa — só o número. Depois das pendências, os atalhos grandes para
+ * os pedidos, com o que está esperando a pessoa.
  */
 export default paginaProtegida(
   { tipo: "funcionario" },
   async function PaginaInicio(_props, usuario) {
-    const documentos = await documentosDoFuncionario();
+    const [documentos, pedidos] = await Promise.all([documentosDoFuncionario(), listarSolicitacoes()]);
     const abertas = pendencias(documentos);
+    const pedemCiencia = documentos.filter((d) => d.exige_ciencia).length;
+    const emAndamento = pedidos.filter((p) => !encerrada(p.status)).length;
+    const aguardandoVoce = pedidos.filter((p) => p.status === "pendente_solicitante").length;
     const resolvidos = documentos.filter((d) => !abertas.includes(d)).slice(0, ULTIMOS);
     const hoje = hojeEmBrasilia();
 
     return (
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-5">
         <h1 className="text-xl">Olá, {usuario.nome.split(" ")[0]}</h1>
+        {pedemCiencia > 0 ? (
+          <p className="mt-1 text-texto-suave tabular-nums">
+            {pedemCiencia - abertas.length} de {pedemCiencia}{" "}
+            {plural(pedemCiencia, ["documento respondido", "documentos respondidos"])}
+          </p>
+        ) : null}
 
         {abertas.length === 0 ? (
           <p className="mt-2 text-texto-suave">
@@ -73,16 +90,30 @@ export default paginaProtegida(
           </section>
         )}
 
-        <Link
-          href="/pedidos"
-          className="mt-6 flex min-h-14 items-center justify-between rounded-lg border border-borda px-3"
-        >
-          <span>
-            <span className="block font-medium">Meus pedidos</span>
-            <span className="block text-sm text-texto-suave">Férias, afastamento, correção de ponto…</span>
-          </span>
-          <ChevronRight aria-hidden strokeWidth={1.5} className="size-5 text-texto-suave" />
-        </Link>
+        <nav aria-label="Atalhos" className="mt-6 grid grid-cols-2 gap-3">
+          <Link href="/pedidos/novo" className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-borda p-3">
+            <MessageSquarePlus aria-hidden strokeWidth={1.5} className="size-6 text-acao" />
+            <span>
+              <span className="block font-medium">Fazer um pedido</span>
+              <span className="block text-sm text-texto-suave">Férias, afastamento, correção de ponto…</span>
+            </span>
+          </Link>
+          <Link href="/pedidos" className="flex min-h-24 flex-col justify-between gap-2 rounded-lg border border-borda p-3">
+            <ClipboardList aria-hidden strokeWidth={1.5} className="size-6 text-acao" />
+            <span>
+              <span className="block font-medium">Meus pedidos</span>
+              {aguardandoVoce > 0 ? (
+                <span className="block text-sm text-alerta tabular-nums">
+                  {aguardandoVoce} esperando você
+                </span>
+              ) : (
+                <span className="block text-sm text-texto-suave tabular-nums">
+                  {emAndamento} em andamento
+                </span>
+              )}
+            </span>
+          </Link>
+        </nav>
 
         {resolvidos.length > 0 ? (
           <section aria-labelledby="ultimos" className="mt-8">
