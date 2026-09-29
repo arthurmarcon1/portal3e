@@ -77,10 +77,15 @@ export const esquemaRetificacao = z.object({
 
 export type EntradaRetificacao = z.infer<typeof esquemaRetificacao>;
 
-/** Publicar: o prazo vem preenchido com o padrão do tipo e pode ser editado. */
+/**
+ * Publicar: o prazo vem preenchido com o padrão do tipo e pode ser editado.
+ * `valido_ate` só vale para tipo que vence (ASO, treinamento — F5.2); quem
+ * exige é o trigger da 0024, que conhece o tipo.
+ */
 export const esquemaPublicacao = z.object({
   documento_id: uuid,
   prazo_ciencia: data,
+  valido_ate: data,
 });
 
 export const esquemaId = z.object({ documento_id: uuid });

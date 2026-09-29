@@ -508,6 +508,7 @@ export type Database = {
           tipo_solicitacao_divergencia:
             | Database["public"]["Enums"]["tipo_solicitacao"]
             | null
+          validade: string | null
         }
         Insert: {
           categoria: Database["public"]["Enums"]["categoria_doc"]
@@ -523,6 +524,7 @@ export type Database = {
           tipo_solicitacao_divergencia?:
             | Database["public"]["Enums"]["tipo_solicitacao"]
             | null
+          validade?: string | null
         }
         Update: {
           categoria?: Database["public"]["Enums"]["categoria_doc"]
@@ -538,6 +540,7 @@ export type Database = {
           tipo_solicitacao_divergencia?:
             | Database["public"]["Enums"]["tipo_solicitacao"]
             | null
+          validade?: string | null
         }
         Relationships: [
           {
@@ -569,6 +572,7 @@ export type Database = {
           substitui_id: string | null
           tipo_id: string
           titulo: string
+          valido_ate: string | null
           versao: number
         }
         Insert: {
@@ -590,6 +594,7 @@ export type Database = {
           substitui_id?: string | null
           tipo_id: string
           titulo: string
+          valido_ate?: string | null
           versao?: number
         }
         Update: {
@@ -611,6 +616,7 @@ export type Database = {
           substitui_id?: string | null
           tipo_id?: string
           titulo?: string
+          valido_ate?: string | null
           versao?: number
         }
         Relationships: [
@@ -1341,6 +1347,7 @@ export type Database = {
           vencidos: number
         }[]
       }
+      gerar_avisos_de_validade: { Args: never; Returns: number }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
       pendencias_de_ciencia_do_contratante: {
         Args: never

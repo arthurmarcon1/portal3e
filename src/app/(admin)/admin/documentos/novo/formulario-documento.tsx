@@ -51,6 +51,11 @@ function descricaoDoTipo(tipo: TipoDocumento | undefined): string | undefined {
       : "Não pede ciência: o funcionário só recebe e baixa.",
   ];
   if (tipo.exige_2fa) partes.push("Para abrir, exige código de uso único.");
+  if (tipo.validade === "por_pessoa") {
+    partes.push("Vence: ao publicar, informe até quando vale. O mais novo da pessoa substitui o anterior.");
+  } else if (tipo.validade === "por_titulo") {
+    partes.push("Vence: ao publicar, informe até quando vale. Para renovar, repita o mesmo título.");
+  }
   return partes.join(" ");
 }
 

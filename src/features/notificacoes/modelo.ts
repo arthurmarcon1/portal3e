@@ -10,7 +10,7 @@
  *   ninguém e ajudam a pessoa a achar o que é.
  */
 
-export type Motivo = "publicado" | "lembrete" | "vencido" | "respondida" | "concluida";
+export type Motivo = "publicado" | "lembrete" | "vencido" | "respondida" | "concluida" | "validade";
 
 export type DadosDoAviso = {
   motivo: Motivo;
@@ -64,6 +64,13 @@ function frase(d: DadosDoAviso): { assunto: string; linha: string } {
         assunto: "Sua solicitação foi concluída no Portal 3e",
         linha: `A sua solicitação${protocolo} foi concluída. Veja o resultado no Portal.`,
       };
+    // F5.2 — para a equipe de SST. Sem nome de quem vence nem tipo do
+    // documento: ASO é dado de saúde, e o e-mail só leva ao painel.
+    case "validade":
+      return {
+        assunto: "Documento de SST vencendo em até 30 dias",
+        linha: "Há documento de SST (ASO ou treinamento) vencendo nos próximos 30 dias. Veja no painel de SST.",
+      };
   }
 }
 
@@ -105,7 +112,9 @@ export function caminhoDoAviso(
   referenciaTipo: string | null,
   referenciaId: string | null,
   tipoUsuario: "funcionario" | "contratante" | "interno",
+  motivo?: Motivo | null,
 ): string {
+  if (motivo === "validade") return "/admin/sst";
   if (!referenciaId) return "/";
   if (referenciaTipo === "documentos") {
     return tipoUsuario === "funcionario" ? `/documentos/${referenciaId}` : `/admin/documentos/${referenciaId}`;

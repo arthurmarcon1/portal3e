@@ -43,6 +43,8 @@ export function AcoesDocumento({
     status: "rascunho" | "publicado" | "arquivado";
     escopo: "individual" | "coletivo";
     exigeCiencia: boolean;
+    /** Tipo que vence, em documento individual: pede "válido até" (F5.2). */
+    vence: boolean;
     /** Versão que esta retificação vai arquivar ao ser publicada. */
     substituiVersao: number | null;
   };
@@ -52,6 +54,7 @@ export function AcoesDocumento({
   const router = useRouter();
   const [dialogo, setDialogo] = useState<"publicar" | "arquivar" | "descartar" | null>(null);
   const [prazo, setPrazo] = useState(prazoPadrao ?? "");
+  const [validoAte, setValidoAte] = useState("");
   const [publicando, setPublicando] = useState(false);
 
   async function publicar() {
@@ -61,6 +64,7 @@ export function AcoesDocumento({
         documento_id: documento.id,
         // Vazio = o banco aplica o padrão do tipo na data de publicação.
         prazo_ciencia: documento.exigeCiencia ? prazo : "",
+        valido_ate: documento.vence ? validoAte : "",
       });
       if (!r.ok) return void toast.error(r.erro);
       const n = r.dados.destinatarios;
@@ -153,11 +157,21 @@ export function AcoesDocumento({
               onChange={(e) => setPrazo(e.target.value)}
             />
           ) : null}
+          {documento.vence ? (
+            <CampoTexto
+              rotulo="Válido até"
+              dica="Data de vencimento que está no documento. A 30 dias dela, a equipe de SST é avisada."
+              type="date"
+              required
+              value={validoAte}
+              onChange={(e) => setValidoAte(e.target.value)}
+            />
+          ) : null}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setDialogo(null)} disabled={publicando}>
               Cancelar
             </Button>
-            <Button type="button" onClick={publicar} disabled={publicando}>
+            <Button type="button" onClick={publicar} disabled={publicando || (documento.vence && !validoAte)}>
               {publicando ? "Publicando…" : "Publicar documento"}
             </Button>
           </DialogFooter>

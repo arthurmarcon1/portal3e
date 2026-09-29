@@ -101,7 +101,7 @@ export async function enviarPendentes(opcoes: {
     // Dado complementar do texto: prazo do documento, protocolo da solicitação.
     let prazo: string | null = null;
     let protocolo: string | null = null;
-    if (n.referencia_tipo === "documentos" && n.referencia_id) {
+    if (n.referencia_tipo === "documentos" && n.referencia_id && n.motivo !== "validade") {
       const { data } = await admin.from("documentos").select("prazo_ciencia").eq("id", n.referencia_id).maybeSingle();
       prazo = data?.prazo_ciencia ?? null;
     } else if (n.referencia_tipo === "solicitacoes" && n.referencia_id) {
@@ -112,7 +112,7 @@ export async function enviarPendentes(opcoes: {
     const email = montarEmail({
       motivo: (n.motivo ?? "publicado") as Motivo,
       primeiroNome: primeiroNome(u.nome),
-      link: baseUrl() + caminhoDoAviso(n.referencia_tipo, n.referencia_id, u.tipo),
+      link: baseUrl() + caminhoDoAviso(n.referencia_tipo, n.referencia_id, u.tipo, n.motivo as Motivo | null),
       prazo,
       protocolo,
     });
@@ -148,4 +148,11 @@ export async function gerarAvisosDePrazo(): Promise<{ lembretes: number; vencido
   const { data, error } = await criarClienteAdmin().rpc("gerar_avisos_de_prazo");
   if (error) throw new Error(error.message);
   return data?.[0] ?? { lembretes: 0, vencidos: 0 };
+}
+
+/** Alerta de SST a 30 dias do vencimento (F5.2). Idempotente, como o de prazo. */
+export async function gerarAvisosDeValidade(): Promise<number> {
+  const { data, error } = await criarClienteAdmin().rpc("gerar_avisos_de_validade");
+  if (error) throw new Error(error.message);
+  return data ?? 0;
 }

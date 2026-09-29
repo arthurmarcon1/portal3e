@@ -423,6 +423,7 @@ prazo).
 | `vencido` | prazo passou sem resposta | idem |
 | `respondida` | comentário visível da equipe, ou situação vai para "aguardando solicitante", aprovada ou recusada | `app.notificar_solicitacao` (trigger em `solicitacao_eventos`) |
 | `concluida` | situação vai para concluída | idem |
+| `validade` | ASO/treinamento a ≤ 30 dias do vencimento, não renovado, pessoa com alocação vigente — para quem tem `sst:editar` e enxerga o documento | `public.gerar_avisos_de_validade()` (job, 0024) |
 
 Lembrete e vencido são únicos por pessoa, documento e canal (índice parcial) — o job pode
 rodar de hora em hora. Os de solicitação têm um freio de 5 minutos por motivo: comentar e
@@ -442,6 +443,26 @@ tenta de novo e desiste na 3ª (`tentativas`, `erro`).
 botão "Abrir no Portal". Sem título de documento, sem conteúdo de solicitação, sem CPF,
 sem anexo, sem botão de confirmar. O prazo e o protocolo entram — não identificam
 ninguém.
+
+## SST: validade e conformidade (F5.2)
+
+Norma, treinamento e ASO são `documentos` — mesma publicação, mesma ciência. O que a
+F5.2 acrescenta (0024):
+
+- `documento_tipos.validade`: `por_pessoa` (ASO — o mais novo substitui o anterior, seja
+  qual for o título), `por_titulo` (treinamento — "NR-35" não renova "NR-10"; a renovação
+  repete o título), ou nulo (não vence).
+- `documentos.valido_ate`: informado por quem publica, **obrigatório** ao publicar
+  individual de tipo que vence (trigger `trg_documentos_validade`, 55000); nulo em
+  coletivo e em tipo que não vence. Nenhuma duração é calculada pelo sistema (docs/06).
+- **Painel** `/admin/sst` (`sst:ver`): lê pela RLS do usuário, então ASO (`medico`) só
+  aparece para quem tem a categoria, e só do escopo. Situação: vencido, a vencer (≤ 30
+  dias), em dia. Pessoa sem alocação vigente fica fora.
+- **Alerta**: `gerar_avisos_de_validade()` roda no mesmo job da F4.3. Como o job não tem
+  usuário, a pergunta "este destinatário vê este documento?" é feita por
+  `app.usuario_tem_permissao`, `app.usuario_ve_categoria` e `app.usuario_alcanca_pessoa`
+  — o mesmo cálculo das funções de `auth.uid()`, com o usuário explícito. O teste da F5.2
+  confere que o alerta bate com o que a RLS mostra ao mesmo usuário.
 
 ## Ciência (F3.4)
 

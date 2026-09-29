@@ -32,6 +32,8 @@ export type TipoDocumento = {
   exige_ciencia: boolean;
   exige_2fa: boolean;
   prazo_ciencia_dias: number | null;
+  /** Se vence e como a renovação conta (0024); `null` = não vence. */
+  validade: string | null;
 };
 
 export type DocumentoLinha = {
@@ -108,6 +110,8 @@ export type Documento = {
   arquivo_hash: string;
   arquivo_bytes: number | null;
   prazo_ciencia: string | null;
+  /** Até quando vale (ASO, treinamento). F5.2. */
+  valido_ate: string | null;
   publicado_em: string | null;
   publicado_por_nome: string | null;
   criado_em: string;
@@ -128,8 +132,8 @@ export async function buscarDocumento(id: string): Promise<Documento | null> {
     .from("documentos")
     .select(
       `id, titulo, descricao, escopo, pessoa_id, versao, substitui_id, status, arquivo_hash,
-       arquivo_bytes, prazo_ciencia, publicado_em, criado_em,
-       documento_tipos(id, chave, nome, categoria, exige_ciencia, exige_2fa, prazo_ciencia_dias),
+       arquivo_bytes, prazo_ciencia, valido_ate, publicado_em, criado_em,
+       documento_tipos(id, chave, nome, categoria, exige_ciencia, exige_2fa, prazo_ciencia_dias, validade),
        pessoas(nome),
        usuarios!documentos_publicado_por_fkey(nome),
        documento_destinatarios(funcao, contratos(numero), unidades(nome))`,
@@ -170,6 +174,7 @@ export async function buscarDocumento(id: string): Promise<Documento | null> {
     arquivo_hash: d.arquivo_hash,
     arquivo_bytes: d.arquivo_bytes,
     prazo_ciencia: d.prazo_ciencia,
+    valido_ate: d.valido_ate,
     publicado_em: d.publicado_em,
     publicado_por_nome: d.usuarios?.nome ?? null,
     criado_em: d.criado_em,
@@ -251,7 +256,7 @@ export async function opcoesDePublicacao(): Promise<OpcoesDePublicacao> {
   const [tipos, categorias, pessoas, contratos, alocacoes] = await Promise.all([
     supabase
       .from("documento_tipos")
-      .select("id, chave, nome, categoria, exige_ciencia, exige_2fa, prazo_ciencia_dias")
+      .select("id, chave, nome, categoria, exige_ciencia, exige_2fa, prazo_ciencia_dias, validade")
       .order("nome"),
     supabase.rpc("categorias_permitidas"),
     supabase.from("pessoas").select("id, nome, cpf").eq("status", "ativo").order("nome"),

@@ -178,6 +178,23 @@ custa mais caro.
       isso basta, ou a frequência depende da integração com o PontoTel (Fase 6)? Mesmo
       que venha, esbarra na pergunta do espelho individual — que segue sem resposta, e o
       espelho continua bloqueado para contratante, inclusive na contagem de ciência.
+- [ ] **Validade de ASO e treinamento não tem duração no sistema (F5.2).** Quem publica
+      informa a data que está no documento ("válido até"); o Portal não calcula 12 ou 24
+      meses. A periodicidade do ASO depende do PCMSO e do risco da função, e a do
+      treinamento, da NR — inventar um padrão erraria em silêncio. Se o gestor quiser
+      sugestão automática, é `documento_tipos.validade_meses` como padrão editável, igual
+      ao prazo de ciência.
+- [ ] **Alerta de vencimento vai só para a equipe de SST** — decisão minha na F5.2
+      (2026-09-30): quem tem `sst:editar` (hoje Admin geral e SST) e enxerga o documento
+      (categoria e escopo). O funcionário não é avisado: renovar ASO e treinamento é
+      providência da empresa. O e-mail não diz de quem nem de que tipo — leva ao painel.
+      Decidir com o gestor se o funcionário e o contratante (treinamento, categoria `sst`)
+      também devem receber.
+- [ ] **Tipos de SST no seed são provisórios** (F5.2): `treinamento` (`sst`, ciência,
+      vence por título) e `norma_sst` (`sst`, ciência, não vence). Divergência dos dois
+      abre `outro`, como comunicado e norma. Retenção dos dois em aberto (jurídico). ASO
+      segue **sem** mapeamento de divergência: quem trata divergência de ASO (SST? médico
+      do trabalho?) é pergunta para o gestor.
 - [ ] **"Desligado" não aparece para o contratante.** docs/02 lista "desligado" entre as
       situações visíveis, mas também bloqueia "qualquer pessoa sem alocação ativa". A F5.1
       seguiu o bloqueio (falha fechada): quem saiu some do quadro. Se o cliente precisar
@@ -210,7 +227,9 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   | `comunicado` | `geral` | sim | não | 60 | 5 | sim |
   | `norma_interna` | `geral` | sim | não | 60 | 5 | sim |
   | `holerite` | `folha` | **não** | **sim** | 60 | — | só download |
-  | `aso` | `medico` | sim | não | 240 | 5 | só o tipo, sem tela — Fase 5 (SST) |
+  | `aso` | `medico` | sim | não | 240 | 5 | sim desde a F5.2 — vence por pessoa |
+  | `treinamento` | `sst` | sim | não | — | 5 | F5.2 — vence por título |
+  | `norma_sst` | `sst` | sim | não | — | 5 | F5.2 |
   Holerite é recibo de pagamento, não documento de anuência: não pede ciência. Sendo
   `folha`, exige código de uso único — por isso **a F3.3 virou dependência da F3.1**,
   não mais opcional (docs/05).

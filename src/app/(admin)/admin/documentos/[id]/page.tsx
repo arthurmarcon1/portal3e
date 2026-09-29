@@ -75,6 +75,7 @@ export default paginaProtegida(
                 status: documento.status,
                 escopo: documento.escopo,
                 exigeCiencia: documento.tipo.exige_ciencia,
+                vence: documento.tipo.validade !== null && documento.escopo === "individual",
                 substituiVersao: documento.substitui_id ? documento.versao - 1 : null,
               }}
               prazoPadrao={prazoPadrao}
@@ -160,6 +161,11 @@ function Dados({ documento }: { documento: Documento }) {
               : `prazo definido ao publicar (padrão: ${documento.tipo.prazo_ciencia_dias} dias corridos)`
             : "não pede ciência"}
         </Item>
+        {documento.tipo.validade && documento.escopo === "individual" ? (
+          <Item rotulo="Validade">
+            {documento.valido_ate ? `até ${formatarData(documento.valido_ate)}` : "informada ao publicar"}
+          </Item>
+        ) : null}
         {documento.tipo.exige_2fa ? (
           <Item rotulo="Acesso">exige código de uso único para abrir</Item>
         ) : null}

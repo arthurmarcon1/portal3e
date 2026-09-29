@@ -291,15 +291,20 @@ insert into perfil_categorias (perfil_id, categoria) values
 -- tipo_solicitacao_divergencia (0017, provisório): nunca 'ocorrencia', que é
 -- a fila do contratante. ASO sem mapeamento até ganhar tela, na Fase 5.
 -- ---------------------------------------------------------------------
-insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, exige_2fa, retencao_meses, prazo_ciencia_dias, tipo_solicitacao_divergencia) values
+insert into documento_tipos (id, org_id, chave, nome, categoria, exige_ciencia, exige_2fa, retencao_meses, prazo_ciencia_dias, tipo_solicitacao_divergencia, validade) values
   -- Categoria definida na migração 0004. Fechada para contratante (docs/06).
-  ('941fb37f-659c-5222-9dfd-f2fc3b893e37', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'espelho_ponto', 'Espelho de ponto', 'jornada', true, false, 60, 5, 'correcao_ponto'),
-  ('fa73e13b-2b1c-54fe-b0f3-ed9702d3dab2', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'comunicado', 'Comunicado', 'geral', true, false, 60, 5, 'outro'),
-  ('d71f6f1d-1129-5685-a465-bd727e0ddfb1', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'norma_interna', 'Norma interna', 'geral', true, false, 60, 5, 'outro'),
+  ('941fb37f-659c-5222-9dfd-f2fc3b893e37', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'espelho_ponto', 'Espelho de ponto', 'jornada', true, false, 60, 5, 'correcao_ponto', null),
+  ('fa73e13b-2b1c-54fe-b0f3-ed9702d3dab2', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'comunicado', 'Comunicado', 'geral', true, false, 60, 5, 'outro', null),
+  ('d71f6f1d-1129-5685-a465-bd727e0ddfb1', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'norma_interna', 'Norma interna', 'geral', true, false, 60, 5, 'outro', null),
   -- Recibo de pagamento não é anuência: sem ciência. folha => código de uso único.
-  ('485e0b90-d471-5f86-ac73-b942a9d8759e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'holerite', 'Holerite', 'folha', false, true, 60, null, null),
-  -- Só o tipo: tela chega na Fase 5, com o módulo de SST.
-  ('a5ea6ce3-223a-5b48-b69c-9be2c7bcc720', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'aso', 'ASO', 'medico', true, false, 240, 5, null);
+  ('485e0b90-d471-5f86-ac73-b942a9d8759e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'holerite', 'Holerite', 'folha', false, true, 60, null, null, null),
+  -- SST (F5.2). ASO vence por pessoa: o novo substitui o anterior. Divergência
+  -- de ASO continua sem mapeamento (decisão pendente, docs/06).
+  ('a5ea6ce3-223a-5b48-b69c-9be2c7bcc720', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'aso', 'ASO', 'medico', true, false, 240, 5, null, 'por_pessoa'),
+  -- Treinamento vence por título ("NR-35" não renova "NR-10"). Categoria sst,
+  -- aberta: o contratante do escopo pode ver. Retenção em aberto (jurídico).
+  ('7107ffe8-b40f-5318-9c08-9f024cd3acff', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'treinamento', 'Treinamento', 'sst', true, false, null, 5, 'outro', 'por_titulo'),
+  ('4a6c4318-3344-5aed-868a-dc65808940c8', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'norma_sst', 'Norma de SST', 'sst', true, false, null, 5, 'outro', null);
 
 -- ---------------------------------------------------------------------
 -- regras_espelho (0019): padrão provisório até o gestor mandar a

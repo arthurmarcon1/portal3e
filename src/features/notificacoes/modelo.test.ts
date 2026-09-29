@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { caminhoDoAviso, dentroDaJanela, montarEmail, primeiroNome, type Motivo } from "./modelo";
 
-const MOTIVOS: Motivo[] = ["publicado", "lembrete", "vencido", "respondida", "concluida"];
+const MOTIVOS: Motivo[] = ["publicado", "lembrete", "vencido", "respondida", "concluida", "validade"];
 
 describe("montarEmail", () => {
   for (const motivo of MOTIVOS) {
@@ -27,6 +27,12 @@ describe("montarEmail", () => {
   it("não leva sobrenome, título de documento, CPF nem conteúdo", () => {
     const e = montarEmail({ motivo: "publicado", primeiroNome: primeiroNome("Maria Aparecida Ferreira"), link: "https://x/y" });
     expect(e.texto + e.html + e.assunto).not.toMatch(/Aparecida|Ferreira|\d{3}\.\d{3}/);
+  });
+
+  it("validade: não diz de quem nem se é ASO de fulano — só leva ao painel", () => {
+    const e = montarEmail({ motivo: "validade", primeiroNome: "Ana", link: "https://x/admin/sst" });
+    expect(e.texto).toContain("vencendo nos próximos 30 dias");
+    expect(e.texto + e.assunto).not.toMatch(/apto|inapto|CID/i);
   });
 
   it("prazo em data brasileira; protocolo nos avisos de solicitação", () => {
@@ -55,5 +61,7 @@ describe("caminhoDoAviso", () => {
     expect(caminhoDoAviso("solicitacoes", "s", "funcionario")).toBe("/pedidos/s");
     expect(caminhoDoAviso("solicitacoes", "s", "contratante")).toBe("/cliente/solicitacoes/s");
     expect(caminhoDoAviso("solicitacoes", "s", "interno")).toBe("/admin/solicitacoes/s");
+    // SST a vencer vai para o painel, não para o documento (F5.2).
+    expect(caminhoDoAviso("documentos", "d", "interno", "validade")).toBe("/admin/sst");
   });
 });

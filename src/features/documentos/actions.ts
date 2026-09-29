@@ -170,7 +170,7 @@ export async function publicarDocumento(
 ): Promise<Resultado<{ destinatarios: number }>> {
   const validado = esquemaPublicacao.safeParse(entrada);
   if (!validado.success) return { ok: false, erro: primeiraMensagem(validado.error) };
-  const { documento_id, prazo_ciencia } = validado.data;
+  const { documento_id, prazo_ciencia, valido_ate } = validado.data;
 
   try {
     await exigirPermissao("documentos", "editar");
@@ -178,10 +178,10 @@ export async function publicarDocumento(
 
     const { data, error } = await supabase
       .from("documentos")
-      .update({ status: "publicado", prazo_ciencia })
+      .update({ status: "publicado", prazo_ciencia, valido_ate })
       .eq("id", documento_id)
       .eq("status", "rascunho")
-      .select("titulo, versao, escopo, substitui_id, prazo_ciencia, tipo_id");
+      .select("titulo, versao, escopo, substitui_id, prazo_ciencia, valido_ate, tipo_id");
     if (error) return { ok: false, erro: traduzirErroDeBanco(error.code, error.message) };
     if (!data.length) {
       return { ok: false, erro: "Rascunho não encontrado. Ele pode já ter sido publicado — recarregue a página." };
@@ -204,6 +204,7 @@ export async function publicarDocumento(
         tipo_id: publicado.tipo_id,
         substitui_id: publicado.substitui_id,
         prazo_ciencia: publicado.prazo_ciencia,
+        valido_ate: publicado.valido_ate,
         destinatarios,
       },
     });
