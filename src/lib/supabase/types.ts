@@ -1403,6 +1403,19 @@ export type Database = {
           solicitacao_protocolo: string
         }[]
       }
+      relatorio_pendencias_de_ciencia: {
+        Args: never
+        Returns: {
+          documento_id: string
+          matricula: string
+          pessoa_id: string
+          pessoa_nome: string
+          prazo_ciencia: string
+          publicado_em: string
+          tipo_nome: string
+          titulo: string
+        }[]
+      }
       responder_solicitacao: {
         Args: { p_solicitacao: string; p_texto: string }
         Returns: undefined

@@ -39,9 +39,18 @@ import { exigirTipo, temPermissao, type TipoUsuario, type UsuarioSessao } from "
  */
 
 export type Exigencia =
-  | { tipo: TipoUsuario; modulo: Modulo; acao: Acao }
+  | {
+      tipo: TipoUsuario;
+      modulo: Modulo;
+      acao: Acao;
+      /**
+       * Permissões a mais, todas exigidas. Relatório (F5.3) pede
+       * `relatorios:ver` E a do módulo de onde o dado sai.
+       */
+      tambem?: readonly { modulo: Modulo; acao: Acao }[];
+    }
   /** Página da área sem módulo próprio (a página inicial de cada área). */
-  | { tipo: TipoUsuario; modulo?: never; acao?: never };
+  | { tipo: TipoUsuario; modulo?: never; acao?: never; tambem?: never };
 
 export function paginaProtegida<P extends object>(
   exigencia: Exigencia,
@@ -50,15 +59,12 @@ export function paginaProtegida<P extends object>(
   return async function PaginaProtegida(props: P): Promise<ReactNode> {
     const usuario = await exigirTipo(exigencia.tipo);
 
-    if (exigencia.modulo && !(await temPermissao(exigencia.modulo, exigencia.acao))) {
-      return (
-        <SemPermissao
-          tipo={usuario.tipo}
-          emailLogin={usuario.emailLogin}
-          modulo={exigencia.modulo}
-          acao={exigencia.acao}
-        />
-      );
+    if (exigencia.modulo) {
+      for (const p of [{ modulo: exigencia.modulo, acao: exigencia.acao }, ...(exigencia.tambem ?? [])]) {
+        if (!(await temPermissao(p.modulo, p.acao))) {
+          return <SemPermissao tipo={usuario.tipo} emailLogin={usuario.emailLogin} modulo={p.modulo} acao={p.acao} />;
+        }
+      }
     }
 
     // Chamada só depois da checagem: nenhuma consulta da página começa antes.

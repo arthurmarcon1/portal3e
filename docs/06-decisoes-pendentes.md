@@ -195,6 +195,17 @@ custa mais caro.
       abre `outro`, como comunicado e norma. Retenção dos dois em aberto (jurídico). ASO
       segue **sem** mapeamento de divergência: quem trata divergência de ASO (SST? médico
       do trabalho?) é pergunta para o gestor.
+- [ ] **"Competência" no relatório de ciências (F5.3)** é a do documento quando ele tem
+      (`documentos.competencia`, o espelho) e, sem ela, o mês da resposta. Decisão minha;
+      confirmar com o gestor se comunicado deveria contar pelo mês da publicação.
+- [ ] **Relatório do contratante não existe.** A matriz dá `relatorios:R` a gestor do
+      contrato, gestor da unidade e adm./financeiro do cliente, mas a F5.3 é
+      `/admin/relatorios`. Quando vier, nasce das funções da 0023 (quadro e pendência
+      agregada), nunca das consultas internas — mesma lição da 0020/0021.
+- [ ] **Ver relatório na tela não gera auditoria; exportar, sim** (docs/05: "toda
+      exportação é auditada"). A tela é leitura com a RLS de sempre, como as listagens.
+      Se o gestor quiser rastrear também a consulta, é um `registrarAuditoria` a mais na
+      tela.
 - [ ] **"Desligado" não aparece para o contratante.** docs/02 lista "desligado" entre as
       situações visíveis, mas também bloqueia "qualquer pessoa sem alocação ativa". A F5.1
       seguiu o bloqueio (falha fechada): quem saiu some do quadro. Se o cliente precisar

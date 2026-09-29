@@ -223,6 +223,30 @@ dê `administracao:exportar` a Suporte/Auditoria sem nova decisão.
 
 ---
 
+## Relatórios: quem vê e quem exporta (F5.3)
+
+Cada relatório pede `relatorios:ver` (tela) ou `relatorios:exportar` (arquivo) **e** a
+permissão do módulo de onde o dado sai — relatório não é atalho para ler o que o perfil
+não lê. O dado é lido com o client do usuário: o escopo e as categorias de quem exporta
+são os da RLS.
+
+| Relatório | Módulo exigido | Exportar exige também |
+|---|---|---|
+| Pendências de ciência | `documentos:ver` | — |
+| Ciências registradas | `documentos:ver` | — |
+| Solicitações | `solicitacoes:ver` | — |
+| Quadro alocado | `pessoas:ver` | — |
+| Conformidade de SST | `sst:ver` | — |
+| Acessos e downloads | `administracao:ver` | `administracao:exportar` |
+
+O de acessos e downloads é recorte da trilha de auditoria: pela decisão de 2026-09-15,
+Suporte/Auditoria **lê** (na tela) e **não exporta**. Toda exportação grava `exportar` em
+`auditoria` (relatório, formato, recorte, linhas) antes de o arquivo sair. Contratante
+não usa `/admin/relatorios`; o `R` de `relatorios` na matriz dele ainda não tem tela
+(docs/06).
+
+---
+
 ## Checklist para validar com o gestor antes de codar a Fase 2
 
 - [ ] A lista de subperfis internos está completa? Falta algum (ex.: jurídico)?

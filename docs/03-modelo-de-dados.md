@@ -464,6 +464,26 @@ F5.2 acrescenta (0024):
   — o mesmo cálculo das funções de `auth.uid()`, com o usuário explícito. O teste da F5.2
   confere que o alerta bate com o que a RLS mostra ao mesmo usuário.
 
+## Relatórios (F5.3)
+
+`/admin/relatorios`, um por tela, exportação em CSV (`;`, BOM, fórmula desarmada — o
+mesmo da auditoria) e PDF (A4 deitado, até 2.000 linhas; acima disso, CSV) pela rota
+`GET /api/relatorios/[chave]?formato=csv|pdf`, que valida sozinha e grava `exportar` em
+`auditoria` **antes** de entregar — se o registro falhar, o arquivo não sai. Cada
+relatório lê no máximo 20.000 linhas e, passando disso, pede recorte menor em vez de
+cortar em silêncio.
+
+Tudo com o client do usuário. A única peça de banco nova é a das pendências (0025):
+"quem ainda não respondeu" depende do alcance do coletivo, que é DEFINER. Segue o padrão
+de `resumo_do_documento`: `public.relatorio_pendencias_de_ciencia()` é INVOKER (lê
+`documentos` e `pessoas` com a RLS de quem chama) e só a lista de alcançados sem resposta
+vem da parte DEFINER, `app.pendentes_do_documento`. O teste confere o total do Admin geral
+contra uma contagem feita à parte, direto das tabelas.
+
+**Minimização:** relatório exportado não leva CPF, título nem descrição de solicitação,
+nem IP de ciência — nome e matrícula identificam a pessoa para quem opera. O de acessos
+leva IP e e-mail de login, porque é trilha.
+
 ## Ciência (F3.4)
 
 **Só o servidor grava ciência** (0018). `authenticated` não tem `insert` em `ciencias`
