@@ -168,6 +168,22 @@ custa mais caro.
       (2026-09-29), para aviso não chegar de madrugada. Fora da janela, fica pendente
       para a próxima rodada. Reverter é mudar `dentroDaJanela`.
 
+## Fase 5 — o que ficou provisório
+
+- [ ] **"Frequência consolidada do mês por unidade" (F5.1) não tem fonte no Portal.**
+      Frequência de verdade (dias trabalhados, faltas, atrasos) está no espelho fechado,
+      que chega como PDF, e no PontoTel (invariante 5: o Portal não apura jornada). O
+      painel do contratante mostra, no lugar, a **situação do quadro por unidade hoje**
+      (alocados, em atividade, férias, afastados), das alocações. Decidir com o gestor:
+      isso basta, ou a frequência depende da integração com o PontoTel (Fase 6)? Mesmo
+      que venha, esbarra na pergunta do espelho individual — que segue sem resposta, e o
+      espelho continua bloqueado para contratante, inclusive na contagem de ciência.
+- [ ] **"Desligado" não aparece para o contratante.** docs/02 lista "desligado" entre as
+      situações visíveis, mas também bloqueia "qualquer pessoa sem alocação ativa". A F5.1
+      seguiu o bloqueio (falha fechada): quem saiu some do quadro. Se o cliente precisar
+      ver saídas do mês, é decisão de produto nova — e pede um recorte (só nome e data de
+      saída?).
+
 ## Trava a Fase 6 / comercialização
 
 - [ ] **Domínio e hospedagem.** Sugestão: `portal.3e.srv.br` ou domínio próprio do

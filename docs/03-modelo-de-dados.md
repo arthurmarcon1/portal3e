@@ -51,7 +51,10 @@ mantém a plataforma simples.
 **3. `alocacoes` separada de `pessoas`.** Uma pessoa pode trocar de unidade, de
 contrato ou de função e o histórico precisa sobreviver. O contratante enxerga a
 pessoa **através** da alocação — sem alocação ativa no escopo dele, a pessoa não
-existe.
+existe. E **nunca pela tabela `pessoas`**: RLS corta linha, não coluna, e a linha tem
+CPF, nascimento, telefone, e-mail e endereço. O contratante lê pessoa só por
+`quadro_do_contratante()` (0023), que devolve a lista de campos de docs/02 com o CPF
+já cortado nos 3 últimos dígitos.
 
 **4. Permissão é dado, não código.** `perfil_permissoes` é uma tabela. Mudar o que o
 fiscal pode fazer é um `insert`, não um deploy. É isso que permite vender para uma
@@ -303,7 +306,11 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 |---|---|
 | Funcionário A consulta `pessoas` | 1 linha (ele mesmo) |
 | Funcionário A busca documento do funcionário B por id | 0 linhas |
-| Fiscal do contrato 1 lista pessoas | só as alocadas no contrato 1 |
+| Fiscal do contrato 1 consulta a tabela `pessoas` | 0 linhas — o quadro dele sai de `quadro_do_contratante()`, só com as alocadas **vigentes** no contrato 1 (0023) |
+| Fiscal pede `cpf`, `data_nascimento`, `telefone`, `email_pessoal` ou `endereco` de pessoa do escopo | 0 linhas, campo a campo — contraponto: o RH lê o mesmo registro (0023) |
+| Fiscal lê `ciencias` de pessoa do escopo | 0 linhas (IP, user agent e justificativa); a pendência sai agregada de `pendencias_de_ciencia_do_contratante()` — contraponto: o RH lê a mesma ciência (0023) |
+| Fiscal lê alocação encerrada, ou com `data_fim` passada, no escopo | 0 linhas — e 0 linhas nos documentos dessa pessoa (0023) |
+| Perfil de contratante recebe `administracao:ver` por engano | `auditoria`, `usuarios`, `usuario_perfis`, `usuario_escopos` seguem fechados (0023) |
 | Fiscal tenta ler documento categoria `medico` | 0 linhas |
 | Fiscal tenta ler `auditoria` | 0 linhas |
 | Usuário da organização X consulta contratos | nenhum da organização Y |
@@ -334,7 +341,9 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Funcionária lê coletivo arquivado que **não** respondeu | 0 linhas — só a v2 |
 | Suporte/Auditoria (sem `medico`) lê a ciência de divergência de um ASO | 0 linhas — contraponto: RH/DP lê a mesma ciência (0016) |
 
-Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema; as linhas da
+Implementados em `tests/rls/` (`npm run test:rls`), um arquivo por tema; as da 0023 em
+`src/features/contratante/contratante.integracao.test.ts`, que também varre toda resposta
+da área do contratante atrás dos valores restritos; as linhas da
 0015 e da 0016 estão em `src/features/documentos/publicacao.integracao.test.ts`, que passa pelas
 Server Actions reais. Cada "0 linhas"
 tem um contraponto que enxerga o mesmo fixture — senão tabela vazia passaria por

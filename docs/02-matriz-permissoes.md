@@ -100,6 +100,14 @@ O que o contratante **vê de uma pessoa**: nome, função, matrícula, unidade, 
 (ativo/afastado/férias/desligado), data de início da alocação, foto (se houver) e
 frequência consolidada do mês.
 
+**Como isso é garantido (F5.1, 0023):** o contratante não lê a tabela `pessoas` nem
+`ciencias` — RLS corta linha, não coluna. Ele lê pessoa por `quadro_do_contratante()`,
+que devolve exatamente nome, matrícula, CPF final (3 dígitos, cortados no banco),
+função, contrato, unidade, situação e início, **só de alocação vigente**. Por isso
+"desligado" não aparece: o bloqueio de "pessoa sem alocação ativa" vale sobre a lista
+acima. Foto ainda não existe (não há bucket de foto); frequência consolidada é
+provisória (docs/06). Pendência de ciência chega agregada por documento, sem nomes.
+
 ---
 
 ## Escopo, documento coletivo e estrutura comercial — regra explícita

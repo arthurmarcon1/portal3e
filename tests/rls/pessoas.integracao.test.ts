@@ -13,7 +13,8 @@ import {
 /**
  * RLS de `pessoas` — docs/03, "Como testar a RLS".
  *
- * Cobre: funcionário lê só a si; fiscal lê só o contrato dele; RH sem escopo
+ * Cobre: funcionário lê só a si; fiscal não lê a tabela (0023) e o quadro
+ * dele é só do contrato dele; RH sem escopo
  * lê a organização; interno COM escopo lê só o escopo mesmo tendo
  * `pessoas:editar` (a regressão do `for all`, 0008); pessoa sem alocação
  * visível a quem tem `pessoas:editar` e invisível ao contratante (0007/0009).
@@ -112,9 +113,21 @@ describe("funcionário", () => {
 });
 
 describe("fiscal do contrato 042 (contratante)", () => {
-  it("lista só as pessoas alocadas no 042", async () => {
+  // Até a 0023 o fiscal lia a LINHA de toda pessoa do 042 — e com ela CPF,
+  // nascimento, telefone, e-mail e endereço. Agora não lê a tabela; o quadro
+  // sai de quadro_do_contratante(), só com os campos de docs/02
+  // (src/features/contratante/contratante.integracao.test.ts, campo a campo).
+  it("não lê a tabela pessoas: 0 linhas — o RH, no mesmo 042, lê", async () => {
     const fiscal = await como(PERSONAS.fiscal.email);
-    expect(await idsDePessoas(fiscal)).toEqual(pessoasDo042);
+    expect(await idsDePessoas(fiscal)).toEqual([]);
+  });
+
+  it("o quadro dele traz só gente do 042", async () => {
+    const fiscal = await como(PERSONAS.fiscal.email);
+    const { data, error } = await fiscal.rpc("quadro_do_contratante");
+    expect(error).toBeNull();
+    expect(data!.length).toBeGreaterThan(0);
+    expect(data!.every((l) => pessoasDo042.includes(l.pessoa_id))).toBe(true);
   });
 
   it("não vê pessoa sem alocação", async () => {

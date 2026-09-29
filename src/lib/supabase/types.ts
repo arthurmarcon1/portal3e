@@ -1342,12 +1342,41 @@ export type Database = {
         }[]
       }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
+      pendencias_de_ciencia_do_contratante: {
+        Args: never
+        Returns: {
+          alcancados: number
+          documento_id: string
+          pendentes: number
+          prazo_ciencia: string
+          publicado_em: string
+          respondidos: number
+          tipo_nome: string
+          titulo: string
+        }[]
+      }
       pessoas_da_solicitacao: {
         Args: { p_solicitacao: string }
         Returns: {
           id: string
           nome: string
           tipo: Database["public"]["Enums"]["tipo_usuario"]
+        }[]
+      }
+      quadro_do_contratante: {
+        Args: never
+        Returns: {
+          contrato_id: string
+          contrato_numero: string
+          cpf_final: string
+          data_inicio: string
+          funcao: string
+          matricula: string
+          nome: string
+          pessoa_id: string
+          situacao: Database["public"]["Enums"]["status_alocacao"]
+          unidade_id: string
+          unidade_nome: string
         }[]
       }
       registrar_ciencia: {
