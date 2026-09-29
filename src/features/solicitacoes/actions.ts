@@ -326,7 +326,8 @@ export async function atribuirResponsavel(entrada: unknown): Promise<Resultado> 
 const esquemaComentario = z.object({
   solicitacao_id: uuid,
   texto: z.string().trim().min(2, "Escreva o comentário.").max(4000),
-  interno: z.boolean().default(false),
+  // Sem o campo, é nota interna (0026): esquecer esconde, não expõe.
+  interno: z.boolean().default(true),
 });
 
 export async function comentarSolicitacao(entrada: unknown): Promise<Resultado> {

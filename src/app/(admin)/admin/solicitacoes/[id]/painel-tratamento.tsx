@@ -42,7 +42,8 @@ export function PainelTratamento({
   const [novo, setNovo] = useState<string>("");
   const [comentarioStatus, setComentarioStatus] = useState("");
   const [comentario, setComentario] = useState("");
-  const [nota, setNota] = useState(false);
+  // Comentário nasce interno (0026): mostrar ao solicitante é marcar.
+  const [visivel, setVisivel] = useState(false);
   const [ocupado, setOcupado] = useState(false);
 
   async function executar(acao: () => Promise<{ ok: boolean; erro?: string }>, sucesso: string) {
@@ -130,9 +131,9 @@ export function PainelTratamento({
         <Label htmlFor="comentario">Comentário</Label>
         <Textarea id="comentario" rows={3} value={comentario} onChange={(e) => setComentario(e.target.value)} />
         <div className="flex items-center gap-2">
-          <Checkbox id="nota" checked={nota} onCheckedChange={(v) => setNota(v === true)} />
-          <Label htmlFor="nota" className="font-normal">
-            Nota interna — o solicitante não vê
+          <Checkbox id="visivel" checked={visivel} onCheckedChange={(v) => setVisivel(v === true)} />
+          <Label htmlFor="visivel" className="font-normal">
+            Visível ao solicitante — sem marcar, só a equipe interna lê
           </Label>
         </div>
         <Button
@@ -141,16 +142,16 @@ export function PainelTratamento({
           disabled={ocupado || comentario.trim().length < 2}
           onClick={async () => {
             const ok = await executar(
-              () => comentarSolicitacao({ solicitacao_id: solicitacaoId, texto: comentario, interno: nota }),
-              nota ? "Nota interna registrada" : "Comentário enviado",
+              () => comentarSolicitacao({ solicitacao_id: solicitacaoId, texto: comentario, interno: !visivel }),
+              visivel ? "Comentário enviado ao solicitante" : "Nota interna registrada",
             );
             if (ok) {
               setComentario("");
-              setNota(false);
+              setVisivel(false);
             }
           }}
         >
-          {nota ? "Registrar nota interna" : "Enviar comentário"}
+          {visivel ? "Enviar ao solicitante" : "Registrar nota interna"}
         </Button>
       </div>
     </aside>

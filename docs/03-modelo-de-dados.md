@@ -441,6 +441,12 @@ prazo).
   (0020); o código não duplica. Insert direto só de interno com `editar`, só
   `comentario` (com `interno = true` para nota interna, que `eventos_leitura` esconde de
   quem não é interno). UPDATE/DELETE revogados.
+- **Comentário nasce interno (0026).** `interno` tem padrão `true` no banco, na Server
+  Action e na tela ("Visível ao solicitante", desmarcada). Texto livre é o que o
+  invariante 10 não alcança — função escolhe coluna, não o que se escreveu nela —, então
+  o esquecimento tem de esconder, não expor. Os eventos de sistema (status, atribuição) e a
+  resposta do solicitante gravam `false` explícito. A caixa "Mensagem ao solicitante" da
+  mudança de situação é, pelo rótulo, dirigida a ele, e grava `false`.
 - **Resposta do solicitante**: `public.responder_solicitacao` (DEFINER) — só quem abriu,
   só em `pendente_solicitante`; grava o comentário e volta para `em_analise` numa
   transação.

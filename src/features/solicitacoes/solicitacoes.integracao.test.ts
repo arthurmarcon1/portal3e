@@ -294,6 +294,35 @@ describe("tratamento pela equipe interna", () => {
     expect(doRh?.map((e) => e.conteudo)).toContain("Conferir no cadastro antigo");
   });
 
+  it("comentário nasce interno (0026): sem o campo, e em insert que omite a coluna, a funcionária não vê", async () => {
+    const rh = await actionsComo(EMAILS.rhDp);
+    expect(await rh.comentarSolicitacao({ solicitacao_id: id, texto: "Esqueci de marcar — F4.2 padrao" })).toEqual({ ok: true });
+    const rhCliente = await como(EMAILS.rhDp);
+    const { error } = await rhCliente
+      .from("solicitacao_eventos")
+      .insert({ solicitacao_id: id, usuario_id: RH, tipo: "comentario", conteudo: "Insert direto sem coluna" });
+    expect(error).toBeNull();
+
+    const gravados = (await eventos(id)).filter((e) => e.conteudo === "Esqueci de marcar — F4.2 padrao" || e.conteudo === "Insert direto sem coluna");
+    expect(gravados.map((e) => e.interno)).toEqual([true, true]);
+
+    const maria = await como(EMAILS.maria);
+    const { data: daMaria } = await maria.from("solicitacao_eventos").select("conteudo, tipo").eq("solicitacao_id", id);
+    const conteudos = daMaria?.map((e) => e.conteudo);
+    expect(conteudos).not.toContain("Esqueci de marcar — F4.2 padrao");
+    expect(conteudos).not.toContain("Insert direto sem coluna");
+    // O evento de status (trigger, que agora diz `false` explícito) continua visível a ela.
+    expect(daMaria?.some((e) => e.tipo === "mudanca_status")).toBe(true);
+  });
+
+  it("marcado visível, a funcionária vê", async () => {
+    const rh = await actionsComo(EMAILS.rhDp);
+    expect(await rh.comentarSolicitacao({ solicitacao_id: id, texto: "Pode mandar o DDD?", interno: false })).toEqual({ ok: true });
+    const maria = await como(EMAILS.maria);
+    const { data } = await maria.from("solicitacao_eventos").select("conteudo").eq("solicitacao_id", id);
+    expect(data?.map((e) => e.conteudo)).toContain("Pode mandar o DDD?");
+  });
+
   it("a funcionária responde: comentário dela + volta para análise, com o evento de status do trigger", async () => {
     const { responderSolicitacao } = await actionsComo(EMAILS.maria);
     expect(await responderSolicitacao({ solicitacao_id: id, texto: "DDD 51, Porto Alegre." })).toEqual({ ok: true });
