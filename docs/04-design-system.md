@@ -154,6 +154,13 @@ a RLS no número). "Ciência em andamento" agrupa os espelhos individuais de um 
 por tipo + título, e mostra cada comunicado coletivo sozinho — as quatro campanhas de
 prazo mais próximo.
 
+### Painel do contratante (`/cliente`)
+
+Cada pendência de ciência do quadro leva a barra de progresso com "X de Y responderam" —
+**responderam**, não "confirmaram": a contagem de `pendencias_de_ciencia_do_contratante`
+inclui divergência. O dado continua vindo só das funções de banco de lista explícita
+(invariante 10); a barra não pede campo novo.
+
 ## Área do funcionário — desenho
 
 Menu inferior fixo, quatro itens, nada de menu hambúrguer:

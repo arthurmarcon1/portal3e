@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
+import { BarraProgresso } from "@/components/barra-progresso";
 import {
   pendenciasDeCiencia,
   quadroDoContratante,
@@ -141,18 +142,24 @@ function Pendencias({ pendencias }: { pendencias: PendenciaDeCiencia[] }) {
       ) : (
         <ul className="mt-3 divide-y divide-borda rounded-lg border border-borda">
           {pendencias.map((p) => (
-            <li key={p.documento_id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-              <span>
-                <span className="block font-medium">{p.titulo}</span>
-                <span className="block text-sm text-texto-suave tabular-nums">
-                  {p.tipo_nome}
-                  {p.prazo_ciencia ? ` · prazo ${formatarData(p.prazo_ciencia)}` : ""}
-                  {` · ${p.respondidos} de ${p.alcancados} confirmaram`}
+            <li key={p.documento_id} className="grid gap-2 px-4 py-3">
+              <span className="flex flex-wrap items-center justify-between gap-2">
+                <span>
+                  <span className="block font-medium">{p.titulo}</span>
+                  <span className="block text-sm text-texto-suave tabular-nums">
+                    {p.tipo_nome}
+                    {p.prazo_ciencia ? ` · prazo ${formatarData(p.prazo_ciencia)}` : ""}
+                  </span>
+                </span>
+                <span className="flex items-center gap-2 text-sm tabular-nums">
+                  {p.pendentes} {p.pendentes === 1 ? "pendente" : "pendentes"}
+                  {p.prazo_ciencia && p.prazo_ciencia < hoje ? <BadgeStatus status="vencido" /> : null}
                 </span>
               </span>
-              <span className="flex items-center gap-2 text-sm tabular-nums">
-                {p.pendentes} {p.pendentes === 1 ? "pendente" : "pendentes"}
-                {p.prazo_ciencia && p.prazo_ciencia < hoje ? <BadgeStatus status="vencido" /> : null}
+              <BarraProgresso parte={p.respondidos} total={p.alcancados} rotulo={`${p.titulo}: responderam`} />
+              {/* `respondidos` conta confirmação e divergência — por isso "responderam", não "confirmaram". */}
+              <span className="text-sm text-texto-suave tabular-nums">
+                {p.respondidos} de {p.alcancados} responderam
               </span>
             </li>
           ))}
