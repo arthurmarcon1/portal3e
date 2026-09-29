@@ -9,6 +9,7 @@ import { definicaoDe, type ChaveRelatorio } from "@/features/relatorios/definico
 import { lerRecorte, paraQuery, type Recorte } from "@/features/relatorios/filtros";
 import { gerarRelatorio, RecorteGrandeDemais } from "@/features/relatorios/queries";
 import type { Tabela } from "@/features/relatorios/relatorio";
+import { registrarAuditoria } from "@/lib/audit";
 import { temPermissao } from "@/lib/auth/sessao";
 
 import { ExportarRelatorio } from "./exportar-relatorio";
@@ -20,7 +21,9 @@ const AMOSTRA = 200;
  * Tela comum aos seis relatórios (F5.3). Quem a monta é a `page.tsx` de cada
  * um, que declara as permissões em `paginaProtegida` — aqui só se lê e
  * desenha. Ver na tela não é exportar: não gera auditoria; baixar, sim (na
- * rota).
+ * rota). A exceção é o relatório que audita quem audita (acessos e
+ * downloads): abrir já grava `ver` — e, sem o registro, o dado não aparece,
+ * como o arquivo que não sai na exportação.
  */
 export async function TelaRelatorio({
   chave,
@@ -50,6 +53,16 @@ export async function TelaRelatorio({
     ),
   ]);
 
+  let semRastro = false;
+  if (def.auditaVisualizacao && resultado.ok) {
+    const { ok } = await registrarAuditoria({
+      acao: "ver",
+      entidade: "relatorios",
+      detalhes: { relatorio: chave, recorte, linhas: resultado.r.detalhe.linhas.length },
+    });
+    semRastro = !ok;
+  }
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
       <Link href="/admin/relatorios" className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto">
@@ -61,13 +74,18 @@ export async function TelaRelatorio({
           <h1 className="text-xl">{def.titulo}</h1>
           <p className="mt-1 text-sm text-texto-suave">{def.descricao}</p>
         </div>
-        {podeExportar && resultado.ok ? <ExportarRelatorio chave={chave} query={paraQuery(recorte)} /> : null}
+        {podeExportar && resultado.ok && !semRastro ? <ExportarRelatorio chave={chave} query={paraQuery(recorte)} /> : null}
       </div>
 
       {def.filtro !== "nenhum" ? <FormularioRecorte recorte={recorte} /> : null}
       {!lido.ok ? <p className="mb-4 text-sm text-erro">{lido.erro} Mostrando o recorte padrão.</p> : null}
 
-      {!resultado.ok ? (
+      {semRastro ? (
+        <p className="text-erro">
+          Não foi possível registrar esta consulta na auditoria, então o relatório não é mostrado. Tente novamente em
+          alguns minutos.
+        </p>
+      ) : !resultado.ok ? (
         <p className="text-erro">{resultado.erro}</p>
       ) : (
         <>

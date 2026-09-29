@@ -526,6 +526,10 @@ de `resumo_do_documento`: `public.relatorio_pendencias_de_ciencia()` é INVOKER 
 vem da parte DEFINER, `app.pendentes_do_documento`. O teste confere o total do Admin geral
 contra uma contagem feita à parte, direto das tabelas.
 
+**Abrir na tela** não grava auditoria — exceto o de acessos e downloads, que grava `ver`
+(`entidade = 'relatorios'`) com o recorte, e não mostra o dado se o registro falhar
+(`auditaVisualizacao` em `src/features/relatorios/definicoes.ts`).
+
 **Minimização:** relatório exportado não leva CPF, título nem descrição de solicitação,
 nem IP de ciência — nome e matrícula identificam a pessoa para quem opera. O de acessos
 leva IP e e-mail de login, porque é trilha.

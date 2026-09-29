@@ -347,6 +347,50 @@ describe("acessos e downloads: só administracao", () => {
   });
 });
 
+/** Linhas `ver` de relatório gravadas por um usuário neste arquivo. */
+async function visualizacoesDe(usuarioEmail: string) {
+  const { data: u } = await admin.from("usuarios").select("id").eq("email_login", usuarioEmail).single();
+  const { data } = await admin
+    .from("auditoria")
+    .select("detalhes")
+    .eq("usuario_id", u!.id)
+    .eq("acao", "ver")
+    .eq("entidade", "relatorios")
+    .gte("criado_em", inicio);
+  return (data ?? []).map((d) => d.detalhes as Record<string, unknown>);
+}
+
+async function abrirPagina(email: keyof typeof EMAILS, caminho: "acessos" | "pendencias") {
+  await persona(email);
+  const pagina =
+    caminho === "acessos"
+      ? (await import("@/app/(admin)/admin/relatorios/acessos/page")).default
+      : (await import("@/app/(admin)/admin/relatorios/pendencias/page")).default;
+  const jsx = await pagina({ searchParams: Promise.resolve({}) });
+  // A página é Server Component assíncrono por dentro (TelaRelatorio): resolve.
+  const el = jsx as { type: unknown; props: Record<string, unknown> };
+  if (typeof el?.type === "function") await (el.type as (p: unknown) => Promise<unknown>)(el.props);
+}
+
+describe("acessos e downloads: abrir na tela também audita (quem audita quem audita)", () => {
+  it("Suporte abre o relatório: fica a linha `ver` com o recorte", async () => {
+    await abrirPagina("suporte", "acessos");
+    const vistas = await visualizacoesDe(EMAILS.suporte);
+    expect(vistas.at(-1)).toMatchObject({ relatorio: "acessos", recorte: { tipo: "periodo" } });
+  });
+
+  it("os outros cinco não: abrir pendências não grava nada", async () => {
+    const antes = (await visualizacoesDe(EMAILS.adminGeral)).length;
+    await abrirPagina("adminGeral", "pendencias");
+    expect((await visualizacoesDe(EMAILS.adminGeral)).length).toBe(antes);
+  });
+
+  it("RH sem administracao:ver cai em SemPermissao, e nada é gravado", async () => {
+    await abrirPagina("rhDp", "acessos");
+    expect(await visualizacoesDe(EMAILS.rhDp)).toEqual([]);
+  });
+});
+
 describe("contratante", () => {
   it("fiscal não exporta relatório interno: 403, sem linha", async () => {
     const resposta = await exportar("fiscal", "quadro", "formato=csv");

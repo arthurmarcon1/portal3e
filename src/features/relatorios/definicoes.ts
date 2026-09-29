@@ -23,6 +23,12 @@ export type DefinicaoDeRelatorio = {
   ver: Permissao;
   /** Além de `relatorios:exportar`, para baixar o arquivo. */
   exportar: Permissao;
+  /**
+   * Abrir na tela também grava em `auditoria`, não só exportar. Só o de
+   * acessos e downloads: é o relatório que audita quem audita — ler a trilha
+   * de todos precisa deixar rastro na própria trilha.
+   */
+  auditaVisualizacao?: true;
 };
 
 export const RELATORIOS: readonly DefinicaoDeRelatorio[] = [
@@ -75,6 +81,7 @@ export const RELATORIOS: readonly DefinicaoDeRelatorio[] = [
     // administracao:exportar (decisão de 2026-09-15 — Suporte lê, não exporta).
     ver: { modulo: "administracao", acao: "ver" },
     exportar: { modulo: "administracao", acao: "exportar" },
+    auditaVisualizacao: true,
   },
 ];
 

@@ -240,7 +240,10 @@ são os da RLS.
 | Acessos e downloads | `administracao:ver` | `administracao:exportar` |
 
 O de acessos e downloads é recorte da trilha de auditoria: pela decisão de 2026-09-15,
-Suporte/Auditoria **lê** (na tela) e **não exporta**. Toda exportação grava `exportar` em
+Suporte/Auditoria **lê** (na tela) e **não exporta**. É também o único auditado **ao ser
+aberto**, não só ao exportar (decisão do Arthur, 2026-09-30): é o relatório que audita
+quem audita, e ler a trilha de todos precisa deixar rastro nela. Se o registro falhar, a
+tela não mostra o dado. Toda exportação grava `exportar` em
 `auditoria` (relatório, formato, recorte, linhas) antes de o arquivo sair. Contratante
 não usa `/admin/relatorios`; o `R` de `relatorios` na matriz dele ainda não tem tela
 (docs/06).
