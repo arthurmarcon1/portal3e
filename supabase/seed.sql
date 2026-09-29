@@ -66,7 +66,7 @@ insert into organizacoes (id, nome, cnpj, slug) values
 insert into perfis (id, org_id, chave, nome, aplica_a, descricao) values
   ('fe9f7afe-04a3-582c-89c7-12f65d68018b', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'admin_geral', 'Administrador geral', 'interno', 'Acesso total. Nunca deve ser uma pessoa só.'),
   ('9d433605-659e-5ba4-a24e-b1c0d498d71c', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'rh_dp', 'RH / DP', 'interno', 'Cadastro, documentos, jornada e solicitações.'),
-  ('d6b929c4-ffe1-5efd-b53e-0797a7993a38', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'contratos', 'Contratos / Coordenação', 'interno', 'Estrutura comercial, publica espelho e trata contestação.'),
+  ('d6b929c4-ffe1-5efd-b53e-0797a7993a38', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'contratos', 'Contratos / Coordenação', 'interno', 'Estrutura comercial e contestação de espelho. Publicar espelho em lote é do DP.'),
   ('cbaf2fb8-aef6-5297-b142-fd430c1ef24e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'financeiro', 'Financeiro', 'interno', 'Faturamento, folha e bancário.'),
   ('840c335b-3dc4-59a9-8db6-29617ed44acb', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'sst', 'SST', 'interno', 'Saúde e segurança do trabalho.'),
   ('e2167a38-534d-52c9-b71d-3e298d1afafe', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'suporte_auditoria', 'Suporte / Auditoria', 'interno', 'Somente leitura, incluindo a trilha de auditoria.'),
