@@ -298,6 +298,46 @@ a contagem regressiva (`src/app/(auth)/login/aviso-bloqueio.tsx`).
 
 ---
 
+## Contratante: leitura desenhada, não herdada
+
+Três falhas da mesma família, achadas por teste em três fases diferentes. Não é azar: é
+o que acontece quando a leitura do contratante é **herdada** da regra do interno (ou da
+tabela vizinha) em vez de desenhada para ele.
+
+| Migração | O que o contratante lia | De onde veio a herança |
+|---|---|---|
+| **0012** | comunicado coletivo de **qualquer** contrato da organização (e, sem escopo nenhum, todo coletivo) | o ramo "terceiros" de `documentos_leitura` tratava contratante como interno: coletivo não é segregado para quem é da casa, e o contratante entrou junto |
+| **0021** | pedido de férias e o **atestado** do afastamento de funcionária do contrato dele | `solicitacoes_leitura` liberava pela **pessoa** no escopo — certo para o RH, errado para o cliente |
+| **0023** | **CPF completo, nascimento, telefone, e-mail e endereço** de todo alocado, e quem já tinha saído | `pessoas_leitura` liberava a **linha** ao contratante como ao interno; RLS não corta coluna |
+
+A 0023 é a mais instrutiva: a policy estava "certa" — escopo por contrato, só gente
+alocada — e mesmo assim vazava, porque o recorte que importa ali é de **coluna**, e
+policy não faz isso. Daí o invariante 10 do CLAUDE.md:
+
+> Toda superfície nova exposta ao contratante devolve campos por função de banco com
+> lista explícita, nunca por select em tabela. Policy decide quais linhas; a função
+> decide quais colunas. Se uma rota do contratante lê tabela direto, é bug, mesmo que a
+> tela não mostre o campo.
+
+**Como aplicar:** para entidade nova que o contratante vê, (1) a policy de leitura não
+tem ramo de contratante, ou tem um ramo desenhado para ele, nunca o do interno com
+`or app.tipo() = 'contratante'`; (2) os campos saem de função `SECURITY DEFINER` que
+confere `app.tipo() = 'contratante'`, permissão e escopo, e lista as colunas; (3) o
+teste pede cada campo restrito como o contratante (0 linhas) e como um interno no mesmo
+registro (o valor), e varre toda resposta da área atrás dos valores restritos
+(`src/features/contratante/contratante.integracao.test.ts`). O mesmo raciocínio vale
+para entidade escrita pelos três públicos (docs/06, "Riscos").
+
+**Onde ainda há leitura direta de tabela pelo contratante**, hoje: `solicitacoes`
+(ocorrência e substituição do contrato, 0021) com `solicitacao_eventos` e `anexos`,
+`documentos` e `documento_destinatarios` (categorias abertas do escopo), `alocacoes`
+(vigentes, 0023) e a estrutura comercial (`contratantes`, `contratos`, `unidades`).
+Conferido coluna a coluna em 2026-09-30: nenhuma é campo restrito de docs/02
+(`unidades.endereco` é o endereço da unidade, não o residencial). O que sobra de risco é
+**texto livre** — `titulo`, `descricao`, `conteudo` — escrito por quem abre ou comenta, e
+que o contratante do contrato lê por desenho. Qualquer coluna nova nessas tabelas passa
+pela pergunta do invariante 10 antes da migração.
+
 ## Como testar a RLS (obrigatório antes de cada release)
 
 Um teste de integração que roda com o client de cada persona, não com `service_role`:

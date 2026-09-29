@@ -142,6 +142,15 @@ Outras regras da suíte:
    Todo route handler valida sozinho — o proxy nunca é a única barreira, nem para rota
    de API.
    Server Action que não seja pré-sessão começa com `exigirUsuario()`.
+10. **RLS filtra linha, não coluna.** Policy que libera a linha libera todas as colunas
+    dela — o PostgREST devolve o que se pedir, a tela mostrando ou não.
+    **Toda superfície nova exposta ao contratante devolve campos por função de banco
+    com lista explícita, nunca por select em tabela. Policy decide quais linhas; a
+    função decide quais colunas. Se uma rota do contratante lê tabela direto, é bug,
+    mesmo que a tela não mostre o campo.** Modelo: `quadro_do_contratante()` e
+    `pendencias_de_ciencia_do_contratante()` (0023), com teste campo a campo e
+    contraponto interno lendo o mesmo registro. Histórico em docs/03, "Contratante:
+    leitura desenhada, não herdada".
 
 ---
 
