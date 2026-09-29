@@ -43,3 +43,6 @@ next-env.d.ts
 
 # alvo alternativo da suíte de integração (ver CLAUDE.md)
 .env.test.local
+
+# espelhos fictícios gerados por scripts/gerar-espelhos-demo.mjs
+/demo/
