@@ -215,9 +215,12 @@ abre o modal de código.
 
 ### F3.3 Código de uso único
 
-> **Dependência da F3.1, não opcional** (decisão provisória de 2026-09-28, docs/06):
-> `holerite` entra no MVP como categoria `folha` com `exige_2fa = true`. Holerite
-> publicado sem a F3.3 pronta fica sem caminho de download.
+> **Não bloqueante desde 2026-09-30** (docs/06): o holerite saiu do piloto. O tipo
+> `holerite` segue cadastrado (`folha`, `exige_2fa = true`) e esta tarefa segue no
+> roadmap, mas o piloto não depende dela. Até ela existir, **não publique holerite**:
+> a rota de download devolve 428 para todo tipo com `exige_2fa`, e o documento fica sem
+> caminho de abertura. O canal definitivo do código é WhatsApp (Fase 6); o e-mail abaixo
+> é o caminho até lá.
 
 ```
 Implemente a verificação reforçada:
@@ -389,7 +392,7 @@ Toda exportação é auditada. Relatório respeita o escopo de quem exporta.
 | Item | O que envolve |
 |---|---|
 | PontoTel | Confirmar se há API. Se não houver, automatizar a exportação R01 e publicar direto — o RPA em Python/Playwright já faz esse tipo de leitura hoje |
-| WhatsApp | API oficial, template aprovado, opt-in registrado. Só aviso, nunca conteúdo |
+| WhatsApp | API oficial, template aprovado, opt-in registrado. Canal definitivo da **senha inicial e do código de uso único** (recuperação de senha e F3.3), decidido em 2026-09-30. Fora isso, só aviso — nunca conteúdo de documento |
 | Assinatura eletrônica | Avaliar se a ciência com protocolo + hash já basta juridicamente antes de contratar certificadora |
 | Onboarding de nova empresa | Assistente que cria organização, perfis padrão e importa o quadro |
 | App / PWA | PWA instalável com notificação push resolve o caso do funcionário sem custo de loja |

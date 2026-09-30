@@ -16,21 +16,17 @@ custa mais caro.
       folha, PontoTel? Quem entrega o arquivo e em que formato?
 - [ ] **Matrícula.** Existe número de matrícula único hoje? Ele vem da folha? É estável
       quando a pessoa muda de contrato?
-- [ ] **Quantos contratos e unidades** entram no piloto. Sugestão forte: **um contrato
-      só**, o de operação mais organizada, com o cliente mais parceiro.
-- [ ] **Senha inicial:** como chega ao funcionário? (Sugestão: entregue pelo supervisor
-      na unidade, contra assinatura de lista, junto com um cartão explicando o acesso.)
-- [ ] **Quem tem celular com internet** no quadro alvo. Se a fatia for baixa, isso muda
-      o projeto: precisa de totem na unidade ou acesso pelo supervisor.
-- [ ] **Canal da recuperação de senha do funcionário.** docs/03 diz "código de uso único
-      no telefone ou e-mail cadastrado", mas o Portal só tem e-mail (Resend) — e o
-      e-mail sintético `<cpf>@func.<slug>.portal3e` não recebe nada.
-      **Estado atual da implementação:** o código vai para `pessoas.email_pessoal`.
-      Funcionário sem esse campo preenchido **não consegue se recuperar sozinho** — a
-      tela manda procurar o RH ou o supervisor, que gera senha provisória nova.
-      Decidir: (a) exigir e-mail pessoal no cadastro/importação da F1.3, (b) contratar
-      canal de SMS/WhatsApp, ou (c) assumir que recuperação de funcionário é sempre
-      presencial pelo supervisor. Enquanto não decidir, vale (c) na prática.
+- [ ] **Como o quadro interno da 3e entra no modelo — TRAVA O PILOTO.** O piloto é com
+      a equipe interna da 3e, não com cliente externo (decidido em 2026-09-30, ver
+      "Decisões já tomadas"). O modelo é contratante → contrato → unidade, e
+      `alocacoes.contrato_id`/`unidade_id` são `not null`: funcionário interno não tem
+      onde ser alocado. Opções: (a) a 3e cadastrada como contratante de si mesma, com um
+      contrato interno — **recomendada**, sem migração; (b) alocação sem contratante —
+      migração em `alocacoes` e em toda função de escopo, coletivo e relatório.
+      Análise completa entregue ao Arthur em 2026-09-30; **nada implementado** até a
+      escolha. Junto com ela, decidir: quem da equipe interna enxerga o espelho dos
+      colegas (escopo no contrato interno), e como fica quem é ao mesmo tempo operador
+      e funcionário do quadro (hoje são duas contas: `usuarios.tipo` é um só por login).
 
 - [ ] **Onde o quadro real é importado pela primeira vez.** O critério de aceite da
       Fase 1 pede "o quadro real da 3e importado de planilha", e o CLAUDE.md proíbe
@@ -67,38 +63,19 @@ custa mais caro.
       contratante com `solicitacoes:criar`, o Fiscal incluído, abre os dois. Se a resposta
       for "fiscal só ocorrência", a matriz precisa de granularidade que hoje não tem
       (`solicitacoes:criar` não distingue tipo): é migração, não `insert`.
-- [ ] **Contratante vê espelho individual?** Movida para "Trava a Fase 3" — é a
-      única pendência daquela fase que ainda bloqueia funcionalidade. Ver lá.
 - [x] **Funcionário desligado** — **PROVISÓRIA (2026-09-28)**, ver "Decisões
       provisórias". Implementação adiada para a Fase 5.
-- [x] **Quem é o administrador geral** — **PROVISÓRIA (2026-09-28)**: só o Arthur, ver
-      "Decisões provisórias". **Segundo nome obrigatório antes do piloto.**
 
 ## Trava a Fase 3 (decidir antes de documentos)
 
-- [ ] **Contratante vê espelho individual? — ÚNICA PENDÊNCIA DA FASE 3 QUE AINDA
-      BLOQUEIA FUNCIONALIDADE.** Quem decide: gestor da 3e.
-      O gestor respondeu "pode ver após aprovação", sem dizer **aprovação de quem**.
-      As duas leituras possíveis produzem policies diferentes:
-      (a) após a **ciência confirmada do funcionário** — espelho contestado nunca chega
-      ao cliente; (b) após o **fechamento pela 3e** — o cliente veria inclusive espelho
-      que o funcionário contestou. A leitura errada expõe espelho contestado a um
-      cliente, então nada foi implementado.
-      **Estado atual, mantido de propósito:** `jornada` segue fora do teto do
-      contratante em `app.categoria_permitida()` (só `geral`, `contratual`, `sst`), sem
-      exceção condicional. Contratante não lê espelho nenhum.
-      **Como será implementado quando vier a resposta:** como condição por documento na
-      `documentos_leitura` — o espelho é legível ao contratante do escopo **se existir
-      ciência do tipo `confirmacao`** para aquela versão (ou a condição equivalente
-      da leitura escolhida). **Não** incluindo `jornada` na lista do contratante:
-      isso liberaria a categoria inteira, contestado ou não. Migração nova, com teste
-      de RLS dos dois lados (confirmado aparece; divergente e sem resposta, não).
 - [x] **Documentos do MVP** — **PROVISÓRIA (2026-09-28)**, ver "Decisões provisórias".
-      Espelho, comunicado, norma interna e holerite (só download); ASO só cadastrado.
+      Espelho, comunicado, norma interna; ASO só cadastrado. **Holerite fora do piloto**
+      (decidido em 2026-09-30): o tipo segue cadastrado, mas não se publica.
 - [x] **Prazo padrão de ciência** — **PROVISÓRIA (2026-09-28)**: 5 dias corridos,
       lembrete no 3º dia, padrão por tipo e editável na publicação.
 - [x] **Quais tipos exigem código de uso único** — **PROVISÓRIA (2026-09-28)**: no MVP,
-      só `holerite` (categoria `folha`). Isso fez da F3.3 dependência da F3.1.
+      só `holerite` (categoria `folha`). Com o holerite fora do piloto (2026-09-30), a
+      F3.3 **deixou de ser bloqueante** — segue no roadmap.
 - [x] **Categoria dos tipos de documento** — **PROVISÓRIA (2026-09-28)** para os 5 do
       MVP. `norma_interna` fica `geral`. `termo_rescisao` e `contrato_trabalho` **saíram
       do seed**: não estão no MVP, e a pergunta sobre a categoria deles (abaixo)
@@ -158,9 +135,10 @@ custa mais caro.
       diário.** No Hobby, lembrete e envio acontecem uma vez por dia. Decidir o plano (ou
       um agendador externo chamando o job com o `CRON_SECRET`) antes do piloto.
 - [ ] **Funcionário sem `email_pessoal` só recebe o aviso no Portal** — e o seed, e
-      provavelmente o quadro real, não têm esse campo. Mesma pergunta da recuperação de
-      senha (Trava a Fase 0–1): exigir e-mail pessoal no cadastro, contratar SMS/WhatsApp,
-      ou aceitar que o aviso do funcionário é a pendência na home. **Não há ainda tela que
+      provavelmente o quadro real, não têm esse campo. O canal definitivo de **senha e
+      código** já é WhatsApp (decidido em 2026-09-30, Fase 6); falta decidir se o
+      **aviso** de documento novo vai pelo mesmo canal quando ele existir, ou se o aviso
+      do funcionário é a pendência na home. **Não há ainda tela que
       liste os avisos do Portal** (`canal = 'portal'`): a pendência de documento aparece
       na home e o pedido "aguardando você" em Meus pedidos, mas a lista de avisos em si é
       da Fase 5.
@@ -175,9 +153,12 @@ custa mais caro.
       que chega como PDF, e no PontoTel (invariante 5: o Portal não apura jornada). O
       painel do contratante mostra, no lugar, a **situação do quadro por unidade hoje**
       (alocados, em atividade, férias, afastados), das alocações. Decidir com o gestor:
-      isso basta, ou a frequência depende da integração com o PontoTel (Fase 6)? Mesmo
-      que venha, esbarra na pergunta do espelho individual — que segue sem resposta, e o
-      espelho continua bloqueado para contratante, inclusive na contagem de ciência.
+      isso basta, ou a frequência depende da integração com o PontoTel (Fase 6)? O
+      espelho individual foi decidido em 2026-09-30 (o contratante lê o que o
+      funcionário **confirmou**, 0027), mas a contagem de ciência do espelho segue fora
+      de `pendencias_de_ciencia_do_contratante()`: ela mostraria quantos divergiram, e
+      divergência não chega ao cliente. Ainda **não há tela** do contratante que liste
+      espelho — quando vier, nasce de função com lista de colunas (invariante 10).
 - [ ] **Validade de ASO e treinamento não tem duração no sistema (F5.2).** Quem publica
       informa a data que está no documento ("válido até"); o Portal não calcula 12 ou 24
       meses. A periodicidade do ASO depende do PCMSO e do risco da função, e a do
@@ -214,6 +195,13 @@ custa mais caro.
 
 ## Trava a Fase 6 / comercialização
 
+- [ ] **Senha inicial e código de uso único por WhatsApp** — canal **decidido** como
+      definitivo em 2026-09-30; a pendência é de execução, na Fase 6. Exige API oficial
+      (WhatsApp Business Platform), **template aprovado** pela Meta para cada mensagem e
+      **opt-in registrado** do funcionário antes do primeiro envio. Cobre senha inicial,
+      recuperação de senha e o código da F3.3. Enquanto não existir, vale a entrega
+      presencial (piloto interno). Muda o texto de docs/05, que dizia "só aviso, nunca
+      conteúdo": credencial passa a sair pelo canal; conteúdo de documento, nunca.
 - [ ] **Domínio e hospedagem.** Sugestão: `portal.3e.srv.br` ou domínio próprio do
       produto, se a intenção é vender como produto independente da marca 3e.
 - [ ] **Nome comercial.** "Portal 3e" funciona internamente, mas não para vender a um
@@ -237,13 +225,15 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   | `espelho_ponto` | `jornada` | sim | não | 60 | 5 | sim |
   | `comunicado` | `geral` | sim | não | 60 | 5 | sim |
   | `norma_interna` | `geral` | sim | não | 60 | 5 | sim |
-  | `holerite` | `folha` | **não** | **sim** | 60 | — | só download |
+  | `holerite` | `folha` | **não** | **sim** | 60 | — | **fora do piloto** (2026-09-30) — cadastrado, não publicado |
   | `aso` | `medico` | sim | não | 240 | 5 | sim desde a F5.2 — vence por pessoa |
   | `treinamento` | `sst` | sim | não | — | 5 | F5.2 — vence por título |
   | `norma_sst` | `sst` | sim | não | — | 5 | F5.2 |
   Holerite é recibo de pagamento, não documento de anuência: não pede ciência. Sendo
-  `folha`, exige código de uso único — por isso **a F3.3 virou dependência da F3.1**,
-  não mais opcional (docs/05).
+  `folha`, exige código de uso único — por isso a F3.3 tinha virado dependência da F3.1.
+  **Desde 2026-09-30 o holerite está fora do piloto** e a F3.3 deixou de ser bloqueante
+  (docs/05). Não publicar holerite antes da F3.3: sem ela, a rota de download devolve
+  428 para todo tipo com `exige_2fa`, e o documento fica sem caminho de abertura.
   **Quem decide:** gestor da 3e (lista e ciência) e jurídico (retenção).
   **O que muda na resposta definitiva:** flags, categoria e retenção são `update` em
   `documento_tipos`, sem migração — mas documento já publicado não muda de prazo
@@ -271,18 +261,6 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   (`app.documento_alcanca_pessoa` ignora alocação `encerrada`).
   **Quem decide:** gestor da 3e, com o jurídico (acesso a holerite após desligamento).
   **O que muda:** o prazo vira parâmetro; o escopo do acesso define as policies.
-
-- **2026-09-28 — PROVISÓRIA — Administrador geral: só o Arthur.** No seed, continua
-  existindo **uma** persona `admin_geral` (`admin_geral@3e.com.br`, fictícia): a suíte
-  depende dela, e credencial real não entra no seed — que tem senha pública no
-  repositório. A conta real do Arthur nasce no projeto de produção, na F3.
-  **Ponto único de falha:** hoje há uma pessoa só com acesso administrativo. Se ela
-  estiver indisponível, ninguém muda permissão, escopo nem cria usuário interno.
-  **Precisa de um segundo nome antes do piloto**, por continuidade (docs/02: "Nunca deve
-  ser uma pessoa só").
-  **Quem decide:** diretoria da 3e.
-  **O que muda:** segunda conta com perfil `admin_geral` em produção, criada pela tela
-  de acessos (F2.1) — sem código.
 
 - **2026-09-28 — PROVISÓRIA — Divergência abre solicitação, por tipo de documento.**
   Mapeamento em `documento_tipos.tipo_solicitacao_divergencia` (migração 0017) — dado,
@@ -325,6 +303,46 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   estão em aberto (Trava a Fase 4).
 
 ## Decisões já tomadas (registro)
+
+- **2026-09-30 — Contratante vê o espelho individual depois que o funcionário confirma
+  a ciência** (decisão do gestor; migração 0027). Era a leitura (a) da pendência "pode
+  ver após aprovação". Exceção **por documento**, não liberação de categoria: `jornada`
+  segue fora do teto do contratante em `app.categoria_permitida()`, e o ramo novo de
+  `documentos_leitura` vale só para contratante, só para `espelho_ponto` individual e
+  publicado, só para pessoa com alocação vigente no escopo, e só com ciência
+  `confirmacao` **daquela versão**. **Divergência não libera:** o espelho divergido fica
+  invisível; a retificação é versão nova e fica invisível até ser confirmada; a v1
+  divergida vira `arquivado`, que o contratante nunca lê. Sem resposta, invisível — mesmo
+  depois do prazo. A ciência em si continua ilegível ao contratante (`ciencias_leitura`
+  não mudou). Coberto em `tests/rls/espelho-contratante.integracao.test.ts`, com a
+  titular e o RH como contraponto de cada "invisível". Ainda não há tela do contratante
+  que liste espelho (ver "Fase 5").
+
+- **2026-09-30 — O piloto é com a equipe interna da 3e**, não com cliente externo
+  (decisão do gestor). Substitui a pergunta "quantos contratos e unidades entram no
+  piloto". Como modelar o quadro interno segue em aberto — "Trava a Fase 0–1".
+
+- **2026-09-30 — Administradores gerais: Arthur e Wesley** (decisão do gestor). Encerra
+  a decisão provisória de 2026-09-28 ("só o Arthur") e o ponto único de falha que ela
+  deixava. As duas contas nascem **em produção** (docs/08, passo 5), nunca no seed — que
+  tem senha pública no repositório e continua com a persona fictícia
+  `admin_geral@3e.com.br`, da qual a suíte depende.
+
+- **2026-09-30 — Senha inicial e código de uso único: WhatsApp é o canal definitivo;
+  no piloto interno, entrega presencial** (decisão do gestor). Encerra "Senha inicial" e
+  "Canal da recuperação de senha do funcionário" (antes em "Trava a Fase 0–1"). O envio
+  por WhatsApp é pendência da Fase 6 (ver lá). Até ela, a senha provisória é gerada pela
+  tela de acessos e entregue em mãos, e a recuperação de quem não tem `email_pessoal` é
+  presencial — a opção (c) que já valia na prática.
+
+- **2026-09-30 — Holerite fora do piloto** (decisão do gestor). O tipo `holerite` segue
+  cadastrado e a F3.3 segue no roadmap, mas deixou de ser bloqueante (docs/05). Não
+  publicar holerite antes da F3.3 (ver a decisão provisória dos tipos, acima).
+
+- **2026-09-30 — Todo o quadro do piloto tem celular com internet** (decisão do gestor).
+  Encerra "Quem tem celular com internet" e remove o risco de precisar de totem ou ponto
+  de acesso na unidade. Vale para o quadro do piloto; cliente externo, depois, pede a
+  mesma pergunta de novo.
 
 - **2026-09-29 — Contratante lê solicitação pelo contrato, nunca pela pessoa**
   (migração 0021). O teste da F4.2 mediu: o fiscal do 042 lia o pedido de férias da
@@ -452,7 +470,7 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   Espelho não é `folha`, não é `pessoal` e não é `geral`. Encaixá-lo em `folha` ou
   `pessoal` teria tirado o acesso de Contratos/Coordenação, que é justamente o time que
   lê espelho e trata contestação. *(Corrigido em 2026-09-29: o texto original dizia que a
-  Coordenação "publica" espelho; publicar em lote é ato de DP — ver "Trava a Fase 4".)* Ver a nota na pergunta sobre o contratante acima.
+  Coordenação "publica" espelho; publicar em lote é ato de DP — ver "Trava a Fase 4".)* O contratante lê só o espelho confirmado — ver a decisão de 2026-09-30.
 
 - **2026-09-04 — Prazo de guarda continua indefinido.** `documento_tipos.retencao_meses`
   está `null` no seed de propósito, até o jurídico fechar os valores desta lista.
@@ -470,7 +488,7 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 | Vazamento de dado sensível | Grave, jurídico e comercial | Testes de RLS por persona no CI, bucket privado, log de download, revisão da matriz antes de cada release |
 | Segregação herdada da entidade vizinha | Vazamento entre públicos — **materializado duas vezes na Fase 4** | Ver a nota abaixo da tabela |
 | Cadastro inicial sujo (CPF errado, pessoa desligada) | Trava o primeiro acesso | Validação na importação, relatório de inconsistências antes de publicar qualquer coisa |
-| Você virar o único que sabe operar | Risco de continuidade — **materializado**: hoje há um administrador geral só (decisão provisória de 2026-09-28) | Segundo administrador geral **antes do piloto**, documentação nesta pasta sempre atualizada |
+| Você virar o único que sabe operar | Risco de continuidade | Dois administradores gerais (Arthur e Wesley, decidido em 2026-09-30, criados em produção), documentação nesta pasta sempre atualizada |
 
 **Segregação se desenha do zero para cada entidade escrita pelos três públicos.** Padrão
 exposto pela Fase 4: quando uma entidade nova é escrita por funcionário, contratante e

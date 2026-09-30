@@ -31,8 +31,8 @@ Estes itens de `docs/06-decisoes-pendentes.md` afetam o que você configura aqui
 
 - **Plano da Vercel.** O job de avisos roda de hora em hora (`vercel.json`). O plano Hobby
   só aceita cron diário e **recusa o deploy** com o agendamento atual. Ver passo 8.
-- **Segundo administrador geral.** O Portal não deve ficar com uma pessoa só capaz de
-  mudar permissão. Ver passo 5.
+- **Administradores gerais: Arthur e Wesley** (decidido em 2026-09-30). O primeiro é
+  criado à mão no passo 5; o segundo, pela tela, no passo 5.3.
 - **Domínio do Portal e do e-mail** (ex.: `portal.3e.srv.br` e `nao-responda@3e.srv.br`).
 
 ### Três regras que não mudam em produção
@@ -281,8 +281,8 @@ que o Admin geral precisa.
 ### 5.3 O segundo administrador — antes do piloto
 
 Em **Acessos › Novo acesso**, tipo **Equipe interna**, perfil **Administrador geral**. A
-tela gera a senha provisória. É decisão pendente da diretoria **quem** (docs/06), mas o
-piloto não começa com uma pessoa só capaz de mudar permissão.
+tela gera a senha provisória. Os dois administradores são **Arthur e Wesley** (docs/06,
+2026-09-30): o piloto não começa com uma pessoa só capaz de mudar permissão.
 
 ---
 

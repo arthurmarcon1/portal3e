@@ -64,6 +64,14 @@ efeito — o bloqueio prevalece. Isso é deliberado: é invariante de produto (C
 item 4), não configuração de cliente. Mudar esse teto exige migração e decisão de
 produto.
 
+**Única exceção, por documento e não por categoria: o espelho confirmado** (decisão do
+gestor, 2026-09-30; migração 0027). O contratante lê o `espelho_ponto` individual de
+pessoa com alocação vigente no escopo **depois que o funcionário confirma a ciência
+daquela versão**. Sem resposta, invisível; com divergência, invisível — até uma
+retificação ser publicada e confirmada. `jornada` continua fora do teto: nenhum outro
+documento da categoria, e nenhuma ciência (nem a confirmação, nem a justificativa da
+divergência), chega ao contratante.
+
 ---
 
 ## Contratante (tipo de usuário: `contratante`)
@@ -254,7 +262,8 @@ não usa `/admin/relatorios`; o `R` de `relatorios` na matriz dele ainda não te
 
 - [ ] A lista de subperfis internos está completa? Falta algum (ex.: jurídico)?
 - [ ] Fiscal do contrato pode abrir solicitação de substituição, ou só registrar ocorrência?
-- [ ] Contratante pode ver o espelho de ponto individual ou só a frequência consolidada?
+- [x] Contratante pode ver o espelho de ponto individual ou só a frequência consolidada?
+      **Decidido em 2026-09-30:** vê o individual depois da ciência confirmada (acima).
 - [ ] Quem aprova férias: RH, coordenação, ou depende do contrato?
 - [ ] Qual o SLA por tipo de solicitação?
 - [ ] Prazo de guarda por categoria de documento (meses)?

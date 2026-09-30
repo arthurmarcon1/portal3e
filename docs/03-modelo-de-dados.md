@@ -330,13 +330,20 @@ para entidade escrita pelos três públicos (docs/06, "Riscos").
 
 **Onde ainda há leitura direta de tabela pelo contratante**, hoje: `solicitacoes`
 (ocorrência e substituição do contrato, 0021) com `solicitacao_eventos` e `anexos`,
-`documentos` e `documento_destinatarios` (categorias abertas do escopo), `alocacoes`
+`documentos` e `documento_destinatarios` (categorias abertas do escopo, mais o espelho
+que o funcionário confirmou — 0027), `alocacoes`
 (vigentes, 0023) e a estrutura comercial (`contratantes`, `contratos`, `unidades`).
 Conferido coluna a coluna em 2026-09-30: nenhuma é campo restrito de docs/02
 (`unidades.endereco` é o endereço da unidade, não o residencial). O que sobra de risco é
 **texto livre** — `titulo`, `descricao`, `conteudo` — escrito por quem abre ou comenta, e
 que o contratante do contrato lê por desenho. Qualquer coluna nova nessas tabelas passa
 pela pergunta do invariante 10 antes da migração.
+
+No espelho confirmado (0027), a linha de `documentos` inteira fica legível, como nas
+categorias abertas. `versao` e `substitui_id` mostram que houve retificação (não o
+motivo: a v1 e a ciência dela seguem invisíveis), e `descricao` é texto livre de quem
+publica. **A tela do contratante que listar espelho ainda não existe**: quando vier,
+sai de função com lista de colunas, não de select em `documentos`.
 
 ## Como testar a RLS (obrigatório antes de cada release)
 
@@ -352,6 +359,7 @@ Um teste de integração que roda com o client de cada persona, não com `servic
 | Fiscal lê alocação encerrada, ou com `data_fim` passada, no escopo | 0 linhas — e 0 linhas nos documentos dessa pessoa (0023) |
 | Perfil de contratante recebe `administracao:ver` por engano | `auditoria`, `usuarios`, `usuario_perfis`, `usuario_escopos` seguem fechados (0023) |
 | Fiscal tenta ler documento categoria `medico` | 0 linhas |
+| Fiscal lê espelho de pessoa do escopo: sem ciência / com divergência / com confirmação | 0 / 0 / 1 linha — contraponto: a titular e o RH leem os três; ASO confirmado segue 0; retificação só aparece depois de confirmada, e a v1 divergida nunca (0027) |
 | Fiscal tenta ler `auditoria` | 0 linhas |
 | Usuário da organização X consulta contratos | nenhum da organização Y |
 | Funcionário tenta `update` em `ciencias` | erro de permissão |
