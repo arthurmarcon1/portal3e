@@ -418,16 +418,46 @@ execução; **Logs** mostra erros com o prefixo `[job notificacoes]`.
 
 Com o Portal no ar e os dois administradores entrando:
 
-1. **Estrutura comercial:** em **Contratantes**, **Unidades** e **Contratos**, cadastrar o
-   cliente do piloto, as unidades e o contrato.
-2. **Quadro:** em **Pessoas › Importar planilha**, importar o quadro real do contrato do
-   piloto. É o primeiro momento em que dado real de funcionário entra em algum ambiente
-   do Portal — e só neste projeto. A importação confere CPF e mostra as inconsistências
-   antes de gravar.
-3. **Acessos:** em **Acessos**, criar os usuários da equipe interna (com o perfil e, se
-   for o caso, o escopo de contrato), os do contratante (com escopo no contrato dele) e
-   os dos funcionários. A tela gera a senha provisória de cada um; a entrega ao
-   funcionário é decisão pendente (docs/06 sugere o supervisor, na unidade).
+1. **Estrutura comercial.** O piloto é o **quadro interno da 3e** (docs/06, 2026-09-30):
+   a 3e entra como contratante de si mesma. Nesta ordem, porque o contrato vincula
+   unidades que já existem:
+   - **Contratantes › Novo contratante:** nome `3e Gestão de Pessoas`, CNPJ da 3e;
+   - **Unidades › Nova unidade:** contratante `3e Gestão de Pessoas`, nome `Sede`, com o
+     endereço da sede;
+   - **Contratos › Novo contrato:** contratante `3e Gestão de Pessoas`, número
+     `3e — Quadro interno`, marcando a unidade `Sede`.
+
+   Esse contratante é **interno e não entra em faturamento** quando houver cobrança
+   (docs/06, "Trava a Fase 6 / comercialização"). Os contratos de cliente, se já
+   existirem, são cadastrados aqui também — eles definem o escopo do passo 3.
+2. **Quadro:** em **Pessoas › Importar planilha**, importar o quadro real, alocado no
+   contrato `3e — Quadro interno`, unidade `Sede`. É o primeiro momento em que dado real
+   de funcionário entra em algum ambiente do Portal — e só neste projeto. A importação
+   confere CPF e mostra as inconsistências antes de gravar.
+3. **Acessos:** em **Acessos**, criar os usuários da equipe interna, os dos funcionários
+   e, quando houver cliente, os do contratante (com escopo no contrato dele). A tela
+   gera a senha provisória de cada um; no piloto interno, **a entrega é presencial**
+   (docs/06 — WhatsApp é o canal definitivo, na Fase 6).
+
+   **Escopo da equipe interna** (docs/02, "Quadro interno da 3e"):
+   | Perfil | Em **Perfis e escopo** |
+   |---|---|
+   | Administrador geral, RH/DP | nenhum contrato e nenhuma unidade marcados (alcance total) |
+   | Contratos, Financeiro, SST, Suporte/Auditoria | **todos os contratos de cliente** marcados; `3e — Quadro interno` **desmarcado** |
+
+   Atenção a duas armadilhas: (a) nenhum contrato marcado **não** é "nenhum acesso" —
+   para a equipe interna é alcance total, o oposto do que se quer para esses quatro
+   perfis; (b) sem nenhum contrato de cliente cadastrado não há o que marcar, e esses
+   perfis ficariam com alcance total — só dê o acesso a eles quando houver ao menos um
+   contrato de cliente. **Todo contrato de cliente novo** precisa ser marcado no escopo
+   dos quatro perfis, senão fica invisível para eles.
+
+   **Quem é operador e também funcionário do quadro tem duas contas, e assim devem
+   permanecer** (docs/06, 2026-09-30). O acesso de operador entra pelo **e-mail**, com
+   o perfil da equipe; o de funcionário entra pelo **CPF**, e é por ele que a pessoa
+   recebe e confirma o próprio espelho. São logins separados: não junte, não
+   reaproveite a senha de um no outro, e não dê perfil de equipe à conta de CPF. Ao
+   entregar os acessos, explique à pessoa qual login serve para quê.
 4. **Regra do espelho:** em **Espelhos**, ajustar a expressão que acha o CPF (ou a
    matrícula) no nome dos arquivos que saem do fechamento, e conferir com um lote real
    — a tela mostra quem casou e quem não casou antes de publicar qualquer coisa.
@@ -438,8 +468,14 @@ Com o Portal no ar e os dois administradores entrando:
    - conferir em **Auditoria** a publicação, a ciência e o download;
    - conferir em **Relatórios › Pendências de ciência** que a contagem bate.
 
-**Conferir o isolamento uma vez com dado real:** entrar como o usuário do contratante e
-confirmar que a lista de pessoas mostra só nome, matrícula, CPF mascarado
+**Conferir o escopo uma vez com dado real:** entrar como um usuário de cada um dos
+quatro perfis restritos (Contratos, Financeiro, SST, Suporte/Auditoria) e confirmar que
+**Pessoas**, **Documentos**, **Solicitações** e **Relatórios › Quadro** não mostram
+ninguém do `3e — Quadro interno`; e, como RH/DP, que mostram. Foi a conferência feita
+no dev em 2026-09-30 (docs/06).
+
+**Quando houver cliente, conferir o isolamento com dado real:** entrar como o usuário do
+contratante e confirmar que a lista de pessoas mostra só nome, matrícula, CPF mascarado
 (`***.***.**X-YZ`), função, unidade, situação e início — e só de quem está alocado no
 contrato dele.
 

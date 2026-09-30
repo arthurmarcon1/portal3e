@@ -142,6 +142,31 @@ casos isso abre pessoa ou documento individual de fora do escopo.
 unidade do escopo dele (`app.documento_no_escopo`). Coletivo de outro cliente, ou sem
 escopo nenhum, é 0 linhas — inclusive no público-alvo (`documento_destinatarios`).
 
+## Quadro interno da 3e — quem enxerga (decisão de 2026-09-30)
+
+O quadro interno da 3e é alocado no contratante **3e Gestão de Pessoas**, contrato
+**3e — Quadro interno**, unidade **Sede** (docs/06). Quem enxerga esse quadro:
+
+| Perfil | Escopo | Enxerga o quadro interno? |
+|---|---|---|
+| Admin geral, RH/DP | nenhum (alcance total) | sim |
+| Contratos, Financeiro, SST, Suporte/Auditoria | **todos os contratos de cliente, sem o contrato interno** | não |
+
+**Motivo:** num quadro interno pequeno, ver o ponto de colegas e de superiores é diferente
+de ver o de um terceirizado alocado em cliente. Privilégio mínimo vale mais aqui, não
+menos.
+
+Como o escopo segrega **pessoa**, não categoria, o recorte vale para tudo o que é da
+pessoa, não só para o espelho: cadastro, alocação, documentos individuais de qualquer
+categoria, solicitações e relatórios. Conferido perfil a perfil em 2026-09-30 (docs/06).
+O que as regras acima continuam abrindo a esses quatro perfis é o **comunicado coletivo**
+dirigido ao quadro interno, e, para Contratos (`contratos:editar`), o **cadastro** do
+contratante, do contrato e da unidade internos (sem pessoa nenhuma).
+
+**Contrato de cliente novo precisa entrar no escopo dos quatro perfis.** O escopo é
+lista explícita de contratos: um contrato cadastrado amanhã fica invisível a eles
+(falha fechada) até alguém marcá-lo em **Acessos › Perfis e escopo**.
+
 ---
 
 ## Documentos: que ação cada passo da publicação pede

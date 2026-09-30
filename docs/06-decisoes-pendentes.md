@@ -16,17 +16,49 @@ custa mais caro.
       folha, PontoTel? Quem entrega o arquivo e em que formato?
 - [ ] **Matrícula.** Existe número de matrícula único hoje? Ele vem da folha? É estável
       quando a pessoa muda de contrato?
-- [ ] **Como o quadro interno da 3e entra no modelo — TRAVA O PILOTO.** O piloto é com
-      a equipe interna da 3e, não com cliente externo (decidido em 2026-09-30, ver
-      "Decisões já tomadas"). O modelo é contratante → contrato → unidade, e
-      `alocacoes.contrato_id`/`unidade_id` são `not null`: funcionário interno não tem
-      onde ser alocado. Opções: (a) a 3e cadastrada como contratante de si mesma, com um
-      contrato interno — **recomendada**, sem migração; (b) alocação sem contratante —
-      migração em `alocacoes` e em toda função de escopo, coletivo e relatório.
-      Análise completa entregue ao Arthur em 2026-09-30; **nada implementado** até a
-      escolha. Junto com ela, decidir: quem da equipe interna enxerga o espelho dos
-      colegas (escopo no contrato interno), e como fica quem é ao mesmo tempo operador
-      e funcionário do quadro (hoje são duas contas: `usuarios.tipo` é um só por login).
+- [x] **Como o quadro interno da 3e entra no modelo** — decidido em 2026-09-30: opção
+      (a), a 3e como contratante de si mesma. Ver "Decisões já tomadas".
+
+- [ ] **O que a conferência do escopo do quadro interno deixou aberto** (2026-09-30).
+      O escopo segrega pessoa, então o recorte da decisão vale para tudo o que é da
+      pessoa, não só para o espelho. A conferência perfil a perfil (docs/02, "Quadro
+      interno da 3e") mostrou três efeitos que a decisão não mencionou e que ficam para
+      o Arthur confirmar:
+      (a) **SST não vê o ASO nem o treinamento do quadro interno**, e o alerta de
+      vencimento de 30 dias de alguém do quadro interno vai **só para o Admin geral**
+      (medido: o ASO fictício do quadro interno alertou só o admin; o do 042 alertou
+      SST e admin). Se o SST cuida da saúde ocupacional da equipe interna, uma saída é
+      incluir o contrato interno no escopo só do SST: como o SST não tem a categoria
+      `jornada` (docs/02), isso abre o ASO, o treinamento e o cadastro dos colegas, mas
+      não o ponto — o motivo da decisão continua atendido.
+      (b) **Suporte/Auditoria continua vendo na trilha de auditoria** os eventos do
+      quadro interno: quem registrou ciência e de que tipo (inclusive divergência de
+      espelho), quem baixou qual documento, com data e IP — sem o conteúdo nem a
+      justificativa. A trilha não tem escopo por desenho (é "quem audita quem"). Manter?
+      (c) **Comunicado coletivo dirigido ao quadro interno** é lido pelos quatro perfis
+      restritos, pela regra de 2026-09-15 (escopo de interno não segrega aviso geral).
+      Aviso não é ponto; registrado para ninguém estranhar.
+      (d) **Em produção, sem contrato de cliente, a restrição não tem como existir.**
+      Para interno, escopo vazio é alcance total. O escopo "todos os contratos de
+      cliente, sem o interno" só existe se houver ao menos um contrato de cliente
+      cadastrado; num projeto de produção que nasce só com o quadro interno, marcar nada
+      dá aos quatro perfis a visão do ponto de todos. Saídas: cadastrar em produção os
+      contratos de cliente reais (só a estrutura — contratante, contrato, unidade —, sem
+      pessoa), ou não criar contas desses quatro perfis até que haja cliente. No dev
+      funciona porque o seed tem 042, 043 e 077.
+
+- [ ] **A suíte de testes briga com os escopos do piloto no dev** (2026-09-30). Duas
+      suítes supõem que as personas internas **não** têm escopo e falham alto quando têm:
+      `tests/rls/estrutura-comercial.integracao.test.ts` (Contratos) e
+      `src/features/sst/sst.integracao.test.ts` (SST). Pior: o `afterAll` da primeira
+      apaga **todos** os escopos do Contratos e do RH/DP mesmo quando o `beforeAll`
+      falhou — rodar `npm test` no dev **desfaz em silêncio** o escopo do Contratos
+      (aconteceu na conferência; restaurado pela tela). Os outros 44 arquivos passam com
+      os escopos no lugar. Decidir: (a) levar os escopos para o seed e ajustar as duas
+      suítes para guardar e devolver o escopo original em vez de falhar — a suíte passa
+      a cobrir a configuração do piloto; ou (b) manter as personas do seed sem escopo
+      e fazer a demonstração com usuários próprios. Nos dois casos, o `afterAll` que
+      apaga o que não criou é defeito e deve ser corrigido.
 
 - [ ] **Onde o quadro real é importado pela primeira vez.** O critério de aceite da
       Fase 1 pede "o quadro real da 3e importado de planilha", e o CLAUDE.md proíbe
@@ -208,6 +240,13 @@ custa mais caro.
       concorrente da 3e. Definir cedo evita retrabalho de marca.
 - [ ] **Modelo de cobrança** para outras empresas: por funcionário ativo/mês? por
       contrato? faixa fixa? (Coerente com a estrutura de preços que você já usa.)
+- [ ] **O contratante "3e Gestão de Pessoas" é interno e NÃO entra em faturamento.**
+      Ele existe só para alocar o quadro interno da 3e (decisão de 2026-09-30). Quando o
+      modelo de cobrança vier (por funcionário ativo, por contrato…), esse contratante,
+      o contrato "3e — Quadro interno" e as pessoas alocadas nele ficam **fora** da
+      conta. Hoje nada no banco marca isso — é só o nome. Quando a cobrança for
+      implementada, a exclusão precisa ser explícita (uma marca no contratante, por
+      exemplo), não um filtro por nome.
 - [ ] **Encarregado de dados (DPO)** e política de privacidade publicada — exigência de
       LGPD quando houver cliente externo.
 - [ ] **Contrato de operador de dados** entre a prestadora e as contratantes.
@@ -320,7 +359,30 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 
 - **2026-09-30 — O piloto é com a equipe interna da 3e**, não com cliente externo
   (decisão do gestor). Substitui a pergunta "quantos contratos e unidades entram no
-  piloto". Como modelar o quadro interno segue em aberto — "Trava a Fase 0–1".
+  piloto".
+
+- **2026-09-30 — O quadro interno é alocado na 3e como contratante de si mesma**
+  (decisão do Arthur, opção (a) da análise). Contratante **3e Gestão de Pessoas**,
+  contrato **3e — Quadro interno**, unidade **Sede** — cadastro pela tela, sem migração;
+  todo o caminho que já existe (coletivo por contrato, escopo, relatórios, lote de
+  espelho) vale como está. A alternativa (b), alocação sem contratante, exigiria migrar
+  `alocacoes` e toda função de escopo, coletivo e relatório. **Não entra em
+  faturamento** — ver "Trava a Fase 6 / comercialização". Cadastrado no dev em
+  2026-09-30; em produção, docs/08, passo 9.1.
+
+- **2026-09-30 — Quem da equipe vê o espelho dos colegas: só Admin geral e RH/DP**
+  (decisão do Arthur). Os dois ficam com alcance total. Contratos, Financeiro, SST e
+  Suporte/Auditoria passam a ter escopo **restrito aos contratos de cliente, sem o
+  contrato interno**. **Motivo:** num quadro interno pequeno, ver o ponto de colegas e
+  de superiores é diferente de ver o de um terceirizado alocado em cliente. Privilégio
+  mínimo vale mais aqui, não menos. É a primeira vez que escopo limitado existe fora de
+  teste. Regra e efeitos em docs/02, "Quadro interno da 3e"; o que a conferência deixou
+  aberto está em "Trava a Fase 0–1".
+
+- **2026-09-30 — Quem é operador e também funcionário do quadro tem duas contas**
+  (decisão do Arthur). O e-mail de operador (tipo `interno`) e o CPF de funcionário
+  (tipo `funcionario`) são logins separados e assim devem permanecer: um login tem um
+  tipo só (`usuarios.tipo`), e cada tipo entra na sua área. Nada a mudar no código. Instrução em docs/08, passo 9.3.
 
 - **2026-09-30 — Administradores gerais: Arthur e Wesley** (decisão do gestor). Encerra
   a decisão provisória de 2026-09-28 ("só o Arthur") e o ponto único de falha que ela
