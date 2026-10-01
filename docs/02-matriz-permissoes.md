@@ -174,6 +174,9 @@ acima), e é ela que barra o ponto, não o escopo. Conferido em 2026-09-30: o al
 de alguém do quadro interno chega ao SST, e o espelho continua invisível para ele.
 O SST também passa a ver as **solicitações** da equipe interna (férias, afastamento,
 atualização cadastral), porque a leitura de solicitação segue o escopo da pessoa.
+**Limitação conhecida, aceita para o piloto:** só afastamento é assunto do SST; férias e
+atualização cadastral não. Recortar por tipo de solicitação fica para quando houver
+cliente externo com equipe grande (docs/06).
 
 **Contrato de cliente novo precisa entrar no escopo dos quatro perfis** (Contratos,
 Financeiro, SST e Suporte/Auditoria). O escopo é

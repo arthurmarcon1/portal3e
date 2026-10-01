@@ -212,6 +212,16 @@ custa mais caro.
       concorrente da 3e. Definir cedo evita retrabalho de marca.
 - [ ] **Modelo de cobrança** para outras empresas: por funcionário ativo/mês? por
       contrato? faixa fixa? (Coerente com a estrutura de preços que você já usa.)
+- [ ] **LIMITAÇÃO CONHECIDA — SST vê todo tipo de solicitação da equipe interna**
+      (aceita pelo Arthur em 2026-09-30, para rever quando houver cliente externo com
+      equipe grande). A leitura de solicitação segue o escopo da **pessoa**, não o
+      **tipo**: com o quadro interno no escopo (para ver ASO e treinamento), o SST lê
+      também férias e atualização cadastral (telefone, endereço) dos colegas. Só
+      afastamento é assunto dele. No piloto de 15 pessoas, separar visibilidade por tipo
+      de solicitação é complexidade que não se justifica — **não foi mexido**. Quando
+      voltar: é recorte por tipo na `solicitacoes_leitura` (e em anexos e linha do tempo,
+      que herdam), não ajuste de escopo — e vale para qualquer perfil que precise do
+      quadro por um motivo e não pelos outros.
 - [ ] **O contratante "3e Gestão de Pessoas" é interno e NÃO entra em faturamento.**
       Ele existe só para alocar o quadro interno da 3e (decisão de 2026-09-30). Quando o
       modelo de cobrança vier (por funcionário ativo, por contrato…), esse contratante,
@@ -357,8 +367,10 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   equipe ia só para o Admin geral (medido na conferência) — risco ocupacional. Com o
   contrato interno no escopo, o SST vê colega, ASO e treinamento; o espelho continua
   barrado pela categoria `jornada`, que o perfil dele não tem (medido depois da
-  correção: alerta chega ao SST, espelho invisível). Efeito colateral aceito: o SST
-  também vê as solicitações da equipe interna (férias, afastamento, cadastro).
+  correção: alerta chega ao SST, espelho invisível). Efeito colateral **aceito com
+  ressalva**: o SST também vê as solicitações da equipe interna — afastamento faz
+  sentido (saúde ocupacional), férias e atualização cadastral não. Limitação conhecida,
+  ver "Trava a Fase 6 / comercialização".
 
 - **2026-09-30 — Teste só apaga o que ele próprio criou** (decisão do Arthur). Achado
   na conferência do escopo: o `afterAll` de `tests/rls/estrutura-comercial` apagava
