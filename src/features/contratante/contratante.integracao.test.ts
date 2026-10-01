@@ -349,7 +349,9 @@ describe("só alocação vigente", () => {
   it("a Maria no 043 (encerrada, seed) não aparece ao fiscal do 042 por aquela alocação", async () => {
     const fiscal = await como(EMAILS.fiscal);
     const { data } = await fiscal.rpc("quadro_do_contratante");
-    expect(data!.filter((l) => l.pessoa_id === MARIA.pessoaId).every((l) => l.contrato_id === C042)).toBe(true);
+    // A Maria TEM de aparecer, pela alocação do 042 — senão um quadro que a
+    // escondesse de vez passaria aqui (every() de lista vazia é true).
+    expect(data!.filter((l) => l.pessoa_id === MARIA.pessoaId).map((l) => l.contrato_id)).toEqual([C042]);
   });
 });
 
@@ -464,8 +466,14 @@ describe("guarda estrutural: administracao:ver não abre nada a contratante", ()
       const suporte = await como(EMAILS.suporte);
       expect((await fiscal.from("auditoria").select("id").eq("id", auditoriaDoTeste)).data).toEqual([]);
       expect((await fiscal.from("usuarios").select("id")).data!.map((u) => u.id)).toEqual([FISCAL]);
-      expect((await fiscal.from("usuario_perfis").select("usuario_id")).data!.every((u) => u.usuario_id === FISCAL)).toBe(true);
-      expect((await fiscal.from("usuario_escopos").select("usuario_id")).data!.every((u) => u.usuario_id === FISCAL)).toBe(true);
+      // Perfis e escopos de OUTROS usuários: a mesma consulta dos dois lados.
+      // Antes era every() sobre o que o fiscal lia — verdadeiro com lista vazia,
+      // e sem contraponto nenhum provando que essas linhas existem e são legíveis.
+      for (const tabela of ["usuario_perfis", "usuario_escopos"] as const) {
+        expect((await fiscal.from(tabela).select("usuario_id").neq("usuario_id", FISCAL)).data, tabela).toEqual([]);
+        expect((await fiscal.from(tabela).select("usuario_id").eq("usuario_id", FISCAL)).data!.length, `${tabela}: a própria`).toBeGreaterThan(0);
+        expect((await suporte.from(tabela).select("usuario_id").neq("usuario_id", FISCAL)).data!.length, `${tabela}: o Suporte lê`).toBeGreaterThan(0);
+      }
 
       expect((await suporte.from("auditoria").select("id").eq("id", auditoriaDoTeste)).data).toEqual([{ id: auditoriaDoTeste }]);
       expect((await suporte.from("usuarios").select("id")).data!.length).toBeGreaterThan(1);
