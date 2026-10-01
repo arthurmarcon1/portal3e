@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { devolverEscopos, trocarEscopo } from "../../../tests/rls/apoio";
+
 /**
  * Pessoa sem alocação × escopo (migração 0007).
  *
@@ -35,6 +37,7 @@ const CPF_SEM_ALOCACAO = "01027717713";
 
 let admin: SupabaseClient<Database>;
 let pessoaSemAlocacao: string;
+const devolucoes: (() => Promise<void>)[] = [];
 
 async function como(email: string): Promise<SupabaseClient<Database>> {
   const cliente = createClient<Database>(
@@ -77,18 +80,19 @@ beforeAll(async () => {
   if (error) throw new Error(`fixture: ${error.message}`);
   pessoaSemAlocacao = pessoa.id;
 
-  // Tira o RH/DP do escopo total, prendendo-o ao contrato 042.
-  const { error: erroEscopo } = await admin
-    .from("usuario_escopos")
-    .insert({ usuario_id: RH_DP, contrato_id: CONTRATO_042 });
-  if (erroEscopo) throw new Error(`fixture (escopo): ${erroEscopo.message}`);
+  // Tira o RH/DP do escopo total, prendendo-o ao contrato 042. O original
+  // é guardado e devolvido no afterAll.
+  devolucoes.push(await trocarEscopo(admin, RH_DP, [{ contrato_id: CONTRATO_042 }]));
 });
 
 afterAll(async () => {
   if (!admin) return;
-  // O seed precisa voltar exatamente ao que era: o RH/DP é escopo total.
-  await admin.from("usuario_escopos").delete().eq("usuario_id", RH_DP);
-  if (pessoaSemAlocacao) await admin.from("pessoas").delete().eq("id", pessoaSemAlocacao);
+  // O RH/DP volta exatamente ao escopo que tinha — e só o que o teste pôs sai.
+  try {
+    await devolverEscopos(devolucoes);
+  } finally {
+    if (pessoaSemAlocacao) await admin.from("pessoas").delete().eq("id", pessoaSemAlocacao);
+  }
 });
 
 describe("interno com escopo", () => {

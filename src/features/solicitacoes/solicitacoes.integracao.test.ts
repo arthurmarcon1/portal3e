@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, marcarAuditoria } from "../../../tests/rls/apoio";
+
 /**
  * Solicitações (F4.2), pelas Server Actions reais e pela RLS da 0020.
  *
@@ -48,6 +50,9 @@ const C042 = "d594b950-e556-5f78-ae9b-98f6b1d12b63";
 const C077 = "e716f5c1-3603-596b-a331-1d307ccf82f3";
 
 let admin: Cliente;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.88";
 const clientes = new Map<string, Cliente>();
 const criadas = new Set<string>();
 
@@ -121,12 +126,15 @@ async function abrirComoMaria(tipo = "ferias", descricao = "Quero férias de 10 
 beforeAll(async () => {
   const { url, service } = ambiente();
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
   const { error } = await admin.from("sla_solicitacoes").select("tipo").limit(1);
   if (error) throw new Error(`migração 0020 ausente no alvo de teste: ${error.message}`);
 }, 30_000);
 
 afterAll(async () => {
-  if (!admin || criadas.size === 0) return;
+  if (!admin) return;
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
+  if (criadas.size === 0) return;
   const ids = [...criadas];
   const { data: anexos } = await admin.from("anexos").select("id, arquivo_path").in("solicitacao_id", ids);
   if (anexos?.length) {
@@ -134,6 +142,8 @@ afterAll(async () => {
     await admin.from("auditoria").delete().in("entidade_id", anexos.map((a) => a.id));
   }
   await admin.from("auditoria").delete().in("entidade_id", ids);
+  // Os avisos de "respondida" e "concluída" apontam para a solicitação, sem FK.
+  await admin.from("notificacoes").delete().in("referencia_id", ids);
   await admin.from("solicitacoes").delete().in("id", ids);
 }, 30_000);
 

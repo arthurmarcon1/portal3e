@@ -149,8 +149,9 @@ O quadro interno da 3e é alocado no contratante **3e Gestão de Pessoas**, cont
 
 | Perfil | Escopo | Enxerga o quadro interno? |
 |---|---|---|
-| Admin geral, RH/DP | nenhum (alcance total) | sim |
-| Contratos, Financeiro, SST, Suporte/Auditoria | **todos os contratos de cliente, sem o contrato interno** | não |
+| Admin geral, RH/DP | nenhum (alcance total) | sim, inclusive o ponto |
+| SST | **todos os contratos de cliente e o contrato interno** | sim — mas **não o ponto** |
+| Contratos, Financeiro, Suporte/Auditoria | **todos os contratos de cliente, sem o contrato interno** | não |
 
 **Motivo:** num quadro interno pequeno, ver o ponto de colegas e de superiores é diferente
 de ver o de um terceirizado alocado em cliente. Privilégio mínimo vale mais aqui, não
@@ -159,11 +160,23 @@ menos.
 Como o escopo segrega **pessoa**, não categoria, o recorte vale para tudo o que é da
 pessoa, não só para o espelho: cadastro, alocação, documentos individuais de qualquer
 categoria, solicitações e relatórios. Conferido perfil a perfil em 2026-09-30 (docs/06).
-O que as regras acima continuam abrindo a esses quatro perfis é o **comunicado coletivo**
-dirigido ao quadro interno, e, para Contratos (`contratos:editar`), o **cadastro** do
-contratante, do contrato e da unidade internos (sem pessoa nenhuma).
+O que as regras acima continuam abrindo aos três perfis restritos é o **comunicado
+coletivo** dirigido ao quadro interno, e, para Contratos (`contratos:editar`), o
+**cadastro** do contratante, do contrato e da unidade internos (sem pessoa nenhuma).
 
-**Contrato de cliente novo precisa entrar no escopo dos quatro perfis.** O escopo é
+**Por que o SST é a exceção (correção do Arthur, 2026-09-30).** Na primeira versão desta
+decisão o SST estava entre os restritos. Mas o escopo corta a pessoa inteira, não só o
+ponto: o SST deixava de ver o ASO e o treinamento da equipe interna, e o alerta de
+vencimento de 30 dias de alguém da equipe ia **só para o Admin geral** — risco
+ocupacional. Com o contrato interno no escopo, o SST vê colega, ASO e treinamento, e
+**não** o espelho: a categoria `jornada` não está no perfil dele (tabela de categorias,
+acima), e é ela que barra o ponto, não o escopo. Conferido em 2026-09-30: o alerta do ASO
+de alguém do quadro interno chega ao SST, e o espelho continua invisível para ele.
+O SST também passa a ver as **solicitações** da equipe interna (férias, afastamento,
+atualização cadastral), porque a leitura de solicitação segue o escopo da pessoa.
+
+**Contrato de cliente novo precisa entrar no escopo dos quatro perfis** (Contratos,
+Financeiro, SST e Suporte/Auditoria). O escopo é
 lista explícita de contratos: um contrato cadastrado amanhã fica invisível a eles
 (falha fechada) até alguém marcá-lo em **Acessos › Perfis e escopo**.
 

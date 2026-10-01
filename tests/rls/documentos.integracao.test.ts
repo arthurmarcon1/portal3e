@@ -5,12 +5,14 @@ import {
   como,
   CONTRATOS,
   criarDocumento,
+  devolverEscopos,
   exigir,
   idsVisiveis,
   ORG,
   PERSONAS,
   PESSOA_JOAO,
   TIPOS,
+  trocarEscopo,
   type Cliente,
 } from "./apoio";
 
@@ -306,28 +308,15 @@ describe("interno com escopo e comunicado coletivo — regra de docs/02", () => 
   // individual, NÃO aviso geral. Este caso existe para ninguém "consertar" a
   // policy achando que é vazamento. Para contratante a regra é a oposta (ver
   // "não lê coletivo dirigido a contrato de outro cliente", acima).
+  const devolucoes: (() => Promise<void>)[] = [];
+
   beforeAll(async () => {
-    const existente = exigir(
-      await admin.from("usuario_escopos").select("id").eq("usuario_id", PERSONAS.rhDp.id),
-      "escopo do RH/DP",
-    );
-    if (existente.length > 0) {
-      throw new Error(
-        "RH/DP já tem escopo cadastrado — no seed ele é escopo total. Outro teste deixou " +
-          "sujeira; este não vai sobrescrever. Apague usuario_escopos do RH/DP e rode de novo.",
-      );
-    }
-    exigir(
-      await admin
-        .from("usuario_escopos")
-        .insert({ usuario_id: PERSONAS.rhDp.id, contrato_id: CONTRATOS.c042 })
-        .select("id"),
-      "escopo 042 do RH/DP",
-    );
+    // Troca o escopo do RH/DP pelo 042 e guarda o original para devolver.
+    devolucoes.push(await trocarEscopo(admin, PERSONAS.rhDp.id, [{ contrato_id: CONTRATOS.c042 }]));
   });
 
   afterAll(async () => {
-    await admin.from("usuario_escopos").delete().eq("usuario_id", PERSONAS.rhDp.id);
+    await devolverEscopos(devolucoes);
   });
 
   it("RH/DP com escopo só no 042 lê o comunicado coletivo dirigido ao 077", async () => {

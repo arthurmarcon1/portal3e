@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, marcarAuditoria } from "../../../tests/rls/apoio";
+
 /**
  * Administração de acesso (F2.1), contra o banco de verdade.
  *
@@ -38,7 +40,12 @@ const SENHA = "portal3e2026";
 const PERFIL_SST = "840c335b-3dc4-59a9-8db6-29617ed44acb";
 
 let admin: SupabaseClient<Database>;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.7";
 let permissoesOriginais: { modulo: string; acao: string }[] = [];
+/** Só depois de lidas as originais o afterAll pode mexer no perfil. */
+let originaisLidas = false;
 const usuariosCriados: string[] = [];
 
 function novoCliente(): SupabaseClient<Database> {
@@ -71,28 +78,45 @@ beforeAll(async () => {
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !service) throw new Error("credenciais de teste ausentes.");
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
 
-  const { data } = await admin
+  const { data, error } = await admin
     .from("perfil_permissoes")
     .select("modulo, acao")
     .eq("perfil_id", PERFIL_SST);
-  permissoesOriginais = data ?? [];
+  // Sem a leitura, o afterAll apagaria o perfil e não teria o que repor.
+  if (error || !data) throw new Error(`fixture (permissões originais do SST): ${error?.message ?? "sem dados"}`);
+  permissoesOriginais = data;
+  originaisLidas = true;
 }, 30_000);
 
 afterAll(async () => {
   if (!admin) return;
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
 
-  // O seed é fixture da suíte inteira: o perfil volta exatamente como estava.
-  await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_SST);
-  if (permissoesOriginais.length > 0) {
-    await admin
-      .from("perfil_permissoes")
-      .insert(permissoesOriginais.map((p) => ({ ...p, perfil_id: PERFIL_SST })));
-  }
-
-  for (const id of usuariosCriados) {
-    await admin.from("usuarios").delete().eq("id", id);
-    await admin.auth.admin.deleteUser(id);
+  try {
+    // O seed é fixture da suíte inteira: o perfil volta exatamente como estava.
+    // Só se as originais foram lidas — senão apagar seria perder o perfil.
+    if (originaisLidas) {
+      const apagar = await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_SST);
+      if (apagar.error) throw new Error(`devolver permissões do SST: ${apagar.error.message}`);
+      if (permissoesOriginais.length > 0) {
+        const repor = await admin
+          .from("perfil_permissoes")
+          .insert(permissoesOriginais.map((p) => ({ ...p, perfil_id: PERFIL_SST })));
+        if (repor.error) {
+          throw new Error(
+            `devolver permissões do SST — o perfil está SEM permissões, reponha à mão: ` +
+              `${JSON.stringify(permissoesOriginais)} (${repor.error.message})`,
+          );
+        }
+      }
+    }
+  } finally {
+    for (const id of usuariosCriados) {
+      await admin.from("usuarios").delete().eq("id", id);
+      await admin.auth.admin.deleteUser(id);
+    }
   }
 });
 

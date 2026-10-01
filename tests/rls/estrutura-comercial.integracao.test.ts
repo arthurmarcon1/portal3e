@@ -6,6 +6,8 @@ import {
   CONTRATOS,
   exigir,
   PERSONAS,
+  devolverEscopos,
+  trocarEscopo,
   type Cliente,
 } from "./apoio";
 
@@ -24,8 +26,10 @@ import {
  * dublado é só o encanamento de requisição do Next — o client vem da persona
  * autenticada, então quem responde é a RLS.
  *
- * `service_role` só no fixture: dar e tirar escopo, limpar o que as actions
- * criaram e o rastro delas em `auditoria`.
+ * `service_role` só no fixture: trocar escopo e devolver o original
+ * (`trocarEscopo`), limpar o que as actions criaram e o rastro delas em
+ * `auditoria`. O escopo que as personas tinham antes — o do piloto, no seed —
+ * volta exatamente como estava, mesmo se a preparação falhar.
  */
 
 const estado = vi.hoisted(() => ({ cliente: null as unknown }));
@@ -51,6 +55,7 @@ const NUMERO_CONTRATO = "TESTE-RLS-EST-1";
 let admin: Cliente;
 let contratos: Cliente;
 let rh: Cliente;
+const devolucoes: (() => Promise<void>)[] = [];
 
 let contratanteId: string;
 let unidadeId: string;
@@ -80,30 +85,9 @@ beforeAll(async () => {
   admin = clienteDeFixture();
   await limpar();
 
-  for (const persona of [PERSONAS.contratos, PERSONAS.rhDp]) {
-    const existente = exigir(
-      await admin.from("usuario_escopos").select("id").eq("usuario_id", persona.id),
-      `escopo de ${persona.email}`,
-    );
-    if (existente.length > 0) {
-      throw new Error(
-        `${persona.email} já tem escopo cadastrado — no seed é escopo total. Outro teste ` +
-          "deixou sujeira; este não vai sobrescrever. Apague o escopo e rode de novo.",
-      );
-    }
-  }
-
   // Os dois presos ao 042: Contratos (tem contratos:editar) e RH/DP (só ver).
-  exigir(
-    await admin
-      .from("usuario_escopos")
-      .insert([
-        { usuario_id: PERSONAS.contratos.id, contrato_id: CONTRATOS.c042 },
-        { usuario_id: PERSONAS.rhDp.id, contrato_id: CONTRATOS.c042 },
-      ])
-      .select("id"),
-    "escopos 042",
-  );
+  devolucoes.push(await trocarEscopo(admin, PERSONAS.contratos.id, [{ contrato_id: CONTRATOS.c042 }]));
+  devolucoes.push(await trocarEscopo(admin, PERSONAS.rhDp.id, [{ contrato_id: CONTRATOS.c042 }]));
 
   contratos = await como(PERSONAS.contratos.email);
   rh = await como(PERSONAS.rhDp.email);
@@ -111,11 +95,12 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!admin) return;
-  await admin
-    .from("usuario_escopos")
-    .delete()
-    .in("usuario_id", [PERSONAS.contratos.id, PERSONAS.rhDp.id]);
-  await limpar();
+  // Só devolve o que trocou: se a preparação morreu antes, não há o que desfazer.
+  try {
+    await devolverEscopos(devolucoes);
+  } finally {
+    await limpar();
+  }
 });
 
 describe("interno com escopo no 042 e contratos:editar (Contratos/Coordenação)", () => {

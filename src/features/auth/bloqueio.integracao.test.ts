@@ -51,6 +51,13 @@ const FINANCEIRO = { id: "b8864205-4ba3-5295-886e-f0c8e843f3b8", email: "finance
 
 let admin: SupabaseClient<Database>;
 let ultimoAcessoOriginal: string | null = null;
+let ultimoAcessoLido = false;
+/**
+ * Maior id de `auditoria` antes deste arquivo. O Financeiro é persona real do
+ * seed: o `login` dele também grava `chave_login`, e a trilha anterior a esta
+ * marca não é deste teste — não se apaga.
+ */
+let marcaAuditoria: number | null = null;
 let chamadasAoAuth = 0;
 
 function clienteAnonimo(): SupabaseClient<Database> {
@@ -108,8 +115,16 @@ async function eventosDa(email: string) {
 }
 
 async function limparTentativas() {
-  for (const email of [EMAIL_SEM_CADASTRO, FINANCEIRO.email]) {
-    await admin.from("auditoria").delete().eq("detalhes->>chave_login", chaveDoLogin(email));
+  // CPF sem cadastro: chave que só este arquivo usa — sai inteira, inclusive
+  // sobra de uma execução que morreu.
+  await admin.from("auditoria").delete().eq("detalhes->>chave_login", chaveDoLogin(EMAIL_SEM_CADASTRO));
+  // Financeiro: só o que este arquivo gravou (semeado ou pela action).
+  if (marcaAuditoria !== null) {
+    await admin
+      .from("auditoria")
+      .delete()
+      .eq("detalhes->>chave_login", chaveDoLogin(FINANCEIRO.email))
+      .gt("id", marcaAuditoria);
   }
 }
 
@@ -132,14 +147,27 @@ beforeAll(async () => {
     throw new Error(`O CPF de teste ${CPF_SEM_CADASTRO} tem cadastro. Escolha outro.`);
   }
 
-  const { data: persona } = await admin
+  const { data: persona, error: erroPersona } = await admin
     .from("usuarios")
     .select("ultimo_acesso")
     .eq("id", FINANCEIRO.id)
     .single();
-  ultimoAcessoOriginal = persona?.ultimo_acesso ?? null;
+  if (erroPersona) throw new Error(`fixture (último acesso do Financeiro): ${erroPersona.message}`);
+  ultimoAcessoOriginal = persona.ultimo_acesso;
+  ultimoAcessoLido = true;
 
-  // Sobra de uma execução que morreu no meio. Só as chaves deste arquivo.
+  const { data: ultima, error: erroMarca } = await admin
+    .from("auditoria")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (erroMarca) throw new Error(`fixture (marca da auditoria): ${erroMarca.message}`);
+  marcaAuditoria = ultima?.id ?? 0;
+
+  // Sobra de uma execução que morreu: só a chave do CPF sem cadastro. A do
+  // Financeiro anterior à marca é trilha real e fica — falha velha sai da janela
+  // de 15 minutos sozinha.
   await limparTentativas();
 });
 
@@ -151,10 +179,12 @@ afterEach(async () => {
 afterAll(async () => {
   if (!admin) return;
   await limparTentativas();
-  await admin
-    .from("usuarios")
-    .update({ ultimo_acesso: ultimoAcessoOriginal })
-    .eq("id", FINANCEIRO.id);
+  if (ultimoAcessoLido) {
+    await admin
+      .from("usuarios")
+      .update({ ultimo_acesso: ultimoAcessoOriginal })
+      .eq("id", FINANCEIRO.id);
+  }
 });
 
 describe("bloqueio por tentativas", () => {

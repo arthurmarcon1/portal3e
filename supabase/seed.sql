@@ -333,19 +333,24 @@ insert into sla_solicitacoes (org_id, tipo, dias_uteis) values
 -- ---------------------------------------------------------------------
 insert into contratantes (id, org_id, nome, cnpj) values
   ('4cef5154-d96d-5d3e-879e-fef2401f2cf5', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Hospital Sao Lucas', '11222333000181'),
-  ('73b46f69-8d4f-54e9-9dbe-87a03553c88a', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Rede Bom Preco', '44555666000181');
+  ('73b46f69-8d4f-54e9-9dbe-87a03553c88a', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Rede Bom Preco', '44555666000181'),
+  -- Configuração do piloto (docs/06, 2026-09-30): a 3e como contratante de si
+  -- mesma, para alocar o quadro interno. Interna — NÃO entra em faturamento.
+  ('44d01c3f-eee2-5b2a-a1eb-f0a7bf92a21a', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '3e Gestão de Pessoas', null);
 
 insert into unidades (id, org_id, contratante_id, nome, endereco, cidade, uf) values
   ('79baf83d-a8c3-5a89-90bf-6ae7d29a2302', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', 'Unidade Central', 'Av. Ipiranga, 1200', 'Porto Alegre', 'RS'),
   ('f6996a20-115f-5adc-81d4-68f640140f9e', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', 'Ambulatorio Zona Norte', 'R. Assis Brasil, 340', 'Porto Alegre', 'RS'),
   ('ff3cf250-defb-522b-841e-5a09701a27b1', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', 'Anexo Administrativo', 'Av. Ipiranga, 1188', 'Porto Alegre', 'RS'),
   ('a6565dbb-e74b-5a93-9c62-4134b6f76473', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '73b46f69-8d4f-54e9-9dbe-87a03553c88a', 'Loja Centro', 'R. dos Andradas, 900', 'Porto Alegre', 'RS'),
-  ('12536647-f736-5ffb-ab19-a7b4c7ce2259', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '73b46f69-8d4f-54e9-9dbe-87a03553c88a', 'Centro de Distribuicao Sul', 'BR-116, km 22', 'Guaiba', 'RS');
+  ('12536647-f736-5ffb-ab19-a7b4c7ce2259', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '73b46f69-8d4f-54e9-9dbe-87a03553c88a', 'Centro de Distribuicao Sul', 'BR-116, km 22', 'Guaiba', 'RS'),
+  ('17b27ee2-43d4-5d4e-8459-cc6fb36cec62', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '44d01c3f-eee2-5b2a-a1eb-f0a7bf92a21a', 'Sede', null, null, null);
 
 insert into contratos (id, org_id, contratante_id, numero, descricao, vigencia_inicio) values
   ('d594b950-e556-5f78-ae9b-98f6b1d12b63', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', '042', 'Limpeza e higienizacao hospitalar', '2025-01-01'),
   ('3d8b84f9-d552-59f1-897f-80a440afd718', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '4cef5154-d96d-5d3e-879e-fef2401f2cf5', '043', 'Portaria e controle de acesso', '2025-03-01'),
-  ('e716f5c1-3603-596b-a331-1d307ccf82f3', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '73b46f69-8d4f-54e9-9dbe-87a03553c88a', '077', 'Limpeza e reposicao de loja', '2025-06-01');
+  ('e716f5c1-3603-596b-a331-1d307ccf82f3', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '73b46f69-8d4f-54e9-9dbe-87a03553c88a', '077', 'Limpeza e reposicao de loja', '2025-06-01'),
+  ('676f9478-b525-55d6-8f06-f04ff5ceb496', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', '44d01c3f-eee2-5b2a-a1eb-f0a7bf92a21a', '3e — Quadro interno', 'Quadro interno da própria 3e (piloto). Empresa interna: não entra em faturamento.', null);
 
 insert into contrato_unidades (contrato_id, unidade_id) values
   ('d594b950-e556-5f78-ae9b-98f6b1d12b63', '79baf83d-a8c3-5a89-90bf-6ae7d29a2302'),
@@ -353,7 +358,8 @@ insert into contrato_unidades (contrato_id, unidade_id) values
   ('d594b950-e556-5f78-ae9b-98f6b1d12b63', 'ff3cf250-defb-522b-841e-5a09701a27b1'),
   ('3d8b84f9-d552-59f1-897f-80a440afd718', '79baf83d-a8c3-5a89-90bf-6ae7d29a2302'),
   ('e716f5c1-3603-596b-a331-1d307ccf82f3', 'a6565dbb-e74b-5a93-9c62-4134b6f76473'),
-  ('e716f5c1-3603-596b-a331-1d307ccf82f3', '12536647-f736-5ffb-ab19-a7b4c7ce2259');
+  ('e716f5c1-3603-596b-a331-1d307ccf82f3', '12536647-f736-5ffb-ab19-a7b4c7ce2259'),
+  ('676f9478-b525-55d6-8f06-f04ff5ceb496', '17b27ee2-43d4-5d4e-8459-cc6fb36cec62');
 
 -- ---------------------------------------------------------------------
 -- 30 pessoas fictícias + alocações (CPF com dígito verificador válido)
@@ -494,11 +500,33 @@ insert into usuario_perfis (usuario_id, perfil_id) values
   ('0e10492d-66c6-53e4-ab0d-bf379b37a520', '74d1d972-c4ea-558b-8d3b-de8f44221dc3'),
   ('5d6d70e7-25ed-52cb-a3d9-db372097c8ed', '6d628744-e8d3-546a-ade5-7bec104c6581');
 
--- Escopo do contratante. Interno fica sem escopo de propósito: em
--- app.escopo_total(), interno sem escopo enxerga a organização inteira,
--- enquanto contratante sem escopo não enxerga nada (falha fechada).
+-- Escopo do contratante. Para contratante, sem escopo é não enxergar nada
+-- (falha fechada); para interno, sem escopo é a organização inteira
+-- (app.escopo_total()).
 insert into usuario_escopos (usuario_id, contrato_id, unidade_id) values
   ('b1867161-8491-5910-bf96-814c402f9593', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
   ('4a2ade92-25e1-58f2-afda-9198dd3da8df', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
   ('0e10492d-66c6-53e4-ab0d-bf379b37a520', null, '79baf83d-a8c3-5a89-90bf-6ae7d29a2302'),
   ('5d6d70e7-25ed-52cb-a3d9-db372097c8ed', 'e716f5c1-3603-596b-a331-1d307ccf82f3', null);
+
+-- Escopo da equipe interna: a configuração do piloto (docs/02, "Quadro interno
+-- da 3e"). Admin geral e RH/DP sem escopo — alcance total. Contratos,
+-- Financeiro e Suporte/Auditoria só nos contratos de cliente, sem o quadro
+-- interno: não veem o ponto dos colegas. SST também com o quadro interno — vê
+-- ASO e treinamento da equipe, e não o ponto (não tem a categoria jornada).
+-- A suíte roda com esta configuração: teste que precisa de outro escopo usa
+-- trocarEscopo() (tests/rls/apoio.ts), que devolve este.
+insert into usuario_escopos (usuario_id, contrato_id, unidade_id) values
+  ('9e5217c3-52f4-5b8c-bb99-3f3a0342f7e9', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
+  ('9e5217c3-52f4-5b8c-bb99-3f3a0342f7e9', '3d8b84f9-d552-59f1-897f-80a440afd718', null),
+  ('9e5217c3-52f4-5b8c-bb99-3f3a0342f7e9', 'e716f5c1-3603-596b-a331-1d307ccf82f3', null),
+  ('b8864205-4ba3-5295-886e-f0c8e843f3b8', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
+  ('b8864205-4ba3-5295-886e-f0c8e843f3b8', '3d8b84f9-d552-59f1-897f-80a440afd718', null),
+  ('b8864205-4ba3-5295-886e-f0c8e843f3b8', 'e716f5c1-3603-596b-a331-1d307ccf82f3', null),
+  ('e32f544e-472f-58d5-8c6f-40c0272bc44c', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
+  ('e32f544e-472f-58d5-8c6f-40c0272bc44c', '3d8b84f9-d552-59f1-897f-80a440afd718', null),
+  ('e32f544e-472f-58d5-8c6f-40c0272bc44c', 'e716f5c1-3603-596b-a331-1d307ccf82f3', null),
+  ('ea23d309-2920-594f-bfd3-27cc72a97b00', 'd594b950-e556-5f78-ae9b-98f6b1d12b63', null),
+  ('ea23d309-2920-594f-bfd3-27cc72a97b00', '3d8b84f9-d552-59f1-897f-80a440afd718', null),
+  ('ea23d309-2920-594f-bfd3-27cc72a97b00', 'e716f5c1-3603-596b-a331-1d307ccf82f3', null),
+  ('ea23d309-2920-594f-bfd3-27cc72a97b00', '676f9478-b525-55d6-8f06-f04ff5ceb496', null);

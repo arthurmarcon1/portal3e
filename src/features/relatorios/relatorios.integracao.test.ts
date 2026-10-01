@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, devolverEscopos, marcarAuditoria, trocarEscopo } from "../../../tests/rls/apoio";
+
 /**
  * Relatórios (F5.3), pela rota de exportação real e contra o banco:
  *
@@ -69,10 +71,14 @@ function maisDias(n: number): string {
 }
 
 let admin: Cliente;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.53";
 const clientes = new Map<string, Cliente>();
 let pessoaZ: string | undefined;
 const documentos: string[] = [];
-let escopoDoRh = false;
+/** Trocas de escopo do RH, desfeitas na ordem inversa no afterAll. */
+const devolucoes: (() => Promise<void>)[] = [];
 const inicio = new Date().toISOString();
 
 function ambiente() {
@@ -155,6 +161,7 @@ async function publicar(campos: { escopo: "individual" | "coletivo"; pessoa_id?:
 beforeAll(async () => {
   const { url, service } = ambiente();
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
 
   // Pela persona: a parte DEFINER é só de `authenticated`, nem service_role a chama.
   const { error: semMigracao } = await (await como(EMAILS.adminGeral)).rpc("relatorio_pendencias_de_ciencia");
@@ -162,9 +169,9 @@ beforeAll(async () => {
   if (exigir(await admin.from("pessoas").select("id").eq("cpf", CPF_Z), "colisão").length > 0) {
     throw new Error("CPF de teste já existe em pessoas — sobra de execução anterior. Apague à mão.");
   }
-  if (exigir(await admin.from("usuario_escopos").select("id").eq("usuario_id", RH), "escopo RH").length > 0) {
-    throw new Error("RH/DP já tem escopo — sujeira de outro teste. Este não sobrescreve.");
-  }
+  // O arquivo conta com o RH/DP de alcance total, como no seed. Garante isso
+  // trocando o escopo — e devolve o original no afterAll.
+  devolucoes.push(await trocarEscopo(admin, RH, []));
 
   pessoaZ = exigir(await admin.from("pessoas").insert({ org_id: ORG, nome: NOME_Z, cpf: CPF_Z }).select("id").single(), "Z").id;
   exigir(
@@ -194,15 +201,19 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!admin) return;
-  if (escopoDoRh) await admin.from("usuario_escopos").delete().eq("usuario_id", RH);
-  await admin.from("auditoria").delete().eq("ip", IP_FIXTURE);
-  if (documentos.length > 0) {
-    await admin.from("notificacoes").delete().in("referencia_id", documentos);
-    await admin.from("documentos").delete().in("id", documentos);
-  }
-  if (pessoaZ) {
-    await admin.from("alocacoes").delete().eq("pessoa_id", pessoaZ);
-    await admin.from("pessoas").delete().eq("id", pessoaZ);
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
+  try {
+    await admin.from("auditoria").delete().eq("ip", IP_FIXTURE);
+    if (documentos.length > 0) {
+      await admin.from("notificacoes").delete().in("referencia_id", documentos);
+      await admin.from("documentos").delete().in("id", documentos);
+    }
+    if (pessoaZ) {
+      await admin.from("alocacoes").delete().eq("pessoa_id", pessoaZ);
+      await admin.from("pessoas").delete().eq("id", pessoaZ);
+    }
+  } finally {
+    await devolverEscopos(devolucoes);
   }
 });
 
@@ -274,8 +285,7 @@ describe("pendências batem com o banco", () => {
 
 describe("escopo de quem exporta", () => {
   it("RH preso ao 042 não vê a pendência nem a entrada da pessoa do 077; o Admin geral vê as duas", async () => {
-    exigir(await admin.from("usuario_escopos").insert({ usuario_id: RH, contrato_id: C042 }).select("id"), "escopo 042");
-    escopoDoRh = true;
+    const devolver = await trocarEscopo(admin, RH, [{ contrato_id: C042 }]);
     try {
       const periodo = { tipo: "periodo", de: maisDias(-10), ate: hoje() };
       const [pendRh, quadroRh, pendAdmin, quadroAdmin] = [
@@ -296,8 +306,7 @@ describe("escopo de quem exporta", () => {
       expect(csv).not.toContain(NOME_Z);
       expect(csv).not.toContain("077");
     } finally {
-      await admin.from("usuario_escopos").delete().eq("usuario_id", RH);
-      escopoDoRh = false;
+      await devolver();
     }
   });
 });

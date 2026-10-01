@@ -251,7 +251,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (!admin) return;
   if (deuAdministracao) {
-    await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao");
+    await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao").eq("acao", "ver");
   }
   if (documentos.length > 0) {
     await admin.from("ciencias").delete().in("documento_id", documentos);
@@ -453,7 +453,7 @@ describe("guarda estrutural: administracao:ver não abre nada a contratante", ()
       expect((await suporte.from("auditoria").select("id").limit(5)).data!.length).toBeGreaterThan(0);
       expect((await suporte.from("usuarios").select("id")).data!.length).toBeGreaterThan(1);
     } finally {
-      await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao");
+      await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao").eq("acao", "ver");
       deuAdministracao = false;
     }
   });

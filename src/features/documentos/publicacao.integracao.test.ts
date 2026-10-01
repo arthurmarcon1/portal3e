@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, marcarAuditoria } from "../../../tests/rls/apoio";
+
 /**
  * Publicação de documentos (F3.1), contra o banco de verdade.
  *
@@ -87,6 +89,9 @@ async function mariaResponde(
 }
 
 let admin: Cliente;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.9";
 const clientes = new Map<string, Cliente>();
 const criados = new Set<string>();
 
@@ -148,6 +153,7 @@ function exigirOk<T>(r: { ok: true; dados: T } | { ok: false; erro: string }): T
 beforeAll(async () => {
   const { url, service } = ambiente();
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
 
   // A 0014 e a 0015 precisam estar aplicadas: sem elas este arquivo testaria
   // o schema antigo e falharia por um motivo que não é o dele.
@@ -156,7 +162,9 @@ beforeAll(async () => {
 }, 30_000);
 
 afterAll(async () => {
-  if (!admin || criados.size === 0) return;
+  if (!admin) return;
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
+  if (criados.size === 0) return;
   const ids = [...criados];
   const { data } = await admin.from("documentos").select("arquivo_path").in("id", ids);
   await admin.from("notificacoes").delete().in("referencia_id", ids);

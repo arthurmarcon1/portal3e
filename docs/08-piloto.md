@@ -443,14 +443,33 @@ Com o Portal no ar e os dois administradores entrando:
    | Perfil | Em **Perfis e escopo** |
    |---|---|
    | Administrador geral, RH/DP | nenhum contrato e nenhuma unidade marcados (alcance total) |
-   | Contratos, Financeiro, SST, Suporte/Auditoria | **todos os contratos de cliente** marcados; `3e — Quadro interno` **desmarcado** |
+   | SST | **todos os contratos de cliente** e `3e — Quadro interno` marcados |
+   | Contratos, Financeiro, Suporte/Auditoria | **todos os contratos de cliente** marcados; `3e — Quadro interno` **desmarcado** |
 
-   Atenção a duas armadilhas: (a) nenhum contrato marcado **não** é "nenhum acesso" —
-   para a equipe interna é alcance total, o oposto do que se quer para esses quatro
-   perfis; (b) sem nenhum contrato de cliente cadastrado não há o que marcar, e esses
-   perfis ficariam com alcance total — só dê o acesso a eles quando houver ao menos um
-   contrato de cliente. **Todo contrato de cliente novo** precisa ser marcado no escopo
-   dos quatro perfis, senão fica invisível para eles.
+   > ⛔ **PASSO OBRIGATÓRIO — não crie os acessos de Contratos, Financeiro e
+   > Suporte/Auditoria enquanto não houver contrato de cliente cadastrado.**
+   >
+   > Para a equipe interna, **nenhum contrato marcado é alcance total**, não "nenhum
+   > acesso". Se o projeto de produção nasce só com o `3e — Quadro interno`, não existe
+   > contrato de cliente para marcar: qualquer acesso desses três perfis criado agora
+   > fica sem escopo e **vê o ponto de toda a equipe interna**. A decisão de restrição
+   > (docs/06, 2026-09-30) **se reverte em silêncio** — a tela não avisa, o login
+   > funciona, e nada parece errado.
+   >
+   > **Verificação, antes de criar cada um desses acessos:**
+   > 1. Em **Contratos**, existe ao menos um contrato **que não é** `3e — Quadro interno`?
+   >    Se não, **pare**: o acesso espera.
+   > 2. Depois de salvar, a coluna de escopo da linha em **Acessos** mostra contratos de
+   >    cliente — **nunca vazia** para esses três perfis — e `3e — Quadro interno` não
+   >    aparece em **Perfis e escopo**.
+   > 3. Entrando como o novo usuário, **Pessoas** não lista ninguém do `3e — Quadro
+   >    interno`.
+   >
+   > O SST pode ser criado desde o início: com `3e — Quadro interno` marcado, o escopo
+   > dele nunca fica vazio.
+
+   **Todo contrato de cliente novo** precisa ser marcado no escopo de Contratos,
+   Financeiro, SST e Suporte/Auditoria — senão fica invisível para eles.
 
    **Quem é operador e também funcionário do quadro tem duas contas, e assim devem
    permanecer** (docs/06, 2026-09-30). O acesso de operador entra pelo **e-mail**, com
@@ -468,10 +487,11 @@ Com o Portal no ar e os dois administradores entrando:
    - conferir em **Auditoria** a publicação, a ciência e o download;
    - conferir em **Relatórios › Pendências de ciência** que a contagem bate.
 
-**Conferir o escopo uma vez com dado real:** entrar como um usuário de cada um dos
-quatro perfis restritos (Contratos, Financeiro, SST, Suporte/Auditoria) e confirmar que
-**Pessoas**, **Documentos**, **Solicitações** e **Relatórios › Quadro** não mostram
-ninguém do `3e — Quadro interno`; e, como RH/DP, que mostram. Foi a conferência feita
+**Conferir o escopo uma vez com dado real:** entrar como um usuário de cada um dos três
+perfis restritos (Contratos, Financeiro, Suporte/Auditoria) e confirmar que **Pessoas**,
+**Documentos**, **Solicitações** e **Relatórios › Quadro** não mostram ninguém do
+`3e — Quadro interno`; como RH/DP, que mostram; e como SST, que mostram a pessoa e o ASO
+mas **nenhum espelho de ponto**. Foi a conferência feita
 no dev em 2026-09-30 (docs/06).
 
 **Quando houver cliente, conferir o isolamento com dado real:** entrar como o usuário do

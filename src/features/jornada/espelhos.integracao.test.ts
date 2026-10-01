@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, marcarAuditoria } from "../../../tests/rls/apoio";
+
 /**
  * Publicação de espelhos em lote (F4.1), pelas Server Actions reais, contra
  * o banco real.
@@ -45,8 +47,12 @@ const COMPETENCIA = "2031-08";
 const REGRA = { expressao: "(\\d{3}\\.?\\d{3}\\.?\\d{3}-?\\d{2})", campo: "cpf" as const };
 
 let admin: Cliente;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.61";
 const clientes = new Map<string, Cliente>();
-let regraOriginal: { expressao: string; campo: string } | null = null;
+/** `undefined` até o beforeAll ler; `null` = não havia regra. */
+let regraOriginal: { expressao: string; campo: string } | null | undefined = undefined;
 
 function ambiente() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -103,6 +109,7 @@ function hojeMais(dias: number): string {
 beforeAll(async () => {
   const { url, service } = ambiente();
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
   const { data, error } = await admin.from("regras_espelho").select("expressao, campo").eq("org_id", ORG).maybeSingle();
   if (error) throw new Error(`migração 0019 ausente no alvo de teste: ${error.message}`);
   regraOriginal = data;
@@ -113,6 +120,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!admin) return;
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
   const docs = await espelhosDaCompetencia();
   const ids = docs.map((d) => d.id);
   if (ids.length) {
@@ -121,10 +129,14 @@ afterAll(async () => {
     await admin.from("documentos").delete().in("id", ids);
     await admin.storage.from("documentos").remove(docs.map((d) => d.arquivo_path));
   }
-  // A regra volta exatamente como estava.
+  // A regra volta exatamente como estava. `undefined` = a leitura nem chegou a
+  // acontecer: não há o que devolver, e apagar seria destruir a regra da org.
+  if (regraOriginal === undefined) return;
   if (regraOriginal) {
-    await admin.from("regras_espelho").update(regraOriginal).eq("org_id", ORG);
+    const { error } = await admin.from("regras_espelho").update(regraOriginal).eq("org_id", ORG);
+    if (error) throw new Error(`devolver a regra de espelho: ${error.message}`);
   } else {
+    // Não havia regra antes: só a que o teste criou sai.
     await admin.from("regras_espelho").delete().eq("org_id", ORG);
   }
 }, 30_000);

@@ -84,6 +84,17 @@ resetado — e é o único lugar que hoje prova a cadeia de migrações em banco
   vez de sobrescrever.
 - **Estado de persona volta ao lugar.** Dar escopo ao RH/DP para testar segregação é
   legítimo; deixar o escopo lá depois não é.
+- **Teste só apaga o que ele próprio criou** — pelo id, nunca por `usuario_id`,
+  `perfil_id` ou `org_id`. A limpeza roda com `service_role`, então nada no banco a
+  impede; contra produção, apagaria configuração real sem aviso. Ela tem de sobreviver
+  a falha na preparação: estado alheio que o teste muda é lido inteiro **antes** e
+  devolvido igual, e se a leitura não aconteceu a limpeza não toca nele. Escopo de
+  persona muda só por `trocarEscopo()` (`tests/rls/apoio.ts`). Foi assim que a suíte
+  desfazia em silêncio o escopo do piloto (docs/06, 2026-09-30).
+- **As personas internas têm o escopo do piloto** no seed (docs/02, "Quadro interno da
+  3e"): Contratos, Financeiro e Suporte/Auditoria só nos contratos de cliente; SST
+  também no quadro interno; Admin geral e RH/DP sem escopo. Teste que precisa de outro
+  troca e devolve — não falha por encontrar escopo.
 
 Outras regras da suíte:
 

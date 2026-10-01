@@ -110,6 +110,115 @@ export function exigir<T>(
   return resultado.data;
 }
 
+/** Uma linha de `usuario_escopos`: contrato, unidade, ou os dois. */
+export type LinhaDeEscopo = { contrato_id?: string | null; unidade_id?: string | null };
+
+/**
+ * Troca o escopo de um usuário pelo que o teste precisa e devolve a função que
+ * desfaz a troca. Lista vazia é "sem escopo" — alcance total, para interno.
+ *
+ * Teste só apaga o que ele próprio criou. Este é o único jeito de um teste
+ * mexer no escopo de quem já existe:
+ *
+ * - o escopo original é lido **antes** de qualquer escrita, inteiro (com o
+ *   `id`), e é devolvido por `upsert` — a mesma linha, não uma parecida;
+ * - o que o teste insere é apagado **pelo id**, nunca por `usuario_id`;
+ * - se a troca falhar no meio, ela se desfaz antes de propagar o erro — a
+ *   preparação que falha não deixa o usuário sem o escopo dele;
+ * - chamar a devolução duas vezes é inofensivo.
+ *
+ * Trocas encaixadas no mesmo usuário se desfazem na ordem inversa.
+ */
+export async function trocarEscopo(
+  admin: Cliente,
+  usuarioId: string,
+  novo: LinhaDeEscopo[],
+): Promise<() => Promise<void>> {
+  const originais = exigir(
+    await admin
+      .from("usuario_escopos")
+      .select("id, usuario_id, contrato_id, unidade_id, criado_em")
+      .eq("usuario_id", usuarioId),
+    `escopo original de ${usuarioId}`,
+  );
+  const criados: string[] = [];
+  let devolvido = false;
+
+  async function devolver() {
+    if (devolvido) return;
+    if (criados.length > 0) {
+      const { error } = await admin.from("usuario_escopos").delete().in("id", criados);
+      if (error) throw new Error(`devolver escopo de ${usuarioId} (apagar o do teste): ${error.message}`);
+    }
+    if (originais.length > 0) {
+      const { error } = await admin.from("usuario_escopos").upsert(originais);
+      if (error) throw new Error(`devolver escopo de ${usuarioId} (repor o original): ${error.message}`);
+    }
+    devolvido = true;
+  }
+
+  try {
+    if (originais.length > 0) {
+      const { error } = await admin
+        .from("usuario_escopos")
+        .delete()
+        .in("id", originais.map((o) => o.id));
+      if (error) throw new Error(`trocar escopo de ${usuarioId}: ${error.message}`);
+    }
+    if (novo.length > 0) {
+      const linhas = exigir(
+        await admin
+          .from("usuario_escopos")
+          .insert(novo.map((n) => ({ usuario_id: usuarioId, contrato_id: n.contrato_id ?? null, unidade_id: n.unidade_id ?? null })))
+          .select("id"),
+        `escopo de teste de ${usuarioId}`,
+      );
+      criados.push(...linhas.map((l) => l.id));
+    }
+  } catch (erro) {
+    await devolver();
+    throw erro;
+  }
+  return devolver;
+}
+
+/**
+ * Desfaz as trocas de escopo na ordem inversa e esvazia a lista. Tenta todas
+ * antes de falhar: uma devolução que dá erro não pode deixar as outras de fora.
+ */
+export async function devolverEscopos(devolucoes: (() => Promise<void>)[]) {
+  const erros: unknown[] = [];
+  while (devolucoes.length > 0) {
+    try {
+      await devolucoes.pop()!();
+    } catch (erro) {
+      erros.push(erro);
+    }
+  }
+  if (erros.length > 0) throw new AggregateError(erros, "falha ao devolver escopo — confira usuario_escopos à mão");
+}
+
+/**
+ * Rastro que as Server Actions deixam em `auditoria` durante um arquivo de
+ * teste. Marca o maior id **antes** do arquivo; no fim, apaga só o que veio
+ * depois **e** tem o IP dublado do arquivo (`x-forwarded-for` do mock de
+ * `next/headers`, sempre da faixa de documentação 203.0.113.0/24 — nenhum
+ * usuário real tem esse IP). Os arquivos de integração rodam em série, então a
+ * janela é deste arquivo. Sem marca (o beforeAll morreu antes), não apaga nada.
+ */
+export async function marcarAuditoria(admin: Cliente): Promise<number> {
+  const { data, error } = await admin.from("auditoria").select("id").order("id", { ascending: false }).limit(1);
+  if (error) throw new Error(`fixture (marca da auditoria): ${error.message}`);
+  return data[0]?.id ?? 0;
+}
+
+export async function apagarAuditoriaDoArquivo(admin: Cliente, marca: number | null, ip: string) {
+  if (marca === null) return;
+  if (!ip.startsWith("203.0.113.")) throw new Error(`IP ${ip} não é de teste: a limpeza só apaga IP dublado`);
+  const { error } = await admin.from("auditoria").delete().gt("id", marca).eq("ip", ip);
+  if (error) throw new Error(`limpar auditoria do arquivo: ${error.message}`);
+}
+
 export type NovoDocumento = {
   tipo_id: string;
   escopo: "individual" | "coletivo";

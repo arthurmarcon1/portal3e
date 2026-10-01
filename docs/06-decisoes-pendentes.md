@@ -19,46 +19,18 @@ custa mais caro.
 - [x] **Como o quadro interno da 3e entra no modelo** — decidido em 2026-09-30: opção
       (a), a 3e como contratante de si mesma. Ver "Decisões já tomadas".
 
-- [ ] **O que a conferência do escopo do quadro interno deixou aberto** (2026-09-30).
-      O escopo segrega pessoa, então o recorte da decisão vale para tudo o que é da
-      pessoa, não só para o espelho. A conferência perfil a perfil (docs/02, "Quadro
-      interno da 3e") mostrou três efeitos que a decisão não mencionou e que ficam para
-      o Arthur confirmar:
-      (a) **SST não vê o ASO nem o treinamento do quadro interno**, e o alerta de
-      vencimento de 30 dias de alguém do quadro interno vai **só para o Admin geral**
-      (medido: o ASO fictício do quadro interno alertou só o admin; o do 042 alertou
-      SST e admin). Se o SST cuida da saúde ocupacional da equipe interna, uma saída é
-      incluir o contrato interno no escopo só do SST: como o SST não tem a categoria
-      `jornada` (docs/02), isso abre o ASO, o treinamento e o cadastro dos colegas, mas
-      não o ponto — o motivo da decisão continua atendido.
-      (b) **Suporte/Auditoria continua vendo na trilha de auditoria** os eventos do
-      quadro interno: quem registrou ciência e de que tipo (inclusive divergência de
-      espelho), quem baixou qual documento, com data e IP — sem o conteúdo nem a
-      justificativa. A trilha não tem escopo por desenho (é "quem audita quem"). Manter?
-      (c) **Comunicado coletivo dirigido ao quadro interno** é lido pelos quatro perfis
-      restritos, pela regra de 2026-09-15 (escopo de interno não segrega aviso geral).
-      Aviso não é ponto; registrado para ninguém estranhar.
-      (d) **Em produção, sem contrato de cliente, a restrição não tem como existir.**
-      Para interno, escopo vazio é alcance total. O escopo "todos os contratos de
-      cliente, sem o interno" só existe se houver ao menos um contrato de cliente
-      cadastrado; num projeto de produção que nasce só com o quadro interno, marcar nada
-      dá aos quatro perfis a visão do ponto de todos. Saídas: cadastrar em produção os
-      contratos de cliente reais (só a estrutura — contratante, contrato, unidade —, sem
-      pessoa), ou não criar contas desses quatro perfis até que haja cliente. No dev
-      funciona porque o seed tem 042, 043 e 077.
-
-- [ ] **A suíte de testes briga com os escopos do piloto no dev** (2026-09-30). Duas
-      suítes supõem que as personas internas **não** têm escopo e falham alto quando têm:
-      `tests/rls/estrutura-comercial.integracao.test.ts` (Contratos) e
-      `src/features/sst/sst.integracao.test.ts` (SST). Pior: o `afterAll` da primeira
-      apaga **todos** os escopos do Contratos e do RH/DP mesmo quando o `beforeAll`
-      falhou — rodar `npm test` no dev **desfaz em silêncio** o escopo do Contratos
-      (aconteceu na conferência; restaurado pela tela). Os outros 44 arquivos passam com
-      os escopos no lugar. Decidir: (a) levar os escopos para o seed e ajustar as duas
-      suítes para guardar e devolver o escopo original em vez de falhar — a suíte passa
-      a cobrir a configuração do piloto; ou (b) manter as personas do seed sem escopo
-      e fazer a demonstração com usuários próprios. Nos dois casos, o `afterAll` que
-      apaga o que não criou é defeito e deve ser corrigido.
+- [ ] **Trilha de auditoria e o quadro interno** — da conferência do escopo
+      (2026-09-30). Suporte/Auditoria não vê ninguém do quadro interno, mas a trilha de
+      auditoria não tem escopo por desenho ("quem audita quem"): ele continua vendo os
+      eventos da equipe interna — quem registrou ciência e de que tipo (inclusive
+      divergência de espelho), quem baixou qual documento, com data e IP. Não vê o
+      conteúdo do espelho nem a justificativa. Manter assim, ou a trilha passa a ter
+      recorte? Decisão do Arthur.
+      **Resolvidos da mesma conferência:** o SST sem o quadro interno (corrigido —
+      ver "Decisões já tomadas") e o escopo vazio em produção (passo obrigatório em
+      docs/08, 9.3). **Só registro:** o comunicado coletivo dirigido ao quadro interno
+      é lido pelos três perfis restritos, pela regra de 2026-09-15 (escopo de interno
+      não segrega aviso geral) — aviso não é ponto.
 
 - [ ] **Onde o quadro real é importado pela primeira vez.** O critério de aceite da
       Fase 1 pede "o quadro real da 3e importado de planilha", e o CLAUDE.md proíbe
@@ -371,13 +343,57 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   2026-09-30; em produção, docs/08, passo 9.1.
 
 - **2026-09-30 — Quem da equipe vê o espelho dos colegas: só Admin geral e RH/DP**
-  (decisão do Arthur). Os dois ficam com alcance total. Contratos, Financeiro, SST e
-  Suporte/Auditoria passam a ter escopo **restrito aos contratos de cliente, sem o
-  contrato interno**. **Motivo:** num quadro interno pequeno, ver o ponto de colegas e
-  de superiores é diferente de ver o de um terceirizado alocado em cliente. Privilégio
-  mínimo vale mais aqui, não menos. É a primeira vez que escopo limitado existe fora de
-  teste. Regra e efeitos em docs/02, "Quadro interno da 3e"; o que a conferência deixou
-  aberto está em "Trava a Fase 0–1".
+  (decisão do Arthur). Os dois ficam com alcance total. Contratos, Financeiro e
+  Suporte/Auditoria têm escopo **restrito aos contratos de cliente, sem o contrato
+  interno**. O SST tem os contratos de cliente **e** o interno (correção abaixo).
+  **Motivo:** num quadro interno pequeno, ver o ponto de colegas e de superiores é
+  diferente de ver o de um terceirizado alocado em cliente. Privilégio mínimo vale mais
+  aqui, não menos. É a primeira vez que escopo limitado existe fora de teste. Regra e
+  efeitos em docs/02, "Quadro interno da 3e"; está no seed desde 2026-09-30, então a
+  suíte roda com ela.
+  **Correção no mesmo dia — o SST volta a ver o quadro interno** (decisão do Arthur).
+  Ele estava entre os restritos, mas o escopo corta a pessoa inteira, não só o ponto: o
+  SST deixava de ver ASO e treinamento da equipe, e o alerta de vencimento de alguém da
+  equipe ia só para o Admin geral (medido na conferência) — risco ocupacional. Com o
+  contrato interno no escopo, o SST vê colega, ASO e treinamento; o espelho continua
+  barrado pela categoria `jornada`, que o perfil dele não tem (medido depois da
+  correção: alerta chega ao SST, espelho invisível). Efeito colateral aceito: o SST
+  também vê as solicitações da equipe interna (férias, afastamento, cadastro).
+
+- **2026-09-30 — Teste só apaga o que ele próprio criou** (decisão do Arthur). Achado
+  na conferência do escopo: o `afterAll` de `tests/rls/estrutura-comercial` apagava
+  **todos** os escopos do Contratos e do RH/DP, inclusive quando o `beforeAll` tinha
+  falhado — rodar a suíte no dev desfez em silêncio a configuração do piloto. Com
+  `service_role`, nada no banco impede; contra produção, apagaria configuração real de
+  acesso sem aviso. **Regra:** a limpeza apaga pelo id do que o teste criou, e tem de
+  sobreviver a falha na preparação sem destruir estado alheio. Estado que o teste
+  precisa mudar (escopo, permissão de perfil, regra de espelho) é lido inteiro antes e
+  devolvido igual; se a leitura não aconteceu, a limpeza não toca nele. Escopo muda só
+  por `trocarEscopo()` (`tests/rls/apoio.ts`). A varredura achou o mesmo defeito em mais
+  oito arquivos, todos corrigidos:
+  | Arquivo | O que apagava sem ter criado |
+  |---|---|
+  | `tests/rls/estrutura-comercial` | todos os escopos do Contratos e do RH/DP, mesmo com o `beforeAll` falho |
+  | `tests/rls/documentos` | todos os escopos do RH/DP, mesmo com o `beforeAll` falho |
+  | `features/pessoas/escopo` | todos os escopos do RH/DP — sem nem conferir se ele já tinha |
+  | `features/relatorios` | todos os escopos do RH/DP |
+  | `features/sst` | todos os escopos do SST (e falhava com o escopo do piloto) |
+  | `features/acessos` | todas as permissões do perfil SST, sem repor nada se a leitura das originais falhasse |
+  | `features/jornada/espelhos` | a regra de casamento de espelhos da organização, se a leitura da original falhasse |
+  | `features/auth/bloqueio` | **toda** a trilha de login do Financeiro (login também grava `chave_login`), não só as falhas semeadas; e gravava `null` no `ultimo_acesso` se a leitura falhasse |
+  | `features/contratante` | (estreitado) a permissão `administracao` do fiscal por módulo, e não pela linha que inseriu |
+  O avesso também foi corrigido — o que os testes **criavam e não apagavam**: cada
+  rodada deixava ~25 linhas em `auditoria` (o rastro das Server Actions, com o IP
+  dublado do arquivo) e 4 avisos apontando para solicitação já apagada. Agora cada
+  arquivo marca o maior id da auditoria no início e apaga, no fim, só o que veio depois
+  com o IP de teste dele (`marcarAuditoria`/`apagarAuditoriaDoArquivo`, mesmo apoio).
+  **Conferido em 2026-09-30:** fotografia do dev antes e depois de `npm test` inteiro
+  (450/450) — escopos, perfis, permissões, categorias, usuários, estrutura, regra de
+  espelho, tipos, SLA linha a linha, e a contagem de tudo o mais: **sem diferença**, e
+  nenhuma linha de auditoria acima da marca.
+  Risco que sobra: se o processo morrer **entre** a troca e a devolução, o escopo
+  original fica fora do lugar — no local o `db reset` repõe; no dev, conferir
+  `usuario_escopos` com o seed.
 
 - **2026-09-30 — Quem é operador e também funcionário do quadro tem duas contas**
   (decisão do Arthur). O e-mail de operador (tipo `interno`) e o CPF de funcionário

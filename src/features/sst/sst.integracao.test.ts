@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Database } from "@/lib/supabase/types";
 
+import { apagarAuditoriaDoArquivo, devolverEscopos, marcarAuditoria, trocarEscopo } from "../../../tests/rls/apoio";
+
 /**
  * SST (F5.2), contra o banco de verdade:
  *
@@ -78,10 +80,14 @@ function maisDias(n: number): string {
 }
 
 let admin: Cliente;
+/** Maior id de `auditoria` antes do arquivo; `null` até o beforeAll marcar. */
+let marcaAuditoria: number | null = null;
+const IP_DO_ARQUIVO = "203.0.113.52";
 const clientes = new Map<string, Cliente>();
 const pessoas: { x?: string; y?: string } = {};
 const documentos: string[] = [];
-let escopoDoSst = false;
+/** Trocas de escopo do SST, desfeitas na ordem inversa no afterAll. */
+const devolucoes: (() => Promise<void>)[] = [];
 
 /** ASO de X a vencer em 10 dias (042), publicado pela action no 1º teste. */
 let asoX: string;
@@ -165,14 +171,15 @@ async function alertas(documento: string): Promise<string[]> {
 beforeAll(async () => {
   const { url, service } = ambiente();
   admin = createClient<Database>(url, service, { auth: { persistSession: false } });
+  marcaAuditoria = await marcarAuditoria(admin);
 
   const { error: semMigracao } = await admin.from("documentos").select("valido_ate").limit(1);
   if (semMigracao) throw new Error(`migração 0024 ausente no alvo de teste: ${semMigracao.message}`);
 
   const colisao = exigir(await admin.from("pessoas").select("cpf").in("cpf", Object.values(CPFS)), "colisão");
   if (colisao.length > 0) throw new Error("CPF de teste já existe em pessoas — sobra de execução anterior. Apague à mão.");
-  const escopos = exigir(await admin.from("usuario_escopos").select("id").eq("usuario_id", USUARIOS.sst), "escopo SST");
-  if (escopos.length > 0) throw new Error("O usuário SST já tem escopo — sujeira de outro teste. Este não sobrescreve.");
+  // O SST roda com o escopo que tiver — no seed, o do piloto (042, 043, 077 e o
+  // quadro interno), que cobre X (042) e Y (077). O caso de alerta troca e devolve.
 
   pessoas.x = exigir(await admin.from("pessoas").insert({ org_id: ORG, nome: "Teste F52 Xavier", cpf: CPFS.x }).select("id").single(), "X").id;
   pessoas.y = exigir(await admin.from("pessoas").insert({ org_id: ORG, nome: "Teste F52 Yara", cpf: CPFS.y }).select("id").single(), "Y").id;
@@ -222,16 +229,20 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (!admin) return;
-  if (escopoDoSst) await admin.from("usuario_escopos").delete().eq("usuario_id", USUARIOS.sst);
-  if (documentos.length > 0) {
-    await admin.from("notificacoes").delete().in("referencia_id", documentos);
-    await admin.from("ciencias").delete().in("documento_id", documentos);
-    await admin.from("documentos").delete().in("id", documentos);
-  }
-  const ids = Object.values(pessoas).filter(Boolean) as string[];
-  if (ids.length > 0) {
-    await admin.from("alocacoes").delete().in("pessoa_id", ids);
-    await admin.from("pessoas").delete().in("id", ids);
+  await apagarAuditoriaDoArquivo(admin, marcaAuditoria, IP_DO_ARQUIVO);
+  try {
+    if (documentos.length > 0) {
+      await admin.from("notificacoes").delete().in("referencia_id", documentos);
+      await admin.from("ciencias").delete().in("documento_id", documentos);
+      await admin.from("documentos").delete().in("id", documentos);
+    }
+    const ids = Object.values(pessoas).filter(Boolean) as string[];
+    if (ids.length > 0) {
+      await admin.from("alocacoes").delete().in("pessoa_id", ids);
+      await admin.from("pessoas").delete().in("id", ids);
+    }
+  } finally {
+    await devolverEscopos(devolucoes);
   }
 });
 
@@ -295,8 +306,7 @@ describe("painel de conformidade", () => {
 
 describe("alerta a 30 dias", () => {
   it("SST com escopo só no 077: recebe o treinamento de Y, não o ASO de X (042); Admin geral recebe os dois", async () => {
-    exigir(await admin.from("usuario_escopos").insert({ usuario_id: USUARIOS.sst, contrato_id: C077 }).select("id"), "escopo 077");
-    escopoDoSst = true;
+    devolucoes.push(await trocarEscopo(admin, USUARIOS.sst, [{ contrato_id: C077 }]));
 
     // Contraponto do cálculo por destinatário: é o mesmo que a RLS mostra a ele.
     const sst = await como(EMAILS.sst);
@@ -324,9 +334,8 @@ describe("alerta a 30 dias", () => {
     expect((await alertas(treinamentoY)).length).toBeGreaterThan(0);
   });
 
-  it("sem o escopo, o SST passa a receber o ASO de X — e o que já recebeu não repete", async () => {
-    await admin.from("usuario_escopos").delete().eq("usuario_id", USUARIOS.sst);
-    escopoDoSst = false;
+  it("de volta ao escopo original (que inclui o 042), o SST passa a receber o ASO de X — e o que já recebeu não repete", async () => {
+    await devolverEscopos(devolucoes);
     const antes = await alertas(treinamentoY);
 
     exigir(await admin.rpc("gerar_avisos_de_validade"), "job de novo");
