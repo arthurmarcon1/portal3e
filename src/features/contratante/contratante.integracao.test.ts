@@ -91,6 +91,8 @@ let comunicadoDaAtiva: string;
 let comunicadoDaEncerrada: string;
 let cienciaDaMaria: string;
 let deuAdministracao = false;
+/** Linha de auditoria criada pelo próprio teste — o contraponto lê esta, não resíduo. */
+let auditoriaDoTeste: number | undefined;
 
 function ambiente() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -252,6 +254,9 @@ afterAll(async () => {
   if (!admin) return;
   if (deuAdministracao) {
     await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao").eq("acao", "ver");
+  }
+  if (auditoriaDoTeste !== undefined) {
+    await admin.from("auditoria").delete().eq("id", auditoriaDoTeste);
   }
   if (documentos.length > 0) {
     await admin.from("ciencias").delete().in("documento_id", documentos);
@@ -437,6 +442,18 @@ describe("varredura: nenhum valor restrito em nenhuma resposta da área", () => 
 
 describe("guarda estrutural: administracao:ver não abre nada a contratante", () => {
   it("mesmo com a permissão dada ao perfil de fiscal, auditoria e usuários seguem fechados; o Suporte lê", async () => {
+    // A linha que os dois tentam ler é deste teste. Antes ele contava com a
+    // auditoria que outros arquivos deixavam: em banco recriado, com a limpeza
+    // correta (c3aa3ed), a tabela estava vazia e o contraponto não provava nada.
+    auditoriaDoTeste = exigir(
+      await admin
+        .from("auditoria")
+        .insert({ org_id: ORG, acao: "ver", entidade: "teste_f51_auditoria", entidade_id: crypto.randomUUID() })
+        .select("id")
+        .single(),
+      "linha de auditoria do teste",
+    ).id;
+
     exigir(
       await admin.from("perfil_permissoes").insert({ perfil_id: PERFIL_FISCAL, modulo: "administracao", acao: "ver" }).select("perfil_id"),
       "administracao:ver ao fiscal",
@@ -445,12 +462,12 @@ describe("guarda estrutural: administracao:ver não abre nada a contratante", ()
     try {
       const fiscal = await como(EMAILS.fiscal);
       const suporte = await como(EMAILS.suporte);
-      expect((await fiscal.from("auditoria").select("id").limit(5)).data).toEqual([]);
+      expect((await fiscal.from("auditoria").select("id").eq("id", auditoriaDoTeste)).data).toEqual([]);
       expect((await fiscal.from("usuarios").select("id")).data!.map((u) => u.id)).toEqual([FISCAL]);
       expect((await fiscal.from("usuario_perfis").select("usuario_id")).data!.every((u) => u.usuario_id === FISCAL)).toBe(true);
       expect((await fiscal.from("usuario_escopos").select("usuario_id")).data!.every((u) => u.usuario_id === FISCAL)).toBe(true);
 
-      expect((await suporte.from("auditoria").select("id").limit(5)).data!.length).toBeGreaterThan(0);
+      expect((await suporte.from("auditoria").select("id").eq("id", auditoriaDoTeste)).data).toEqual([{ id: auditoriaDoTeste }]);
       expect((await suporte.from("usuarios").select("id")).data!.length).toBeGreaterThan(1);
     } finally {
       await admin.from("perfil_permissoes").delete().eq("perfil_id", PERFIL_FISCAL).eq("modulo", "administracao").eq("acao", "ver");
