@@ -13,7 +13,8 @@ import { enviarPendentes, gerarAvisosDePrazo } from "./envio";
  * lembrete no 3º dia, vencido, respondida, concluída), sem duplicar; a fila
  * não envia nada com a flag desligada nem fora da janela; com um transporte
  * de teste no lugar do Resend, cada e-mail sai para o endereço certo, só com
- * o primeiro nome e o link, e a linha vira `enviada`.
+ * o primeiro nome e o link, e a linha vira `enviada`; o que passou de 48 h na
+ * fila vira `descartada` e não sai (0028).
  *
  * **O que não é exercitado aqui: o Resend de verdade.** RESEND_API_KEY está
  * vazia neste projeto, e o transporte de teste substitui só a chamada ao
@@ -269,6 +270,45 @@ describe("a fila de e-mail", () => {
       expect.objectContaining({ status: "erro", erro: "sem e-mail cadastrado — o aviso fica só no Portal" }),
     ]);
     expect(await avisos(doc, "portal")).toHaveLength(1);
+  });
+
+  it("mais de 48 h na fila: descartado, nunca enviado — e só quando o envio aconteceria", async () => {
+    // Linhas com `criado_em` no passado, relativo ao relógio do teste (MEIO_DIA).
+    const fila = async (horasAtras: number) => {
+      const doc = await publicadoHa(5, dia(2));
+      const { error } = await admin.from("notificacoes").insert({
+        org_id: ORG,
+        usuario_id: MARIA.usuarioId,
+        canal: "email",
+        assunto: "F4.3 idade",
+        referencia_tipo: "documentos",
+        referencia_id: doc,
+        motivo: "publicado",
+        criado_em: new Date(MEIO_DIA.getTime() - horasAtras * 3_600_000).toISOString(),
+      });
+      if (error) throw new Error(`fixture: ${error.message}`);
+      return doc;
+    };
+    const velha = await fila(49);
+    const recente = await fila(47);
+
+    const antes = process.env.NOTIFICACOES_EMAIL;
+    delete process.env.NOTIFICACOES_EMAIL;
+    try {
+      await enviarPendentes({ agora: MEIO_DIA });
+      expect(await avisos(velha)).toEqual([expect.objectContaining({ status: "pendente" })]);
+    } finally {
+      if (antes !== undefined) process.env.NOTIFICACOES_EMAIL = antes;
+    }
+
+    const enviados: Mensagem[] = [];
+    const r = await enviarPendentes({ agora: MEIO_DIA, transporte: async (m) => void enviados.push(m) });
+
+    expect(r.descartadas).toBeGreaterThanOrEqual(1);
+    expect(await avisos(velha)).toEqual([expect.objectContaining({ status: "descartada", tentativas: 0 })]);
+    expect(await avisos(recente)).toEqual([expect.objectContaining({ status: "enviada" })]);
+    expect(enviados.some((m) => m.texto.includes(velha))).toBe(false);
+    expect(enviados.some((m) => m.texto.includes(recente))).toBe(true);
   });
 });
 

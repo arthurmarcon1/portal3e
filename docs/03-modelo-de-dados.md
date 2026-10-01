@@ -491,7 +491,14 @@ com `Authorization: Bearer $CRON_SECRET`; cron em `vercel.json`): só com
 20h de Brasília. Fora disso as linhas ficam `pendente`. Endereço: funcionário recebe em
 `pessoas.email_pessoal` (o login dele é sintético); os demais no e-mail de login. Sem
 endereço → `erro` com o motivo escrito, e o aviso do Portal continua. Falha do provedor
-tenta de novo e desiste na 3ª (`tentativas`, `erro`).
+tenta de novo e desiste na 3ª (`tentativas`, `erro`). Pendente há mais de 48 h (de
+`criado_em`) vira `descartada` sem envio (0028, docs/06 2026-10-01) — só na rodada que
+enviaria; com a flag desligada ou fora da janela nada é tocado.
+
+**Recuperação de senha** usa a mesma regra (`emailAtivo()` em `src/lib/email.ts`): sem as
+três variáveis, `/recuperar-senha` não mostra formulário — diz que a senha é redefinida pelos
+administradores do Portal, sem citar setor — e
+`pedirCodigo` recusa.
 
 **Modelo único** (`src/features/notificacoes/modelo.ts`): primeiro nome, uma frase, um
 botão "Abrir no Portal". Sem título de documento, sem conteúdo de solicitação, sem CPF,

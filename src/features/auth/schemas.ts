@@ -7,6 +7,16 @@ import { z } from "zod";
  * validação do cliente é conveniência; a que vale é a da Server Action.
  */
 
+/**
+ * Recuperação de senha sem e-mail ligado nesta instalação (docs/06,
+ * 2026-10-01). Mesmo texto na tela e na action: sem código para entregar,
+ * quem redefine são os administradores do Portal. Sem nome de setor nem de
+ * pessoa: no piloto são Arthur e Wesley, em outra prestadora serão outros, e
+ * a tela não promete quem.
+ */
+export const RECUPERACAO_INDISPONIVEL =
+  "A recuperação de senha pelo Portal está indisponível no momento. A senha é redefinida pelos administradores do Portal: peça a eles uma senha provisória nova.";
+
 /** docs/03: mínimo 8 caracteres, sem exigência de símbolo. */
 export const SENHA_MINIMA = 8;
 

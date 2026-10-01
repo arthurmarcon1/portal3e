@@ -19,6 +19,22 @@ export type Mensagem = {
   html?: string;
 };
 
+/**
+ * O Portal manda e-mail nesta instalação?
+ *
+ * Só com as três: `NOTIFICACOES_EMAIL=ativo`, `RESEND_API_KEY` e
+ * `EMAIL_REMETENTE`. Vale para a fila de avisos (F4.3) e para o código de
+ * recuperação de senha — uma regra só, para a tela nunca prometer um e-mail
+ * que a fila não mandaria.
+ */
+export function emailAtivo(): boolean {
+  return (
+    process.env.NOTIFICACOES_EMAIL === "ativo" &&
+    Boolean(process.env.RESEND_API_KEY) &&
+    Boolean(process.env.EMAIL_REMETENTE)
+  );
+}
+
 let cliente: Resend | null = null;
 
 function resend(): Resend {

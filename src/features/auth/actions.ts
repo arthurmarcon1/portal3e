@@ -13,7 +13,7 @@ import { idDaOrganizacao, slugOrganizacao } from "@/lib/auth/organizacao";
 import { chaveDoLogin, situacaoDoLogin } from "@/lib/auth/tentativas";
 import { destinoPermitido } from "@/lib/auth/rotas";
 import { exigirUsuario, rotaInicial } from "@/lib/auth/sessao";
-import { enviarEmail } from "@/lib/email";
+import { emailAtivo, enviarEmail } from "@/lib/email";
 import { mensagemDeErro, type Resultado } from "@/lib/erros";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
 import { criarClienteServidor } from "@/lib/supabase/server";
@@ -24,6 +24,7 @@ import {
   esquemaRedefinicao,
   esquemaTrocaDeSenha,
   primeiraMensagem,
+  RECUPERACAO_INDISPONIVEL,
   type EntradaLogin,
   type EntradaPedidoDeCodigo,
   type EntradaRedefinicao,
@@ -256,6 +257,14 @@ async function emailDeContato(cadastro: {
 export async function pedirCodigo(
   entrada: EntradaPedidoDeCodigo,
 ): Promise<Resultado> {
+  // Sem e-mail, não há como entregar código: a tela já diz isso e nem mostra
+  // o formulário. Aqui é a mesma regra no servidor, para a action chamada
+  // direto não gerar código que ninguém recebe. Resposta igual para todos —
+  // não depende de quem pediu.
+  if (!emailAtivo()) {
+    return { ok: false, erro: RECUPERACAO_INDISPONIVEL };
+  }
+
   const validado = esquemaPedidoDeCodigo.safeParse(entrada);
   if (!validado.success) {
     return { ok: false, erro: primeiraMensagem(validado.error) };

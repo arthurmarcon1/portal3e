@@ -146,6 +146,11 @@ custa mais caro.
       liste os avisos do Portal** (`canal = 'portal'`): a pendência de documento aparece
       na home e o pedido "aguardando você" em Meus pedidos, mas a lista de avisos em si é
       da Fase 5.
+- [x] **Avisos acumulados: mais de 48 h na fila é descartado** — decidido pelo Arthur em
+      2026-10-01. Ver "Decisões já tomadas".
+- [x] **"Esqueci minha senha" sem e-mail ligado: a tela aponta os administradores do
+      Portal** — decidido
+      pelo Arthur em 2026-10-01. Ver "Decisões já tomadas".
 - [x] **Janela de envio de e-mail: 8h às 20h de Brasília** — decisão minha na F4.3
       (2026-09-29), para aviso não chegar de madrugada. Fora da janela, fica pendente
       para a próxima rodada. Reverter é mudar `dentroDaJanela`.
@@ -229,6 +234,15 @@ custa mais caro.
       conta. Hoje nada no banco marca isso — é só o nome. Quando a cobrança for
       implementada, a exclusão precisa ser explícita (uma marca no contratante, por
       exemplo), não um filtro por nome.
+- [ ] **Redefinir senha como ação isolada — evolução, NÃO implementar no piloto**
+      (registrado pelo Arthur em 2026-10-01). Hoje gerar senha provisória é da tela de
+      **Acessos** (`administracao:editar`), que também cria usuário e muda perfil e
+      escopo de qualquer um — por isso não se dá ao RH/DP. Avaliar uma ação própria de
+      "redefinir senha", concedível ao RH sem abrir Acessos inteira. Perguntas para
+      quando voltar: vira ação nova na matriz ou permissão em outro módulo; o RH pode
+      redefinir a senha de interno (inclusive de Admin geral) ou só de funcionário;
+      respeita escopo. Só faz sentido com equipe maior — no piloto de 7 pessoas, os dois
+      administradores dão conta.
 - [ ] **Encarregado de dados (DPO)** e política de privacidade publicada — exigência de
       LGPD quando houver cliente externo.
 - [ ] **Contrato de operador de dados** entre a prestadora e as contratantes.
@@ -342,6 +356,37 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 - **2026-09-30 — O piloto é com a equipe interna da 3e**, não com cliente externo
   (decisão do gestor). Substitui a pergunta "quantos contratos e unidades entram no
   piloto".
+  **Revisto em 2026-10-01:** 7 funcionários internos, **nenhum contrato de cliente e
+  nenhum usuário contratante**, e-mail desligado. Consequência (docs/08, 9.3): os
+  acessos de Contratos, Financeiro e Suporte/Auditoria **não são criados** no piloto —
+  sem contrato de cliente, o escopo deles ficaria vazio, que para interno é alcance
+  total. O trabalho deles fica com o Admin geral. Existem só Admin geral, RH/DP, SST
+  (escopo: o contrato interno) e os 7 funcionários. Também fica sem efeito, enquanto
+  durar, o item "Trilha de auditoria e o quadro interno": não há Suporte/Auditoria.
+
+- **2026-10-01 — Aviso de e-mail com mais de 48 h na fila é descartado, não enviado**
+  (decisão do Arthur). Prazo de ciência que já venceu e publicação de semanas atrás não
+  têm valor chegando atrasados, e a fila acumulada de uma vez pareceria spam — que é o
+  que aconteceria ao ligar o e-mail depois de um piloto inteiro sem ele. Vale sempre, não
+  só na ligação. A linha vira `descartada` (situação nova, migração 0028), distinta de
+  `erro`: "decidimos não mandar" não é "não conseguimos". A idade conta de `criado_em`, e
+  o descarte só acontece na rodada que enviaria (flag ligada, dentro da janela). Lembrete
+  e vencido descartados não voltam: continuam ocupando o índice único da 0022.
+
+- **2026-10-01 — "Esqueci minha senha" sem e-mail ligado: a tela não pede nada e diz que
+  a senha é redefinida pelos administradores do Portal** (decisão do Arthur). Uma tela que pede o CPF e nunca
+  entrega o código é pior que a função ausente: a pessoa espera um e-mail que não vem e
+  conclui que o Portal quebrou. A regra é a mesma da fila de avisos (`emailAtivo()`: as
+  três variáveis de e-mail); `pedirCodigo` recusa do mesmo jeito para quem chamar direto.
+  Ligado o e-mail, volta ao fluxo do código sem mudança de código.
+  **Sem setor nem pessoa no texto** (correção do Arthur no mesmo dia): a primeira versão
+  dizia "fale com o RH", mas o RH/DP não gera senha — só quem tem `administracao:editar`
+  (Admin geral) usa **Acessos**. No piloto os administradores são Arthur e Wesley; em
+  outra prestadora serão outros, e a tela não promete quem.
+  **O RH/DP não ganha `administracao`** para isso: na tela de Acessos se cria usuário e
+  se muda perfil e escopo de qualquer um — privilégio demais por causa de senha. A
+  alternativa fica como evolução (ver "Redefinir senha como ação isolada", em "Trava a
+  Fase 6 / comercialização").
 
 - **2026-09-30 — O quadro interno é alocado na 3e como contratante de si mesma**
   (decisão do Arthur, opção (a) da análise). Contratante **3e Gestão de Pessoas**,

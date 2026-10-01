@@ -1,6 +1,6 @@
 import "server-only";
 
-import { enviarEmail, type Mensagem } from "@/lib/email";
+import { emailAtivo, enviarEmail, type Mensagem } from "@/lib/email";
 import { criarClienteAdmin } from "@/lib/supabase/admin";
 
 import { caminhoDoAviso, dentroDaJanela, montarEmail, primeiroNome, type Motivo } from "./modelo";
@@ -22,6 +22,12 @@ import { caminhoDoAviso, dentroDaJanela, montarEmail, primeiroNome, type Motivo 
  * `email_pessoal` — o login dele é sintético (`<cpf>@func.<slug>.portal3e`)
  * e não recebe nada. Sem endereço, a linha vira `erro` com o motivo escrito,
  * e o aviso no Portal continua valendo.
+ *
+ * **Aviso velho não sai** (docs/06, 2026-10-01): pendente há mais de 48 h vira
+ * `descartada` em vez de ser enviado. Prazo vencido e publicação de semanas
+ * atrás não valem nada chegando atrasados, e a fila acumulada de uma vez
+ * pareceria spam. O descarte só acontece quando o envio aconteceria — com a
+ * flag desligada nada é tocado, e a idade conta a partir de `criado_em`.
  */
 
 export type Transporte = (mensagem: Mensagem) => Promise<void>;
@@ -30,6 +36,8 @@ export type ResumoDoEnvio = {
   enviadas: number;
   erros: number;
   semEmail: number;
+  /** Mais de 48 h na fila: viraram `descartada` sem envio. */
+  descartadas: number;
   /** Ficaram pendentes: flag desligada, fora da janela, ou falha que ainda tenta de novo. */
   retidas: number;
   motivoRetencao: "flag_desligada" | "fora_da_janela" | null;
@@ -37,13 +45,8 @@ export type ResumoDoEnvio = {
 
 const MAX_TENTATIVAS = 3;
 
-export function emailAtivo(): boolean {
-  return (
-    process.env.NOTIFICACOES_EMAIL === "ativo" &&
-    Boolean(process.env.RESEND_API_KEY) &&
-    Boolean(process.env.EMAIL_REMETENTE)
-  );
-}
+/** Idade máxima de um aviso na fila. Mais velho que isso é descartado. */
+export const IDADE_MAXIMA_HORAS = 48;
 
 function baseUrl(): string {
   return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
@@ -66,10 +69,22 @@ export async function enviarPendentes(opcoes: {
     .eq("status", "pendente");
   const pendentes = count ?? 0;
 
-  if (!ativo) return { enviadas: 0, erros: 0, semEmail: 0, retidas: pendentes, motivoRetencao: "flag_desligada" };
+  const nada = { enviadas: 0, erros: 0, semEmail: 0, descartadas: 0 };
+  if (!ativo) return { ...nada, retidas: pendentes, motivoRetencao: "flag_desligada" };
   if (!dentroDaJanela(agora)) {
-    return { enviadas: 0, erros: 0, semEmail: 0, retidas: pendentes, motivoRetencao: "fora_da_janela" };
+    return { ...nada, retidas: pendentes, motivoRetencao: "fora_da_janela" };
   }
+
+  // Antes de ler a fila: o que passou da idade não chega nem a ser montado.
+  const limiteDeIdade = new Date(agora.getTime() - IDADE_MAXIMA_HORAS * 3_600_000).toISOString();
+  const { data: velhas, error: erroDoDescarte } = await admin
+    .from("notificacoes")
+    .update({ status: "descartada" })
+    .eq("canal", "email")
+    .eq("status", "pendente")
+    .lt("criado_em", limiteDeIdade)
+    .select("id");
+  if (erroDoDescarte) throw new Error(erroDoDescarte.message);
 
   const transporte: Transporte = opcoes.transporte ?? enviarEmail;
   const { data: fila, error } = await admin
@@ -83,7 +98,7 @@ export async function enviarPendentes(opcoes: {
     .limit(opcoes.limite ?? 200);
   if (error) throw new Error(error.message);
 
-  const resumo: ResumoDoEnvio = { enviadas: 0, erros: 0, semEmail: 0, retidas: 0, motivoRetencao: null };
+  const resumo: ResumoDoEnvio = { ...nada, descartadas: velhas?.length ?? 0, retidas: 0, motivoRetencao: null };
 
   for (const n of fila ?? []) {
     const u = n.usuarios;
