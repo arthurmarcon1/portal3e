@@ -219,7 +219,8 @@ custa mais caro.
       contrato? faixa fixa? (Coerente com a estrutura de preços que você já usa.)
 - [ ] **LIMITAÇÃO CONHECIDA — SST vê todo tipo de solicitação da equipe interna**
       (aceita pelo Arthur em 2026-09-30, para rever quando houver cliente externo com
-      equipe grande). A leitura de solicitação segue o escopo da **pessoa**, não o
+      equipe grande). **Sem efeito no piloto** (2026-10-01): não há acesso SST até o
+      primeiro contrato de cliente — e é nesse momento que ela volta a valer. A leitura de solicitação segue o escopo da **pessoa**, não o
       **tipo**: com o quadro interno no escopo (para ver ASO e treinamento), o SST lê
       também férias e atualização cadastral (telefone, endereço) dos colegas. Só
       afastamento é assunto dele. No piloto de 15 pessoas, separar visibilidade por tipo
@@ -360,9 +361,25 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   nenhum usuário contratante**, e-mail desligado. Consequência (docs/08, 9.3): os
   acessos de Contratos, Financeiro e Suporte/Auditoria **não são criados** no piloto —
   sem contrato de cliente, o escopo deles ficaria vazio, que para interno é alcance
-  total. O trabalho deles fica com o Admin geral. Existem só Admin geral, RH/DP, SST
-  (escopo: o contrato interno) e os 7 funcionários. Também fica sem efeito, enquanto
+  total. O trabalho deles fica com o Admin geral. Existem só Admin geral, RH/DP e os 7
+  funcionários (o SST também ficou fora — entrada seguinte). Também fica sem efeito, enquanto
   durar, o item "Trilha de auditoria e o quadro interno": não há Suporte/Auditoria.
+
+- **2026-10-01 — SST fora do piloto; entra com o primeiro contrato de cliente**
+  (decisão do Arthur). O quadro interno da 3e é administrativo, sem treinamento de NR
+  para controlar, e o módulo de SST foi pensado para o pessoal alocado em cliente.
+  Nenhum acesso recebe o perfil SST em produção, e o piloto não cadastra ASO nem
+  treinamento. O **perfil** `sst` continua na configuração (passo 4 do docs/08), como os
+  outros perfis sem usuário: tirá-lo divergiria da matriz de docs/02, que o teste
+  confere. Quando entrar, o escopo é o de docs/02 ("Quadro interno da 3e"): contratos de
+  cliente e o interno. Ficam sem efeito no piloto as conferências de SST (docs/08, 9.6)
+  e a limitação "SST vê todo tipo de solicitação da equipe interna".
+
+- **2026-10-01 — Espelho do piloto sai do PontoTel, como nos contratos de cliente**
+  (decisão do Arthur). A regra de nome (docs/08, 9.4) vale. Antes dela, conferir o
+  formato do export: se o PontoTel entregar um PDF único com todos, ele é separado
+  **fora do Portal**, uma pessoa por arquivo, pelo mesmo caminho do separador de
+  contracheque do RPA da 3e. O Portal não separa PDF e não recebe o arquivo único.
 
 - **2026-10-01 — Aviso de e-mail com mais de 48 h na fila é descartado, não enviado**
   (decisão do Arthur). Prazo de ciência que já venceu e publicação de semanas atrás não

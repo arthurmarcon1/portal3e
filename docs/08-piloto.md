@@ -18,11 +18,13 @@ Tempo estimado: meio dia.
 | E-mail (Resend) | **desligado** — ver passo 7 |
 | WhatsApp | Fase 6 — senha entregue em mãos |
 | Holerite | fora do piloto (docs/06, 2026-09-30) |
+| SST | **fora do piloto** — entra com o primeiro contrato de cliente (docs/06, 2026-10-01) |
+| Espelho de ponto | sai do PontoTel, como nos contratos de cliente |
 
 O que isso tira do guia original: a configuração do Resend e do DNS de e-mail, os acessos
-de **Contratos, Financeiro e Suporte/Auditoria** (passo 9.3), a conferência de
-isolamento do contratante e o escopo "contratos de cliente" do SST. O que entra no lugar
-está marcado em cada passo.
+de **Contratos, Financeiro, Suporte/Auditoria e SST** (passo 9.3), a conferência de
+isolamento do contratante e as conferências do SST. O que entra no lugar está marcado em
+cada passo.
 
 ---
 
@@ -56,7 +58,7 @@ projeto — não precisa instalar nada) e `curl`.
 - **Administradores gerais: Arthur e Wesley** (decidido em 2026-09-30). O primeiro é
   criado à mão no passo 5; o segundo, pela tela, no passo 5.3.
 - **Quem da equipe opera o Portal e com qual perfil** — ficha do passo 9.2. Só existem
-  Admin geral, RH/DP e SST neste piloto (passo 9.3).
+  Admin geral e RH/DP neste piloto (passo 9.3).
 - **Domínio do Portal.** *Não trava o piloto:* sem e-mail, o endereço só aparece na barra
   do navegador. Pode começar em `https://<projeto>.vercel.app` e trocar depois (passo
   6.3 diz o que muda junto).
@@ -418,14 +420,14 @@ roda sem nenhum envio. **Não configure as variáveis de e-mail** neste piloto.
 |---|---|
 | Aviso de documento publicado (espelho, comunicado, norma) | Quem publica avisa a equipe pessoalmente ou no grupo da equipe: "tem espelho novo no Portal". **Só o aviso** — nunca o documento, print ou dado de ninguém no grupo |
 | Lembrete de prazo de ciência e aviso de prazo vencido | RH/DP abre **Relatórios › Pendências de ciência** um dia antes do prazo e no dia, e cobra quem falta, pessoalmente |
-| Alerta de SST a 30 dias do vencimento de ASO/treinamento | O SST (ou o Admin geral, se não houver SST) abre a tela **SST** uma vez por semana |
+| Alerta de SST a 30 dias do vencimento de ASO/treinamento | Não se aplica: o SST está fora do piloto e nenhum ASO ou treinamento é cadastrado no Portal |
 | Aviso de solicitação respondida ou concluída, para o funcionário | O funcionário vê em **Meus pedidos** ("aguardando você"); quem responde avisa pessoalmente |
 | **"Esqueci minha senha"** por conta própria, para qualquer tipo de usuário | A tela não pede CPF nem e-mail: diz que a recuperação pelo Portal está indisponível e que a senha é redefinida pelos **administradores do Portal** — sem citar setor nem pessoa. No piloto são **Arthur e Wesley** (Admin geral): a pessoa vai direto a um deles, que gera a provisória em **Acessos** e entrega em mãos. Avise isso à equipe na entrega dos acessos. O RH/DP **não** recebe a tela de Acessos para isso (docs/06, 2026-10-01). Bloqueio por tentativas: esperar 15 minutos (ninguém destrava à mão, docs/02) |
 | Entrega da senha inicial | Já era em mãos no piloto interno (docs/06, 2026-09-30) |
 
 O que **continua** funcionando sem e-mail: a pendência de documento na home do
 funcionário, "aguardando você" em Meus pedidos, a fila de solicitações da equipe, o
-relatório de pendências de ciência e a tela de SST. Nada disso depende de aviso.
+e o relatório de pendências de ciência. Nada disso depende de aviso.
 
 Não existe hoje tela que liste os avisos (`notificacoes`, canal `portal`): eles são
 gravados mas ninguém os vê (docs/06, Fase 5).
@@ -566,7 +568,7 @@ Cuidados:
   espelho, ela deixa de ser opcional — confira com o lote do 9.4 antes de importar.
 - **Telefone:** opcional. Não envia nada hoje; serve ao RH e, na Fase 6, ao WhatsApp
   (que vai pedir opt-in de qualquer forma).
-- **Inclua quem também opera o Portal** (Arthur, Wesley, RH/DP, SST, se forem do quadro):
+- **Inclua quem também opera o Portal** (Arthur, Wesley, RH/DP, se forem do quadro):
   como funcionário, a pessoa recebe e confirma o próprio espelho.
 
 **Não colete agora:** data de nascimento, endereço, e-mail pessoal. A importação não os
@@ -582,7 +584,7 @@ lê, e no piloto nada os usa. E-mail pessoal volta a ser útil quando o e-mail f
 | CNPJ da 3e (14 dígitos) | passo 4.2 e contratante no 9.1 |
 | Endereço, cidade e UF da sede | unidade `Sede` no 9.1 |
 | Início da vigência do contrato interno (opcional) | contrato no 9.1 |
-| Para cada operador: nome, e-mail de login **real**, perfil (Admin geral, RH/DP ou SST) | passos 5 e 9.3 |
+| Para cada operador: nome, e-mail de login **real**, perfil (Admin geral ou RH/DP) | passos 5 e 9.3 |
 | Para cada operador: se é também um dos 7 do quadro | duas contas (9.3) |
 
 **Importar:** em **Pessoas › Importar planilha**, enviar o arquivo. A tela mostra a
@@ -607,7 +609,7 @@ WhatsApp é o canal definitivo, na Fase 6). Cada pessoa troca a senha no primeir
 |---|---|---|
 | Administrador geral | **sim** — Arthur e Wesley (passos 5 e 5.3) | nenhum contrato e nenhuma unidade (alcance total) |
 | RH/DP | **sim**, para quem faz DP na 3e | nenhum contrato e nenhuma unidade (alcance total) |
-| SST | **só se** alguém da equipe cuida de SST | **`3e — Quadro interno`** marcado (é o único contrato) |
+| SST | **não** — entra com o primeiro contrato de cliente | — |
 | Contratos, Financeiro, Suporte/Auditoria | **não** | — |
 | Funcionário | **sim, os 7** — tipo **Funcionário**, escolhendo a pessoa | sem perfil e sem escopo (fixo no próprio cadastro) |
 | Contratante | **não** | — |
@@ -639,6 +641,13 @@ WhatsApp é o canal definitivo, na Fase 6). Cada pessoa troca a senha no primeir
 > E **todo contrato de cliente novo** precisa ser marcado no escopo de Contratos,
 > Financeiro, SST e Suporte/Auditoria — senão fica invisível para eles.
 
+**SST fora do piloto** (decisão do Arthur, 2026-10-01): o quadro interno é
+administrativo, sem treinamento de NR para controlar, e o módulo foi pensado para quem
+está alocado em cliente. Nenhum acesso recebe o perfil SST. O **perfil** continua no
+banco, como os outros sem usuário: é configuração do passo 4 (a matriz de docs/02, que o
+teste do 4.3 confere), e não um passo deste guia. O SST entra **junto com o primeiro
+contrato de cliente**, com o escopo de docs/02.
+
 **Quem é operador e também funcionário do quadro tem duas contas, e assim devem
 permanecer** (docs/06, 2026-09-30). O acesso de operador entra pelo **e-mail**, com
 o perfil da equipe; o de funcionário entra pelo **CPF**, e é por ele que a pessoa
@@ -646,9 +655,9 @@ recebe e confirma o próprio espelho. São logins separados: não junte, não
 reaproveite a senha de um no outro, e não dê perfil de equipe à conta de CPF. Ao
 entregar os acessos, explique à pessoa qual login serve para quê.
 
-**Conferir:** em **Acessos**, há os 2 administradores, o(s) RH/DP, o SST (se houver) e 7
-funcionários — nada mais. Nenhuma linha de Contratos, Financeiro, Suporte/Auditoria ou
-contratante. A linha do SST mostra `3e — Quadro interno` no escopo.
+**Conferir:** em **Acessos**, há os 2 administradores, o(s) RH/DP e 7 funcionários —
+nada mais. Nenhuma linha de SST, Contratos, Financeiro, Suporte/Auditoria ou
+contratante.
 
 ```bash
 npx supabase db query --db-url "$PROD_DB" "
@@ -659,12 +668,26 @@ select u.tipo, coalesce(p.chave, '—') as perfil, count(*)
  group by 1, 2 order by 1, 2;"
 ```
 
-Esperado: `funcionario | — | 7`, `interno | admin_geral | 2`, `interno | rh_dp | …`,
-`interno | sst | …` — e nenhuma outra chave de perfil.
+Esperado: `funcionario | — | 7`, `interno | admin_geral | 2`, `interno | rh_dp | …` — e
+nenhuma outra chave de perfil.
 
-### 9.4 Regra do espelho
+### 9.4 Espelho: formato do export e regra de nome
 
-Em **Espelhos**, ajustar a expressão que acha o CPF (ou a matrícula) no nome dos arquivos
+O espelho sai do fechamento do **PontoTel**, como nos contratos de cliente.
+
+**Antes de tudo, conferir o formato do export real** do mês, antes de levar qualquer
+arquivo ao Portal:
+
+- **Um PDF por pessoa:** segue para a regra de nome, abaixo.
+- **Um PDF único com todos:** **pare** — o Portal publica um arquivo por pessoa e não
+  separa PDF. O arquivo precisa ser dividido antes, uma pessoa por PDF, com o CPF (ou a
+  matrícula) no nome. O caminho é o mesmo do separador de contracheque que já existe no
+  RPA da 3e. A separação acontece fora do Portal e o PDF único **não** é enviado a ele.
+
+**Conferir:** são 7 PDFs, um por pessoa do quadro, e abrir cada um mostra só aquela
+pessoa — um PDF com duas pessoas publicaria o ponto de uma para a outra.
+
+**Regra de nome.** Em **Espelhos**, ajustar a expressão que acha o CPF (ou a matrícula) no nome dos arquivos
 que saem do fechamento do PontoTel, e conferir com o lote real das 7 pessoas — a tela
 mostra quem casou e quem não casou antes de publicar qualquer coisa.
 
@@ -688,14 +711,13 @@ sempre (a ciência é imutável), então ele usa **conteúdo real**, não "teste
 
 - Como **RH/DP**: **Pessoas**, **Documentos**, **Solicitações** e **Relatórios › Quadro**
   mostram as 7 pessoas, inclusive o espelho de ponto.
-- Como **SST** (se houver): mostra as 7 pessoas e o ASO, mas **nenhum espelho de ponto**.
 - Como **funcionário**: só o próprio cadastro, os próprios documentos e o comunicado.
 
-Contratos, Financeiro, Suporte/Auditoria e contratante não têm o que conferir: não
-existem neste piloto. Quando o primeiro cliente entrar, as duas conferências que
-ficaram de fora (restritos não veem o quadro interno; contratante vê só nome,
-matrícula, CPF mascarado, função, unidade, situação e início de quem está no contrato
-dele) passam a ser obrigatórias.
+SST, Contratos, Financeiro, Suporte/Auditoria e contratante não têm o que conferir: não
+existem neste piloto. Quando o primeiro cliente entrar, as três conferências que
+ficaram de fora passam a ser obrigatórias: restritos não veem o quadro interno; o SST
+vê pessoas e ASO, mas nenhum espelho de ponto; contratante vê só nome, matrícula, CPF
+mascarado, função, unidade, situação e início de quem está no contrato dele.
 
 ---
 
