@@ -641,6 +641,22 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 | Segregação herdada da entidade vizinha | Vazamento entre públicos — **materializado duas vezes na Fase 4** | Ver a nota abaixo da tabela |
 | Cadastro inicial sujo (CPF errado, pessoa desligada) | Trava o primeiro acesso | Validação na importação, relatório de inconsistências antes de publicar qualquer coisa |
 | Você virar o único que sabe operar | Risco de continuidade | Dois administradores gerais (Arthur e Wesley, decidido em 2026-09-30, criados em produção), documentação nesta pasta sempre atualizada |
+| Push com CI vermelho — **materializado em 2026-10-01** | O vermelho vira o normal e esconde a próxima falha: a que importa chega com a mesma cor da que já se ignorava | **CI vermelho se conserta antes do próximo commit** (regra do Arthur, 2026-10-01). Um commit por push, esperando o CI de cada um. Ver a nota abaixo da tabela |
+
+**CI vermelho desde `8cfdc22` (2026-10-01).** Três commits (`6992146`, `1bf5bfa`,
+`c3aa3ed`) entraram num push só, junto com `8cfdc22`, e nenhum passou pelo CI sozinho. O
+run falhou num contraponto do contratante: o Suporte deveria ler a trilha de auditoria e
+lia 0 linhas. O próximo push (`6e0cc95`, a 0028) entrou por cima do vermelho, com a
+mesma falha, e só não escondeu nada porque ela era idêntica. A causa não estava no código
+novo: o teste **nunca criou a linha que esperava ler** — contava com o resíduo que outros
+arquivos deixavam no dev. Quando a limpeza ficou correta (`c3aa3ed`), o banco recriado do
+CI chegou com a tabela vazia. Ou seja, o contraponto passava antes **sem provar nada** e
+dava cobertura aparente ao par "0 linhas" (`3596b3b`). A varredura que se seguiu cruzou,
+arquivo por arquivo, cada leitura de tabela fora do seed com o que o próprio arquivo cria,
+e procurou `every()` sobre lista possivelmente vazia. Achou mais dois no mesmo arquivo
+(`40242fa`). As demais leituras filtram pelo id que o teste produziu.
+Regra para teste novo: **contraponto lê a linha que o próprio teste criou, pelo id** — e
+`every()` sobre o resultado de uma persona nunca é a asserção sozinha.
 
 **Segregação se desenha do zero para cada entidade escrita pelos três públicos.** Padrão
 exposto pela Fase 4: quando uma entidade nova é escrita por funcionário, contratante e
