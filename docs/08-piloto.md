@@ -18,6 +18,7 @@ Tempo estimado: meio dia.
 | E-mail (Resend) | **desligado** — ver passo 7 |
 | WhatsApp | Fase 6 — senha entregue em mãos |
 | Holerite | fora do piloto (docs/06, 2026-09-30) |
+| Planos | **Supabase gratuito** e **Vercel Hobby** — ver "Riscos dos planos gratuitos", no fim do passo 9 |
 | SST | **fora do piloto** — entra com o primeiro contrato de cliente (docs/06, 2026-10-01) |
 | Espelho de ponto | sai do PontoTel, como nos contratos de cliente |
 
@@ -49,12 +50,11 @@ projeto — não precisa instalar nada) e `curl`.
 
 ### O que precisa estar decidido
 
-- **Plano da Vercel.** O `vercel.json` agenda o job de avisos de hora em hora; o plano
-  Hobby só aceita cron diário e **recusa o deploy** com esse agendamento. E os termos da
-  Vercel restringem o Hobby a uso pessoal, não comercial — um portal interno de empresa
-  não se encaixa. **Recomendado: Pro.** Ver passo 8.
-- **Plano do Supabase.** O gratuito pausa o projeto depois de 7 dias sem uso, e um
-  piloto que só publica espelho uma vez por mês passa semanas parado. **Pro.**
+- **Planos: Supabase gratuito e Vercel Hobby** (decisão do Arthur, 2026-10-04). Os dois
+  têm consequência operacional — o Supabase pausa sem atividade e não tem backup, o
+  Hobby só roda cron diário — descrita em "Riscos dos planos gratuitos", no fim do passo
+  9. **Migrar para os pagos é obrigatório** quando entrar o primeiro cliente externo ou
+  houver cobrança: o Hobby é só para uso não comercial (docs/06, "Trava a Fase 6").
 - **Administradores gerais: Arthur e Wesley** (decidido em 2026-09-30). O primeiro é
   criado à mão no passo 5; o segundo, pela tela, no passo 5.3.
 - **Quem da equipe opera o Portal e com qual perfil** — ficha do passo 9.2. Só existem
@@ -119,7 +119,9 @@ export APP_URL="https://portal.3e.srv.br"     # passo 6.3 (ou o *.vercel.app)
    - **Database password:** gere uma forte e guarde no gerenciador → `PROD_SENHA_DB`
    - **Region:** South America (São Paulo) — `sa-east-1`. Dado de funcionário brasileiro
      fica no Brasil.
-   - **Plano:** Pro (ver passo 0).
+   - **Plano:** gratuito (passo 0). Ele limita a **2 projetos gratuitos ativos** por
+     conta: com o dev, produção é o segundo. Um terceiro (homologação, por exemplo) não
+     cabe sem pausar um dos dois.
 2. Espere o projeto ficar pronto (2–3 minutos).
 3. Em **Project Settings › General**, copie o **Reference ID** → `PROD_REF`.
 4. Em **Project Settings › API**, copie:
@@ -482,9 +484,12 @@ só roda com o segredo no cabeçalho `Authorization: Bearer <CRON_SECRET>` — �
 Vercel manda nos crons do projeto. Sem `CRON_SECRET`, responde 401 a tudo (falha
 fechada).
 
-**Neste piloto o job não produz nada visível** (passo 7): só grava avisos que ninguém lê.
-Ele é configurado mesmo assim, para o dia em que o e-mail for ligado não depender de
-lembrar deste passo.
+**Neste piloto o job não produz nada visível para o usuário** (passo 7): só grava avisos
+que ninguém lê. Mas ele tem outra função no plano gratuito: é a **única atividade diária
+garantida no banco** — e o Supabase gratuito pausa o projeto depois de 7 dias sem
+atividade (ver "Riscos dos planos gratuitos", no fim do passo 9). Por isso o
+`CRON_SECRET` **não é opcional**: sem ele, o job responde 401 sem tocar no banco, e não
+segura nada.
 
 1. Gerar o segredo:
 
@@ -493,10 +498,21 @@ lembrar deste passo.
    ```
 
 2. Na Vercel: `CRON_SECRET` = esse valor, só Production, marcado *Sensitive*. **Redeploy.**
-3. O agendamento já está em `vercel.json` (`0 * * * *`, de hora em hora):
-   - plano **Pro** (recomendado, passo 0): nada a mudar;
-   - se ficar no Hobby: o deploy é recusado até `vercel.json` passar para
-     `"0 11 * * *"` (8 h de Brasília) — mudança de código, com commit, antes do deploy.
+3. O agendamento já está em `vercel.json`: **`0 11 * * *`, uma vez por dia, às 8 h de
+   Brasília** — o que o Hobby aceita. No Hobby a Vercel dispara em algum momento dentro
+   dessa hora (8h00–8h59), sempre dentro da janela de envio de e-mail (8 h às 20 h).
+   Nada a fazer aqui.
+
+**Diário basta**, no Hobby e no Pro: lembrete, vencido e alerta de validade são contados
+**por dia** e não se duplicam, e o mais velho que um aviso chega à fila é ~24 h — abaixo
+do descarte de 48 h. A exceção: se o job falhar **dois dias seguidos**, o que foi criado
+antes disso é descartado, não enviado (docs/06, 2026-10-01).
+
+**Ao migrar para o Pro**, nada é obrigatório: o mesmo `vercel.json` funciona. O que se
+ganha mudando para `"0 * * * *"` (de hora em hora) é velocidade, e só com o e-mail
+ligado: o aviso de publicação e o de solicitação respondida saem na hora seguinte, não na
+manhã seguinte. Se mudar, é commit em `vercel.json` — e o deploy no Hobby passaria a ser
+recusado, então só depois da migração.
 
 **Conferir:**
 
@@ -513,8 +529,10 @@ A segunda devolve, neste piloto:
 ```
 
 `flag_desligada` é o esperado enquanto o e-mail estiver desligado. Rodar duas vezes
-seguidas não duplica aviso. Na Vercel, **Settings › Cron Jobs** mostra o agendamento e a
-última execução; **Logs** mostra erros com o prefixo `[job notificacoes]`.
+seguidas não duplica aviso. Na Vercel, **Settings › Cron Jobs** mostra o agendamento
+(`0 11 * * *`) e a última execução; **Logs** mostra erros com o prefixo
+`[job notificacoes]`. **No dia seguinte ao deploy**, confira lá que houve uma execução às
+8 h com status 200 — é ela que mantém o Supabase acordado.
 
 ---
 
@@ -718,6 +736,55 @@ existem neste piloto. Quando o primeiro cliente entrar, as três conferências q
 ficaram de fora passam a ser obrigatórias: restritos não veem o quadro interno; o SST
 vê pessoas e ASO, mas nenhum espelho de ponto; contratante vê só nome, matrícula, CPF
 mascarado, função, unidade, situação e início de quem está no contrato dele.
+
+### Riscos dos planos gratuitos
+
+O piloto roda no **Supabase gratuito** e na **Vercel Hobby** (passo 0). Três riscos
+operacionais, que não existem nos planos pagos:
+
+**1. O Supabase pausa o projeto depois de 7 dias sem atividade.** Com 7 pessoas
+entrando uma vez por mês para o espelho, sem nada mais, isso acontece. Pausado, o Portal
+não abre para ninguém até alguém reativar no painel (**Restore project**, alguns
+minutos; os dados ficam). O Supabase manda e-mail ao dono da organização antes de pausar.
+
+- **O que segura, sem custo:** o job do passo 8 consulta o banco todo dia às 8 h. É
+  atividade real no banco, diária — e é a forma simples de evitar a pausa. O Supabase não
+  publica o critério exato de "inatividade", então trate como proteção, não como
+  garantia, até ver funcionar.
+- **Rotina, toda segunda-feira, nas primeiras semanas:** um administrador abre
+  `$APP_URL` e entra. Se o Portal não abrir, o projeto pausou: reativar no painel e
+  conferir em **Settings › Cron Jobs** da Vercel se o job das 8 h está rodando com 200.
+  Depois de um mês sem pausa, a rotina pode virar mensal.
+- **Conferir que o job está segurando:** em **Settings › Cron Jobs** da Vercel, uma
+  execução por dia com status 200. Status 401 é `CRON_SECRET` faltando ou errado — e aí
+  o banco fica sem atividade.
+
+**2. O Supabase gratuito não tem backup.** Backup diário é do plano pago. O banco do
+piloto guarda o que não se refaz: a ciência dos funcionários (imutável, com protocolo,
+data, IP e versão) e a trilha de auditoria. Os PDFs dos espelhos se refazem do PontoTel;
+a ciência, não.
+
+- **Mitigação:** depois de cada publicação de espelho e de cada prazo de ciência
+  encerrado, um administrador exporta o banco e guarda o arquivo cifrado, fora do
+  repositório e fora de pasta sincronizada sem controle — é dado real de funcionário
+  (LGPD):
+
+  ```bash
+  npx supabase db dump --db-url "$PROD_DB" -f portal3e-esquema-$(date +%F).sql
+  npx supabase db dump --db-url "$PROD_DB" --data-only -f portal3e-dados-$(date +%F).sql
+  ```
+
+  **Conferir:** os dois arquivos existem e o de dados não está vazio
+  (`grep -c "INSERT\|COPY" portal3e-dados-*.sql` maior que zero). Os arquivos do
+  Storage (PDFs) **não** entram nesse dump: guarde os originais do PontoTel do mês.
+
+**3. A Vercel Hobby só roda o job uma vez por dia.** Já ajustado (passo 8). Sem e-mail
+ligado, não muda nada para o usuário.
+
+**Fim do gratuito:** entrou o primeiro cliente externo, ou passou a haver cobrança,
+migra-se **os dois** — Vercel Pro e Supabase pago. Não é opcional (docs/06, "Trava a
+Fase 6 / comercialização"). No Supabase, a mudança de plano é no mesmo projeto, sem
+migrar dados; na Vercel, idem. O que muda no `vercel.json` está no passo 8.
 
 ---
 

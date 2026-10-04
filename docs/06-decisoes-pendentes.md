@@ -135,9 +135,9 @@ custa mais caro.
       domínio, `NOTIFICACOES_EMAIL=ativo` e `CRON_SECRET`. O teste da F4.3 usa um
       transporte de teste no lugar do Resend — o caminho inteiro roda, menos a chamada ao
       provedor.
-- [ ] **O cron é de hora em hora (`vercel.json`), e o plano Hobby da Vercel só roda cron
-      diário.** No Hobby, lembrete e envio acontecem uma vez por dia. Decidir o plano (ou
-      um agendador externo chamando o job com o `CRON_SECRET`) antes do piloto.
+- [x] **Cron diário** — decidido em 2026-10-04 com os planos do piloto (Vercel Hobby):
+      `vercel.json` passa a `0 11 * * *`, 8 h de Brasília. Diário basta mesmo no Pro;
+      de hora em hora só acelera o aviso com o e-mail ligado (docs/08, passo 8).
 - [ ] **Funcionário sem `email_pessoal` só recebe o aviso no Portal** — e o seed, e
       provavelmente o quadro real, não têm esse campo. O canal definitivo de **senha e
       código** já é WhatsApp (decidido em 2026-09-30, Fase 6); falta decidir se o
@@ -211,6 +211,17 @@ custa mais caro.
       recuperação de senha e o código da F3.3. Enquanto não existir, vale a entrega
       presencial (piloto interno). Muda o texto de docs/05, que dizia "só aviso, nunca
       conteúdo": credencial passa a sair pelo canal; conteúdo de documento, nunca.
+- [ ] **GATILHO OBRIGATÓRIO — migrar Vercel e Supabase para os planos pagos** (decisão
+      do Arthur, 2026-10-04). O piloto interno roda no **Supabase gratuito** e na
+      **Vercel Hobby**. O Hobby é, pelos termos da Vercel, para **uso pessoal e não
+      comercial**. **Entrar o primeiro cliente externo, ou passar a haver qualquer
+      cobrança, obriga a migrar os dois — não é opcional, nem "quando der".** A migração
+      vem **antes** de o cliente receber acesso, não depois.
+      O Supabase vai junto pelo mesmo motivo e por mais dois: o gratuito pausa após 7
+      dias sem atividade (um cliente não pode encontrar o Portal fora do ar) e não tem
+      backup (dado de funcionário de terceiro sem cópia). Os dois mudam de plano no
+      mesmo projeto, sem migrar dados; o `vercel.json` diário segue valendo (docs/08,
+      passo 8 e "Riscos dos planos gratuitos").
 - [ ] **Domínio e hospedagem.** Sugestão: `portal.3e.srv.br` ou domínio próprio do
       produto, se a intenção é vender como produto independente da marca 3e.
 - [ ] **Nome comercial.** "Portal 3e" funciona internamente, mas não para vender a um
@@ -374,6 +385,13 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
   confere. Quando entrar, o escopo é o de docs/02 ("Quadro interno da 3e"): contratos de
   cliente e o interno. Ficam sem efeito no piloto as conferências de SST (docs/08, 9.6)
   e a limitação "SST vê todo tipo de solicitação da equipe interna".
+
+- **2026-10-04 — Piloto no Supabase gratuito e na Vercel Hobby** (decisão do Arthur).
+  Custo zero enquanto for uso interno da 3e. Consequências registradas em docs/08
+  ("Riscos dos planos gratuitos"): pausa após 7 dias sem atividade (o job diário é a
+  proteção; abrir o Portal toda segunda nas primeiras semanas), **sem backup** (exportar o
+  banco depois de cada publicação e prazo encerrado) e cron só diário. A migração para os
+  pagos tem gatilho obrigatório — ver "Trava a Fase 6 / comercialização".
 
 - **2026-10-01 — Espelho do piloto sai do PontoTel, como nos contratos de cliente**
   (decisão do Arthur). A regra de nome (docs/08, 9.4) vale. Antes dela, conferir o
