@@ -46,3 +46,12 @@ next-env.d.ts
 
 # espelhos fictícios gerados por scripts/gerar-espelhos-demo.mjs
 /demo/
+
+# backup do banco de produção (scripts/backup-producao.mjs) — dado pessoal de
+# funcionário real. NUNCA entra no repositório. O padrão do script é fora daqui
+# (~/portal3e-backups); estas linhas são a segunda barreira, para --saida=backups
+# ou um arquivo copiado para cá por engano.
+/backups/
+portal3e-*-dados.sql
+portal3e-*-esquema.sql
+*.sql.gpg

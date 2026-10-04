@@ -764,19 +764,48 @@ piloto guarda o que não se refaz: a ciência dos funcionários (imutável, com 
 data, IP e versão) e a trilha de auditoria. Os PDFs dos espelhos se refazem do PontoTel;
 a ciência, não.
 
-- **Mitigação:** depois de cada publicação de espelho e de cada prazo de ciência
-  encerrado, um administrador exporta o banco e guarda o arquivo cifrado, fora do
-  repositório e fora de pasta sincronizada sem controle — é dado real de funcionário
-  (LGPD):
+- **Mitigação: `npm run backup:producao`**, depois de cada publicação de espelho e de
+  cada prazo de ciência encerrado. Um comando só:
 
   ```bash
-  npx supabase db dump --db-url "$PROD_DB" -f portal3e-esquema-$(date +%F).sql
-  npx supabase db dump --db-url "$PROD_DB" --data-only -f portal3e-dados-$(date +%F).sql
+  npm run backup:producao
   ```
 
-  **Conferir:** os dois arquivos existem e o de dados não está vazio
-  (`grep -c "INSERT\|COPY" portal3e-dados-*.sql` maior que zero). Os arquivos do
-  Storage (PDFs) **não** entram nesse dump: guarde os originais do PontoTel do mês.
+  O que ele faz (detalhes no cabeçalho de `scripts/backup-producao.mjs`):
+  - copia **só** o banco de `PROD_DB`, a variável deste guia — nunca o link do
+    repositório nem o `.env.local`. Recusa o dev (ref de `.env.local`), o local e URL
+    que não seja Supabase;
+  - grava em `~/portal3e-backups/<data>_<hora>/` dois arquivos: `…-dados.sql` (o que
+    importa: dados de `public`, `app`, `auth` e metadados do `storage`) e `…-esquema.sql`
+    (conferência). Pasta com permissão 700, arquivos 600;
+  - confere que o arquivo de dados traz organização e usuários, e diz se já há pessoas,
+    ciências e auditoria;
+  - no fim, **avisa onde salvou e manda cifrar**, com o comando pronto (`gpg
+    --symmetric`) e o `shred` do original em texto puro.
+
+  Precisa do **Docker Desktop aberto**: o `supabase db dump` roda o `pg_dump` num
+  contêiner. Sem ele, o script para e diz isso.
+
+  **Conferir:** a saída termina em verde com "Salvo em …" e os dois arquivos com tamanho;
+  depois de cifrar, só os `.gpg` ficam na pasta.
+
+  Os arquivos do Storage (PDFs) **não** entram no dump: guarde os originais do PontoTel
+  do mês. Para restaurar: projeto novo, migrações na ordem (as do commit da época, passo
+  3) e o arquivo de dados por cima.
+
+> ⛔ **O arquivo do backup NUNCA entra no repositório** — nem cifrado, nem "só um
+> instante", nem num branch. É dado pessoal de funcionário real: CPF, ciência com IP e
+> data, logins. Commitado, seria o **primeiro vazamento de verdade deste projeto**,
+> depois de todo o trabalho de RLS, e o histórico do git não esquece.
+>
+> - O padrão do script já é **fora** do repositório (`~/portal3e-backups`).
+> - Com `--saida=` apontando para dentro do repositório, o script **recusa** se o git
+>   não ignorar o caminho.
+> - O `.gitignore` é a segunda barreira: ignora `/backups/`, `portal3e-*-dados.sql`,
+>   `portal3e-*-esquema.sql` e `*.sql.gpg` em qualquer pasta.
+> - Nunca `git add -f` num desses. Nunca anexar a issue, PR, chat ou e-mail.
+> - Guardar o `.gpg` fora de pasta sincronizada sem controle de acesso; a senha do gpg,
+>   no gerenciador de senhas.
 
 **3. A Vercel Hobby só roda o job uma vez por dia.** Já ajustado (passo 8). Sem e-mail
 ligado, não muda nada para o usuário.

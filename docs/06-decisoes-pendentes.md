@@ -389,8 +389,9 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 - **2026-10-04 — Piloto no Supabase gratuito e na Vercel Hobby** (decisão do Arthur).
   Custo zero enquanto for uso interno da 3e. Consequências registradas em docs/08
   ("Riscos dos planos gratuitos"): pausa após 7 dias sem atividade (o job diário é a
-  proteção; abrir o Portal toda segunda nas primeiras semanas), **sem backup** (exportar o
-  banco depois de cada publicação e prazo encerrado) e cron só diário. A migração para os
+  proteção; abrir o Portal toda segunda nas primeiras semanas), **sem backup** (`npm run
+  backup:producao` depois de cada publicação e prazo encerrado; o arquivo nunca entra no
+  repositório) e cron só diário. A migração para os
   pagos tem gatilho obrigatório — ver "Trava a Fase 6 / comercialização".
 
 - **2026-10-01 — Espelho do piloto sai do PontoTel, como nos contratos de cliente**

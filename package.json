@@ -12,7 +12,8 @@
     "test:unidade": "vitest run --project unidade",
     "test:integracao": "vitest run --project integracao",
     "test:rls": "node scripts/testes.mjs tests/rls",
-    "db:reset:nuvem": "node scripts/db-reset-nuvem.mjs"
+    "db:reset:nuvem": "node scripts/db-reset-nuvem.mjs",
+    "backup:producao": "node scripts/backup-producao.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
