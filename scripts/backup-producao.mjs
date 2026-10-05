@@ -29,13 +29,28 @@
  *    `--saida=` dentro do repositório, só se o git ignorar o caminho. O
  *    arquivo é dado pessoal de funcionário real: no repositório, seria o
  *    primeiro vazamento de verdade deste projeto.
- * 4. **Docker ligado.** O `supabase db dump` roda o `pg_dump` num contêiner.
+ * 4. **`pg_dump` nativo, da versão certa.** Sem Docker de propósito: rotina
+ *    mensal que depende do Docker Desktop aberto é rotina adiada. O `pg_dump`
+ *    recusa servidor de versão maior que a dele, então o script pergunta a
+ *    versão ao servidor (`psql`) e para, com o comando de instalação, se o
+ *    cliente for mais velho. Instalação: docs/08, "Riscos dos planos
+ *    gratuitos".
+ *
+ * As flags do `pg_dump` são as que o `supabase db dump` usa (conferidas com
+ * `--dry-run` no CLI v2.116): mesmos schemas excluídos, `--column-inserts`, e
+ * o arquivo de dados abre com `session_replication_role = replica` — sem isso
+ * a restauração esbarra nos gatilhos de imutabilidade da ciência e na ordem
+ * das chaves estrangeiras.
+ *
+ * Conexão: o endereço direto (`db.<ref>.supabase.co`) só tem IPv6, e o WSL
+ * costuma não ter. Use o **Session pooler** (porta 5432, usuário
+ * `postgres.<ref>`), que é o que docs/08 põe em `PROD_DB`.
  *
  * Pasta criada com permissão 700 e arquivos com 600: só o dono lê.
  */
 
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -99,7 +114,7 @@ if (!bruta) {
   abortar(
     "PROD_DB não está definida — não sei qual banco copiar.",
     "Exporte no terminal, como em docs/08 (\"Variáveis deste guia\"):\n" +
-      '  export PROD_DB="postgresql://postgres:<senha codificada>@db.<ref de produção>.supabase.co:5432/postgres"\n' +
+      '  export PROD_DB="postgresql://postgres.<ref de produção>:<senha codificada>@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"\n' +
       "Este script nunca usa o link do repositório nem o .env.local como alvo.",
   );
 }
@@ -149,19 +164,86 @@ if (dentroDoRepositorio(pasta) && !ignoradoPeloGit(pasta)) {
 }
 
 // ---------------------------------------------------------------------
-// 3. Docker
+// 3. pg_dump nativo, compatível com o servidor
 // ---------------------------------------------------------------------
-if (spawnSync("docker", ["info"], { stdio: "ignore" }).status !== 0) {
+const COMO_INSTALAR =
+  "Instale o cliente do PostgreSQL pelo repositório oficial (o Ubuntu 24.04 só traz o 16):\n\n" +
+  "  sudo apt install -y curl ca-certificates\n" +
+  "  sudo install -d /usr/share/postgresql-common/pgdg\n" +
+  "  sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc\n" +
+  "  . /etc/os-release\n" +
+  "  sudo sh -c \"echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list\"\n" +
+  "  sudo apt update\n" +
+  "  sudo apt install -y postgresql-client-NN\n\n" +
+  "A versão do cliente tem de ser igual ou maior que a do servidor. Detalhes: docs/08,\n" +
+  "\"Riscos dos planos gratuitos\".";
+
+/** Major de `pg_dump (PostgreSQL) 17.11 (Ubuntu …)`; null se não instalado. */
+function majorDoCliente(programa) {
+  const r = spawnSync(programa, ["--version"], { encoding: "utf8" });
+  if (r.status !== 0 || r.error) return null;
+  const m = r.stdout.match(/\(PostgreSQL\)\s+(\d+)/);
+  return m ? Number(m[1]) : null;
+}
+
+const clientePgDump = majorDoCliente("pg_dump");
+const clientePsql = majorDoCliente("psql");
+if (clientePgDump === null || clientePsql === null) {
+  abortar("pg_dump/psql não encontrados.", COMO_INSTALAR.replace("NN", "17"));
+}
+
+// Conexão pelas variáveis PG*, como o próprio CLI do Supabase faz: a senha
+// não vai para a linha de comando (onde `ps` a mostraria).
+const ambienteDoBanco = {
+  ...process.env,
+  PGHOST: url.hostname,
+  PGPORT: url.port || "5432",
+  PGUSER: decodeURIComponent(url.username),
+  PGPASSWORD: decodeURIComponent(url.password),
+  PGDATABASE: url.pathname.replace(/^\//, "") || "postgres",
+  PGSSLMODE: "require",
+  PGCONNECT_TIMEOUT: "15",
+};
+
+/** Nada que vá para a tela leva a senha nem a URL. */
+function semSegredo(texto) {
+  let t = texto.replaceAll(bruta, "<PROD_DB>");
+  const senha = decodeURIComponent(url.password);
+  if (senha) t = t.replaceAll(senha, "<senha>");
+  return t;
+}
+
+function dicaDeConexao(erro) {
+  if (url.hostname.startsWith("db.") && /unreachable|Network|resolve|timeout/i.test(erro)) {
+    return (
+      "\n\nO endereço direto db.<ref>.supabase.co só tem IPv6, e o WSL não tem. Use o\n" +
+      "Session pooler em PROD_DB (painel do Supabase › Connect › Session pooler):\n" +
+      "  postgresql://postgres.<ref>:<senha>@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+    );
+  }
+  return "";
+}
+
+const versao = spawnSync("psql", ["-XAtc", "show server_version_num"], { encoding: "utf8", env: ambienteDoBanco });
+if (versao.status !== 0) {
+  const erro = semSegredo(versao.stderr || versao.stdout);
+  abortar("Não consegui conectar em PROD_DB.", erro + dicaDeConexao(erro));
+}
+const servidor = Math.floor(Number(versao.stdout.trim()) / 10000);
+if (!servidor) abortar("Resposta inesperada do servidor ao pedir a versão.", semSegredo(versao.stdout));
+if (clientePgDump < servidor) {
   abortar(
-    "O Docker não está rodando.",
-    "O `supabase db dump` executa o pg_dump num contêiner. Abra o Docker Desktop e rode de novo.",
+    `O pg_dump instalado é ${clientePgDump} e o servidor é ${servidor}: o pg_dump recusa servidor mais novo.`,
+    COMO_INSTALAR.replace("NN", String(servidor)),
   );
 }
 
 // ---------------------------------------------------------------------
 // 4. Dump
 // ---------------------------------------------------------------------
-process.stdout.write(`\n${FORTE}Backup do banco de produção ${ref}${FIM}\n\n`);
+process.stdout.write(
+  `\n${FORTE}Backup do banco de produção ${ref}${FIM}  ${CINZA}(servidor ${servidor}, pg_dump ${clientePgDump})${FIM}\n\n`,
+);
 
 mkdirSync(pasta, { recursive: true, mode: 0o700 });
 chmodSync(pasta, 0o700);
@@ -172,26 +254,58 @@ const arquivos = {
   dados: `${prefixo}-dados.sql`,
 };
 
-function dump(rotulo, extras, arquivo) {
+// Os mesmos do `supabase db dump`: o que a plataforma mantém não é backup nosso.
+// No de dados, `auth` e `storage` FICAM (logins e metadados dos arquivos).
+const EXCLUIDOS_DADOS =
+  "information_schema|pg_*|graphql|graphql_public|pgsodium|pgsodium_masks|pgtle|repack|tiger|tiger_data|timescaledb_*|_timescaledb_*|topology|vault|etl|extensions|pgbouncer|realtime|supabase_migrations|_analytics|_realtime|_supavisor";
+const EXCLUIDOS_ESQUEMA =
+  "information_schema|pg_*|_analytics|_realtime|_supavisor|auth|etl|extensions|pgbouncer|realtime|storage|supabase_functions|supabase_migrations|cron|dbdev|graphql|graphql_public|net|pgmq|pgsodium|pgsodium_masks|pgtle|repack|tiger|tiger_data|timescaledb_*|_timescaledb_*|topology|vault";
+
+function dump(rotulo, argumentos, arquivo, { antes = "", depois = "" } = {}) {
   passo(`${rotulo}…`);
-  // A URL vai como argumento, nunca impressa: ela carrega a senha do banco.
-  const r = spawnSync("npx", ["supabase", "db", "dump", "--db-url", bruta, ...extras, "-f", arquivo], {
+  // O banco do piloto cabe em memória com folga (MB); `maxBuffer` só evita o
+  // corte silencioso do padrão do Node.
+  const r = spawnSync("pg_dump", ["--quote-all-identifier", "--role", "postgres", ...argumentos], {
     encoding: "utf8",
-    cwd: RAIZ,
+    env: ambienteDoBanco,
+    maxBuffer: 1024 * 1024 * 1024,
   });
-  if (r.status !== 0) {
-    const saida = (r.stderr || r.stdout).replaceAll(bruta, "<PROD_DB>");
-    const senha = decodeURIComponent(url.password);
-    abortar(`O dump (${rotulo}) falhou.`, senha ? saida.replaceAll(senha, "<senha>") : saida);
+  if (r.status !== 0 || r.error) {
+    const erro = semSegredo(r.stderr || String(r.error ?? ""));
+    abortar(`O pg_dump (${rotulo}) falhou.`, erro + dicaDeConexao(erro));
   }
-  if (!existsSync(arquivo) || statSync(arquivo).size === 0) {
-    abortar(`O dump (${rotulo}) não gerou arquivo, ou gerou vazio.`, arquivo);
-  }
+  if (!r.stdout.trim()) abortar(`O pg_dump (${rotulo}) não devolveu nada.`);
+  // `\restrict`/`\unrestrict` (pg_dump 17.6+) são meta-comandos do psql: comentados,
+  // como o CLI do Supabase faz, para o arquivo rodar também fora do psql.
+  const corpo = r.stdout.replace(/^\\(un)?restrict .*$/gm, "-- $&");
+  writeFileSync(arquivo, antes + corpo + depois, { mode: 0o600 });
   chmodSync(arquivo, 0o600);
 }
 
-dump("esquema", [], arquivos.esquema);
-dump("dados", ["--data-only"], arquivos.dados);
+dump("esquema", ["--schema-only", "--exclude-schema", EXCLUIDOS_ESQUEMA], arquivos.esquema);
+dump(
+  "dados",
+  [
+    "--data-only",
+    "--exclude-schema",
+    EXCLUIDOS_DADOS,
+    "--exclude-table",
+    "auth.schema_migrations",
+    "--exclude-table",
+    "storage.migrations",
+    "--exclude-table",
+    "supabase_functions.migrations",
+    "--schema",
+    "*",
+    "--column-inserts",
+    "--rows-per-insert",
+    "100000",
+  ],
+  arquivos.dados,
+  // Restauração com gatilhos desligados: a imutabilidade da ciência e a ordem
+  // das FKs valem para quem escreve, não para quem devolve uma cópia exata.
+  { antes: "SET session_replication_role = replica;\n\n", depois: "\nRESET ALL;\n" },
+);
 
 // Conferência mínima: produção tem organização e usuários desde o passo 5 do
 // docs/08. Sem eles, o arquivo não é backup de produção — ou a URL está errada.

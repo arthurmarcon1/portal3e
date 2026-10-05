@@ -106,9 +106,16 @@ export PROD_SENHA_DB="..."                    # passo 1
 export PROD_URL="https://$PROD_REF.supabase.co"
 export PROD_ANON="..."                        # passo 1 (anon public)
 export PROD_SERVICE="..."                     # passo 1 (service_role)
-export PROD_DB="postgresql://postgres:$(node -p 'encodeURIComponent(process.env.PROD_SENHA_DB)')@db.$PROD_REF.supabase.co:5432/postgres"
+export PROD_POOLER="aws-0-sa-east-1.pooler.supabase.com"   # passo 1 (Session pooler)
+export PROD_DB="postgresql://postgres.$PROD_REF:$(node -p 'encodeURIComponent(process.env.PROD_SENHA_DB)')@$PROD_POOLER:5432/postgres"
 export APP_URL="https://portal.3e.srv.br"     # passo 6.3 (ou o *.vercel.app)
 ```
+
+**`PROD_DB` usa o Session pooler, não o endereço direto.** O direto
+(`db.<ref>.supabase.co`) só tem IPv6 no plano gratuito, e o WSL não tem IPv6 — a
+conexão falha com "network is unreachable". O Session pooler (porta **5432**, usuário
+**`postgres.<ref>`**) tem IPv4 e aceita tudo o que este guia faz: migração, consulta e
+`pg_dump`. Não use o Transaction pooler (porta 6543).
 
 ---
 
@@ -128,6 +135,9 @@ export APP_URL="https://portal.3e.srv.br"     # passo 6.3 (ou o *.vercel.app)
    - **Project URL** → `PROD_URL`
    - **anon public** → `PROD_ANON`
    - **service_role** → `PROD_SERVICE` (secreta)
+5. No topo do painel, **Connect › Session pooler**: copie o host (algo como
+   `aws-0-sa-east-1.pooler.supabase.com`) → `PROD_POOLER`. Confira que a porta é 5432 e o
+   usuário é `postgres.<ref>`.
 
 **Conferir:**
 
@@ -135,8 +145,11 @@ export APP_URL="https://portal.3e.srv.br"     # passo 6.3 (ou o *.vercel.app)
 npx supabase db query --db-url "$PROD_DB" "select version();"
 ```
 
-Deve devolver uma linha com a versão do PostgreSQL. Erro de senha aqui é
-senha com caractere especial mal codificado — o `encodeURIComponent` do `PROD_DB` resolve.
+Deve devolver uma linha com a versão do PostgreSQL — **anote o número principal** (hoje
+17): o `pg_dump` do backup tem de ser dessa versão ou maior ("Riscos dos planos
+gratuitos", item 2). Erro de senha aqui é senha com caractere especial mal codificado —
+o `encodeURIComponent` do `PROD_DB` resolve. "Network is unreachable" é `PROD_DB` no
+endereço direto em vez do pooler.
 
 ---
 
@@ -783,8 +796,27 @@ a ciência, não.
   - no fim, **avisa onde salvou e manda cifrar**, com o comando pronto (`gpg
     --symmetric`) e o `shred` do original em texto puro.
 
-  Precisa do **Docker Desktop aberto**: o `supabase db dump` roda o `pg_dump` num
-  contêiner. Sem ele, o script para e diz isso.
+  Usa o **`pg_dump` nativo** — sem Docker, de propósito: rotina que depende do Docker
+  Desktop aberto é rotina adiada. **Instalação, uma vez** (o Ubuntu 24.04 do WSL só traz
+  o cliente 16; o 17 vem do repositório oficial do PostgreSQL):
+
+  ```bash
+  sudo apt install -y curl ca-certificates
+  sudo install -d /usr/share/postgresql-common/pgdg
+  sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
+  . /etc/os-release
+  sudo sh -c "echo 'deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
+  sudo apt update
+  sudo apt install -y postgresql-client-17
+  ```
+
+  **Conferir:** `pg_dump --version` e `psql --version` mostram `17.x`.
+
+  **Compatibilidade:** o `pg_dump` recusa servidor de versão **principal** maior que a
+  dele; versão menor não importa (cliente 17.11 com servidor 17.6 funciona). O script
+  pergunta a versão ao servidor antes de copiar e, se o cliente for mais velho, para com
+  o comando de instalação da versão certa. Se o Supabase subir o projeto para o 18 um
+  dia, é instalar `postgresql-client-18` do mesmo repositório.
 
   **Conferir:** a saída termina em verde com "Salvo em …" e os dois arquivos com tamanho;
   depois de cifrar, só os `.gpg` ficam na pasta.
