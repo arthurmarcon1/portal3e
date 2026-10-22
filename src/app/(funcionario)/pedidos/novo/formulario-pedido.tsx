@@ -8,8 +8,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { ROTULO_TIPO_FUNCIONARIO } from "@/features/funcionario/textos";
 import { abrirSolicitacao } from "@/features/solicitacoes/actions";
-import { ROTULO_TIPO, TIPOS_FUNCIONARIO } from "@/features/solicitacoes/fluxo";
+import { TIPOS_FUNCIONARIO } from "@/features/solicitacoes/fluxo";
 
 /** O que cada tipo pede na explicação — frase curta, sem jargão (docs/04). */
 const DICA: Record<string, string> = {
@@ -24,11 +25,11 @@ const DICA: Record<string, string> = {
  * Pedido do funcionário (F4.2), para celular. Tipo em botões grandes, uma
  * explicação e, se quiser, uma foto ou PDF (atestado, comprovante).
  */
-export function FormularioPedido() {
+export function FormularioPedido({ tipoInicial = "" }: { tipoInicial?: string }) {
   const id = useId();
   const router = useRouter();
   const campoAnexo = useRef<HTMLInputElement>(null);
-  const [tipo, setTipo] = useState<string>("");
+  const [tipo, setTipo] = useState<string>(tipoInicial);
   const [descricao, setDescricao] = useState("");
   const [anexo, setAnexo] = useState<File | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -37,7 +38,7 @@ export function FormularioPedido() {
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
     if (!tipo) return setErro("Escolha o tipo de pedido.");
-    if (descricao.trim().length < 10) return setErro("Explique o pedido com pelo menos 10 caracteres.");
+    if (descricao.trim().length < 10) return setErro("Escreva um pouco mais sobre o que você precisa.");
     setErro(null);
     setEnviando(true);
     try {
@@ -47,7 +48,7 @@ export function FormularioPedido() {
       if (anexo) dados.set("anexo", anexo);
       const r = await abrirSolicitacao(dados);
       if (!r.ok) return setErro(r.erro);
-      toast.success(`Pedido ${r.dados.protocolo} enviado`);
+      toast.success(`Pedido nº ${r.dados.protocolo} enviado`);
       router.push(`/pedidos/${r.dados.id}`);
     } finally {
       setEnviando(false);
@@ -71,14 +72,14 @@ export function FormularioPedido() {
               onChange={() => setTipo(t)}
               className="size-5 accent-acao"
             />
-            {ROTULO_TIPO[t]}
+            {ROTULO_TIPO_FUNCIONARIO[t]}
           </label>
         ))}
       </fieldset>
 
       <div className="grid gap-1.5">
         <Label htmlFor={`${id}-descricao`} className="text-base">
-          Explique
+          Explique o que você precisa
         </Label>
         {tipo ? <p className="text-texto-suave">{DICA[tipo]}</p> : null}
         <Textarea
@@ -92,7 +93,7 @@ export function FormularioPedido() {
       </div>
 
       <div className="grid gap-1.5">
-        <span className="font-medium">Anexo (opcional)</span>
+        <span className="font-medium">Foto ou documento (não é obrigatório)</span>
         <input
           ref={campoAnexo}
           id={`${id}-anexo`}

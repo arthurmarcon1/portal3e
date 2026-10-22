@@ -52,7 +52,7 @@ function traduzirErroDeBanco(codigo: string | undefined, mensagem: string): stri
     return "Você não tem permissão para esta alteração. Fale com o administrador do Portal.";
   }
   console.error("[contratos] erro de banco não traduzido", codigo, mensagem);
-  return "Não foi possível salvar. Tente novamente em alguns minutos ou abra um chamado com o suporte.";
+  return "Não foi possível salvar. Tente de novo em alguns minutos; se continuar, avise o administrador do Portal.";
 }
 
 // =====================================================================

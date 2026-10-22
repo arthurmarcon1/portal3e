@@ -36,7 +36,7 @@ export function traduzirErroDeBanco(codigo: string | undefined, mensagem: string
     return "A pessoa, o contrato ou a unidade escolhida não existe mais. Recarregue a página e escolha de novo.";
   }
   console.error("[documentos] erro de banco não traduzido", codigo, mensagem);
-  return "Não foi possível salvar o documento. Tente novamente em alguns minutos ou abra um chamado com o suporte.";
+  return "Não foi possível salvar o documento. Tente de novo em alguns minutos; se continuar, avise o administrador do Portal.";
 }
 
 export type NovoDocumento = {

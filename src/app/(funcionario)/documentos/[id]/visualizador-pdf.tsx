@@ -1,9 +1,11 @@
 "use client";
 
-import { Download, ZoomIn, ZoomOut } from "lucide-react";
+import { Download, RotateCw, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
+
+import { ATENDIMENTO } from "@/features/funcionario/textos";
 
 /**
  * O documento aberto na própria tela (docs/04, tela de ciência, bloco 1).
@@ -22,7 +24,11 @@ import type { PDFDocumentProxy, RenderTask } from "pdfjs-dist";
 type Estado =
   | { fase: "carregando" }
   | { fase: "pronto"; paginas: number }
-  | { fase: "erro"; mensagem: string };
+  | { fase: "erro"; mensagem: string; podeTentarDeNovo: boolean };
+
+const ERRO_AO_ABRIR =
+  "Não conseguimos abrir o documento. Pode ser a internet. Toque em Tentar de novo. Se continuar, faça um pedido de Dúvida.";
+const PEDE_CODIGO = `Este documento ainda não abre pelo Portal. Fale com ${ATENDIMENTO.contato} para receber uma cópia.`;
 
 export function VisualizadorPdf({ documentoId, titulo }: { documentoId: string; titulo: string }) {
   const [estado, setEstado] = useState<Estado>({ fase: "carregando" });
@@ -30,6 +36,8 @@ export function VisualizadorPdf({ documentoId, titulo }: { documentoId: string; 
   // ver o formato, não para conferir horário. Ampliar dobra a largura e a
   // página rola de lado — o zoom de pinça continua valendo também.
   const [ampliado, setAmpliado] = useState(false);
+  // Muda a cada "Tentar de novo": é o que faz o efeito buscar o arquivo outra vez.
+  const [tentativa, setTentativa] = useState(0);
   const pdf = useRef<PDFDocumentProxy | null>(null);
   const urlArquivo = `/api/documentos/${documentoId}/download`;
 
@@ -39,13 +47,11 @@ export function VisualizadorPdf({ documentoId, titulo }: { documentoId: string; 
     (async () => {
       try {
         const resposta = await fetch(urlArquivo);
-        if (!resposta.ok) {
-          throw new Error(
-            resposta.status === 428
-              ? "Este documento pede um código de confirmação para abrir. Essa verificação chega em breve ao Portal."
-              : "Não foi possível abrir o documento. Tente novamente em alguns minutos ou fale com o RH pelo chamado.",
-          );
+        if (resposta.status === 428) {
+          if (!cancelado) setEstado({ fase: "erro", mensagem: PEDE_CODIGO, podeTentarDeNovo: false });
+          return;
         }
+        if (!resposta.ok) throw new Error(`download respondeu ${resposta.status}`);
         const dados = new Uint8Array(await resposta.arrayBuffer());
 
         const pdfjs = await import("pdfjs-dist");
@@ -60,13 +66,8 @@ export function VisualizadorPdf({ documentoId, titulo }: { documentoId: string; 
         setEstado({ fase: "pronto", paginas: documento.numPages });
       } catch (erro) {
         if (cancelado) return;
-        setEstado({
-          fase: "erro",
-          mensagem:
-            erro instanceof Error && erro.message.startsWith("Este documento")
-              ? erro.message
-              : "Não foi possível abrir o documento. Tente novamente em alguns minutos ou fale com o RH pelo chamado.",
-        });
+        console.error("[documento] não abriu", erro);
+        setEstado({ fase: "erro", mensagem: ERRO_AO_ABRIR, podeTentarDeNovo: true });
       }
     })();
 
@@ -75,12 +76,25 @@ export function VisualizadorPdf({ documentoId, titulo }: { documentoId: string; 
       void pdf.current?.destroy();
       pdf.current = null;
     };
-  }, [urlArquivo]);
+  }, [urlArquivo, tentativa]);
 
   if (estado.fase === "erro") {
     return (
-      <div role="alert" className="rounded-lg border border-borda bg-fundo-alt px-4 py-6 text-center">
+      <div role="alert" className="grid gap-4 rounded-lg border border-borda bg-fundo-alt px-4 py-6 text-center">
         <p>{estado.mensagem}</p>
+        {estado.podeTentarDeNovo ? (
+          <button
+            type="button"
+            onClick={() => {
+              setEstado({ fase: "carregando" });
+              setTentativa((n) => n + 1);
+            }}
+            className="inline-flex min-h-11 items-center gap-2 justify-self-center rounded-md border border-borda bg-fundo px-4"
+          >
+            <RotateCw aria-hidden strokeWidth={1.5} className="size-5" />
+            Tentar de novo
+          </button>
+        ) : null}
       </div>
     );
   }

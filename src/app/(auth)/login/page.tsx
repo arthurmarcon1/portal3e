@@ -18,7 +18,8 @@ export default async function PaginaLogin({
       <CardHeader className="px-0">
         <CardTitle className="text-xl">Entrar no Portal</CardTitle>
         <CardDescription className="text-base text-texto-suave">
-          Use seu CPF, se você é funcionário, ou o e-mail cadastrado.
+          Funcionário: entre com seu CPF (só os números) e a sua senha. Equipe e clientes: use o
+          e-mail cadastrado.
         </CardDescription>
       </CardHeader>
       <CardContent className="px-0">

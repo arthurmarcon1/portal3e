@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { ErroDeAnexo, validarAnexo } from "@/features/documentos/anexo";
+import { ATENDIMENTO } from "@/features/funcionario/textos";
 import { registrarAuditoria } from "@/lib/audit";
 import { exigirPermissao, exigirUsuario } from "@/lib/auth/sessao";
 import { primeiraMensagem, uuid } from "@/lib/campos-zod";
@@ -47,7 +48,7 @@ function traduzirErroDeBanco(codigo: string | undefined, mensagem: string): stri
   }
   if (codigo === "23503") return "O contrato, a unidade ou a pessoa escolhida não existe mais. Recarregue a página.";
   console.error("[solicitacoes] erro de banco não traduzido", codigo, mensagem);
-  return "Não foi possível salvar. Tente novamente em alguns minutos ou abra um chamado com o suporte.";
+  return "Não foi possível salvar. Tente de novo em alguns minutos; se continuar, avise o administrador do Portal.";
 }
 
 // =====================================================================
@@ -150,7 +151,10 @@ export async function abrirSolicitacao(
     if (aviso) {
       return {
         ok: false,
-        erro: `O pedido ${data.protocolo} foi aberto, mas o anexo não foi enviado. Envie o arquivo pelo chamado informando o protocolo.`,
+        erro:
+          usuario.tipo === "funcionario"
+            ? `Seu pedido nº ${data.protocolo} foi enviado, mas a foto não chegou. Mostre a foto para ${ATENDIMENTO.contato} e diga o número do pedido.`
+            : `O pedido ${data.protocolo} foi aberto, mas o anexo não foi enviado. Envie o arquivo pelo chamado informando o protocolo.`,
       };
     }
     return { ok: true, dados: { id: data.id, protocolo: data.protocolo } };

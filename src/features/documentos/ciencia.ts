@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { ATENDIMENTO } from "@/features/funcionario/textos";
 import { extrairIp, registrarAuditoria } from "@/lib/audit";
 import { exigirUsuario } from "@/lib/auth/sessao";
 import { mensagemDeErro, type Resultado } from "@/lib/erros";
@@ -47,10 +48,7 @@ const esquemaCiencia = z.discriminatedUnion("tipo", [
     justificativa: z
       .string()
       .trim()
-      .min(
-        MINIMO_JUSTIFICATIVA,
-        `Explique a divergência com pelo menos ${MINIMO_JUSTIFICATIVA} caracteres.`,
-      )
+      .min(MINIMO_JUSTIFICATIVA, "Escreva mais um pouco explicando o que está errado.")
       .max(2000, "A explicação pode ter no máximo 2.000 caracteres."),
   }),
 ]);
@@ -64,13 +62,19 @@ export type CienciaRegistrada = {
 };
 
 function traduzirErroDeBanco(codigo: string | undefined, mensagem: string): string {
-  // 55000: texto escrito para a tela, na própria função (0017).
-  if (codigo === "55000") return mensagem;
+  // 55000: texto escrito para a tela, na própria função (0017) — menos os
+  // dois que ainda usam o vocabulário da equipe, que o funcionário não lê
+  // (docs/04, "Linguagem da área do funcionário").
+  if (codigo === "55000") {
+    if (mensagem.startsWith("Explique a divergência")) return "Escreva mais um pouco explicando o que está errado.";
+    if (mensagem === "Este documento não pede ciência.") return "Este documento não precisa de resposta.";
+    return mensagem;
+  }
   if (codigo === "42501") {
-    return "Não foi possível registrar sua resposta para este documento. Fale com o RH pelo chamado.";
+    return `Não foi possível registrar sua resposta para este documento. Faça um pedido de Dúvida ou fale com ${ATENDIMENTO.contato}.`;
   }
   console.error("[ciencia] erro de banco não traduzido", codigo, mensagem);
-  return "Não foi possível registrar sua resposta. Tente novamente em alguns minutos.";
+  return "Não foi possível registrar sua resposta. Pode ser a internet: tente de novo em alguns minutos.";
 }
 
 export async function registrarCiencia(
@@ -110,7 +114,9 @@ export async function registrarCiencia(
     });
     if (error) return { ok: false, erro: traduzirErroDeBanco(error.code, error.message) };
     const registro = data?.[0];
-    if (!registro) return { ok: false, erro: "Não foi possível registrar sua resposta. Tente novamente." };
+    if (!registro) {
+      return { ok: false, erro: "Não foi possível registrar sua resposta. Pode ser a internet: tente de novo." };
+    }
 
     await registrarAuditoria({
       acao: "ciencia",
@@ -158,8 +164,7 @@ async function anexarFoto(
   solicitacaoId: string,
   foto: { conteudo: Uint8Array; mime: string; extensao: string },
 ): Promise<string | null> {
-  const falhou =
-    "Sua divergência foi registrada, mas a foto não foi enviada. Envie a foto ao RH pelo chamado, informando o protocolo.";
+  const falhou = `Seu aviso de erro foi registrado, mas a foto não chegou. Mostre a foto para ${ATENDIMENTO.contato} e diga o número do comprovante.`;
   const caminho = `${orgId}/solicitacoes/${solicitacaoId}/${crypto.randomUUID()}.${foto.extensao}`;
 
   const { error: erroUpload } = await criarClienteAdmin()

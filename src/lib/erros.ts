@@ -36,5 +36,5 @@ export function mensagemDeErro(erro: unknown): string {
     return erro.message;
   }
   console.error("[erro inesperado]", erro);
-  return "Não foi possível concluir a operação. Tente novamente em alguns minutos ou abra um chamado com o suporte.";
+  return "Não foi possível concluir. Tente de novo em alguns minutos; se continuar, avise o administrador do Portal.";
 }

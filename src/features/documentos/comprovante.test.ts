@@ -34,6 +34,7 @@ describe("gerarComprovante", () => {
 
     const texto = await textoDoPdf(bytes);
     expect(texto).toContain("Comprovante de ciência");
+    expect(texto).toContain("Este é o comprovante da sua resposta no Portal 3e.");
     expect(texto).toContain("2026-000123");
     expect(texto).toContain("Maria Aparecida Ferreira");
     expect(texto).toContain("***.007.919-**");

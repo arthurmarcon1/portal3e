@@ -18,12 +18,12 @@ import { criarClienteServidor } from "@/lib/supabase/server";
  * A saída do comprovante é registrada em `auditoria` (`download`, entidade
  * `ciencias`) ANTES de o arquivo sair: comprovante leva nome e parte do CPF.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await getUsuario();
-  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para baixar o comprovante.", 401);
+  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para baixar o comprovante.", 401, request);
 
   const { id } = await params;
-  if (!idValido(id)) return resposta("Comprovante não encontrado.", 404);
+  if (!idValido(id)) return resposta("Comprovante não encontrado.", 404, request);
 
   const supabase = await criarClienteServidor();
   const { data: ciencia, error } = await supabase
@@ -39,10 +39,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   if (error) {
     console.error("[comprovante] leitura falhou", id, error.message);
-    return resposta("Não foi possível gerar o comprovante. Tente novamente em alguns minutos.", 500);
+    return resposta("Não foi possível gerar o comprovante. Tente novamente em alguns minutos.", 500, request);
   }
   if (!ciencia || !ciencia.pessoas || !ciencia.documentos || !ciencia.organizacoes) {
-    return resposta("Comprovante não encontrado.", 404);
+    return resposta("Comprovante não encontrado.", 404, request);
   }
 
   let pdf: Buffer;
@@ -64,7 +64,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     });
   } catch (erro) {
     console.error("[comprovante] geração falhou", id, erro);
-    return resposta("Não foi possível gerar o comprovante. Tente novamente em alguns minutos.", 500);
+    return resposta("Não foi possível gerar o comprovante. Tente novamente em alguns minutos.", 500, request);
   }
 
   const { ok } = await registrarAuditoria({
@@ -77,6 +77,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return resposta(
       "Não foi possível registrar o acesso, então o comprovante não foi gerado. Tente novamente em alguns minutos.",
       503,
+      request,
     );
   }
 

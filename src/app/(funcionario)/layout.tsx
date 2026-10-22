@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { CabecalhoArea } from "@/components/cabecalho-area";
+import { LinhaDeAjuda } from "@/components/linha-de-ajuda";
 import { exigirTipo } from "@/lib/auth/sessao";
 
 /**
@@ -24,10 +25,14 @@ import { exigirTipo } from "@/lib/auth/sessao";
 export default async function LayoutFuncionario({ children }: { children: ReactNode }) {
   const usuario = await exigirTipo("funcionario");
 
+  // A barra de resposta da tela de ciência é fixa no pé da tela: enquanto ela
+  // existe, o fim da página (a linha de ajuda) precisa de espaço para não
+  // ficar escondido atrás dela.
   return (
-    <div className="flex min-h-dvh flex-col">
-      <CabecalhoArea nome={usuario.nome} />
+    <div className="flex min-h-dvh flex-col has-[[data-barra-resposta]]:pb-48">
+      <CabecalhoArea nome={usuario.nome} inicio="/inicio" />
       {children}
+      <LinhaDeAjuda />
     </div>
   );
 }

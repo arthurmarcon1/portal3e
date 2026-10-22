@@ -13,12 +13,12 @@ import { criarClienteServidor } from "@/lib/supabase/server";
  * o bucket não tem policy para ninguém (invariante 3); `auditoria` antes de
  * entregar; redirect. Nunca armazenado em cache.
  */
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await getUsuario();
-  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para abrir o anexo.", 401);
+  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para abrir o anexo.", 401, request);
 
   const { id } = await params;
-  if (!idValido(id)) return resposta("Anexo não encontrado.", 404);
+  if (!idValido(id)) return resposta("Anexo não encontrado.", 404, request);
 
   const supabase = await criarClienteServidor();
   const { data: anexo, error } = await supabase
@@ -28,16 +28,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     .maybeSingle();
   if (error) {
     console.error("[anexos] leitura falhou", id, error.message);
-    return resposta("Não foi possível abrir o anexo. Tente novamente em alguns minutos.", 500);
+    return resposta("Não foi possível abrir o anexo. Tente novamente em alguns minutos.", 500, request);
   }
-  if (!anexo) return resposta("Anexo não encontrado.", 404);
+  if (!anexo) return resposta("Anexo não encontrado.", 404, request);
 
   const { data: assinada, error: erroAssinatura } = await criarClienteAdmin()
     .storage.from("anexos")
     .createSignedUrl(anexo.arquivo_path, 60);
   if (erroAssinatura || !assinada) {
     console.error("[anexos] URL assinada falhou", id, erroAssinatura?.message);
-    return resposta("Não foi possível abrir o anexo. Tente novamente em alguns minutos.", 500);
+    return resposta("Não foi possível abrir o anexo. Tente novamente em alguns minutos.", 500, request);
   }
 
   const { ok } = await registrarAuditoria({
@@ -50,6 +50,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return resposta(
       "Não foi possível registrar o acesso, então o anexo não foi aberto. Tente novamente em alguns minutos.",
       503,
+      request,
     );
   }
   return Response.redirect(assinada.signedUrl, 302);

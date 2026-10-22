@@ -9,6 +9,7 @@ import {
   mascararIdentificador,
   resolverIdentificador,
 } from "@/lib/auth/identificador";
+import { ATENDIMENTO } from "@/features/funcionario/textos";
 import { idDaOrganizacao, slugOrganizacao } from "@/lib/auth/organizacao";
 import { chaveDoLogin, situacaoDoLogin } from "@/lib/auth/tentativas";
 import { destinoPermitido } from "@/lib/auth/rotas";
@@ -31,9 +32,12 @@ import {
   type EntradaTrocaDeSenha,
 } from "./schemas";
 
-const ERRO_CREDENCIAL = "CPF, e-mail ou senha incorretos. Confira e tente de novo.";
+const ERRO_CREDENCIAL =
+  "CPF, e-mail ou senha incorretos. Confira e tente de novo. Se esqueceu a senha, toque em Esqueci minha senha.";
+// O CPF entra com ou sem ponto e traço (`resolverIdentificador`): a mensagem
+// não pede formato, só os 11 números.
 const ERRO_IDENTIFICADOR =
-  "Informe um CPF com 11 dígitos ou um e-mail válido.";
+  "Confira o CPF: ele tem 11 números. Se você entra com e-mail, confira se ele está completo.";
 
 /** Busca a linha de `usuarios` pelo e-mail de login, sem sessão. */
 async function usuarioPorEmailLogin(email: string) {
@@ -133,7 +137,9 @@ export async function entrar(entrada: EntradaLogin): Promise<ResultadoLogin> {
     });
     return {
       ok: false,
-      erro: "Seu acesso está inativo. Fale com o RH da 3e para reativar.",
+      erro: `Seu acesso está inativo. Fale com ${
+        cadastro?.tipo === "funcionario" ? ATENDIMENTO.contato : "o administrador do Portal"
+      } para reativar.`,
     };
   }
 

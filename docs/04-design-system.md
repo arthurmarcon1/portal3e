@@ -68,7 +68,9 @@ impressão de protótipo. O Portal precisa parecer sistema corporativo confiáve
 
 **Status** — um badge com texto, fundo claro, borda fina, sem cor sólida:
 `Pendente` (âmbar) · `Confirmado` (verde) · `Em divergência` (vermelho) ·
-`Vencido` (vermelho) · `Arquivado` (cinza).
+`Vencido` (vermelho) · `Arquivado` (cinza). Na área do funcionário o texto é outro, a cor é
+a mesma: `Falta responder` · `Confirmado` · `Você apontou erro` · `Prazo passou` (ver
+"Linguagem da área do funcionário").
 
 **Tabela** — cabeçalho em `--fundo-alt`, linha com borda inferior de 1px, zebrado só
 acima de 15 linhas. Coluna de ação sempre à direita. Paginação no rodapé, nunca scroll
@@ -81,15 +83,16 @@ Exemplo: *"Nenhum espelho publicado ainda. Os espelhos aparecem aqui depois do
 fechamento mensal."*
 
 **Erro** — diz o que houve e como resolver, na voz do sistema, sem pedir desculpa.
-*"Não foi possível abrir o documento. Tente novamente em alguns minutos ou fale com o
-RH pelo chamado."*
+Nunca só o que falhou. *"Não conseguimos abrir o documento. Pode ser a internet. Toque em
+Tentar de novo. Se continuar, faça um pedido de Dúvida."* Não mande a pessoa a um canal
+que ela não tem: o funcionário não abre "chamado", ele faz um pedido.
 
 **Confirmação destrutiva** — modal com o nome do item digitado ou botão nomeado pela
 ação (`Desativar usuário`), nunca "OK/Cancelar".
 
-**Botão** — o rótulo diz o que acontece: `Confirmar ciência`, `Publicar documento`,
-`Abrir solicitação`. O toast repete o verbo: `Ciência confirmada`. Um único botão
-primário por tela.
+**Botão** — o rótulo diz o que acontece: `Publicar documento`, `Abrir solicitação` e, na
+área do funcionário, `Está tudo certo`. O toast repete o verbo: `Confirmação registrada`.
+Um único botão primário por tela.
 
 ---
 
@@ -174,10 +177,13 @@ Menu inferior fixo, quatro itens, nada de menu hambúrguer:
 │  respondidos                │
 │                             │
 │  ┌───────────────────────┐  │
-│  │ 1 pendência           │  │   ← card só aparece se houver
-│  │ Espelho de agosto     │  │
-│  │ Confirmar até 10/09   │  │
-│  │ [ Ver e confirmar ]   │  │
+│  │ 1 documento esperando │  │   ← card só aparece se houver
+│  │ sua resposta          │  │
+│  │ Espelho de ponto de   │  │
+│  │ agosto de 2026        │  │
+│  │ Responda até 10 de    │  │
+│  │ setembro.             │  │
+│  │ [ Abrir e responder ] │  │   ← nunca "Ver e confirmar": empurra a confirmar
 │  └───────────────────────┘  │
 │                             │
 │  ┌──────────┐ ┌──────────┐  │   ← atalhos grandes, depois
@@ -212,20 +218,95 @@ andamento.
 
 Uma coluna, três blocos, nesta ordem:
 
+0. **Uma linha antes do documento** dizendo o que fazer e o que acontece depois. No
+   espelho: *"Confira os dias e os horários abaixo. Se estiver tudo certo, toque em Está
+   tudo certo. Se algo estiver errado, toque em Tem algo errado e explique: o RH vai
+   analisar."*
 1. **O documento**, aberto e rolável na própria tela — não um link para download. A
    pessoa precisa ter lido para confirmar, e "abrir em outro app" é onde o fluxo morre.
-2. **A pergunta**, direta: *"Você confere as informações deste espelho?"*
-3. **Duas ações de peso igual**: `Confirmar ciência` (primário) e `Registrar
-   divergência` (secundário). Divergência abre um campo de justificativa obrigatório com
-   mínimo de caracteres, e opção de anexar foto.
+2. **A pergunta**, direta. Espelho: *"Seus dias e horários deste mês estão certos?"*.
+   Comunicado: *"Você leu este comunicado?"*.
+3. **Duas ações de peso igual**. Espelho: `Está tudo certo` (primário) e `Tem algo
+   errado` (secundário). Comunicado e norma: `Confirmar que li` e `Tem algo errado`.
+   "Tem algo errado" abre um campo de explicação obrigatório com mínimo de caracteres, e
+   opção de anexar foto. Confirmar pede um segundo toque, num diálogo que diz o que fica
+   registrado e qual é a saída depois (*"Se achar um erro depois, faça um pedido de
+   Correção de ponto"*).
 
-Depois de responder: tela de protocolo com número, data, hora e botão para baixar o
-comprovante em PDF. O protocolo aparece **grande** — é o que a pessoa vai fotografar
-para guardar.
+**Por que "Está tudo certo", e não "Confirmar que recebi"** (decisão do Arthur,
+2026-10-22): no espelho, confirmar grava que a pessoa **concorda com a jornada** — não só
+que recebeu o arquivo. "Confirmar que recebi" diz menos do que o registro grava: quem
+tocasse achando que só acusou recebimento ficaria registrado como de acordo com os
+horários. O rótulo tem de dizer exatamente o que o registro vai provar. Pelo mesmo motivo
+o comunicado usa "Confirmar que li", e não "recebi": o diálogo registra leitura.
+
+Depois de responder: tela com o **número do comprovante**, data, hora e botão para baixar
+o comprovante em PDF. O número aparece **grande** — é o que a pessoa vai fotografar para
+guardar.
 
 Nada de rolagem forçada, contagem regressiva ou checkbox "li e concordo" antes de
 liberar o botão. Isso irrita e não agrega valor jurídico nenhum além do que o log já
 registra.
+
+---
+
+## Linguagem da área do funcionário
+
+Quem lê é auxiliar de limpeza, porteiro, vigia — gente que pode nunca ter usado um
+portal. **Acolhedor não é colorido**: tudo o que está abaixo é texto, e as regras rígidas
+de "Direção visual" continuam valendo inteiras.
+
+Os textos moram em `src/features/funcionario/textos.ts`. Quem atende o funcionário ("o
+RH da 3e") é **uma constante só** (`ATENDIMENTO`) — num cliente futuro quem atende pode
+ser outro (docs/06).
+
+### Vocabulário
+
+O vocabulário de RH continua no banco, no código, na área da equipe e no comprovante em
+PDF — que tem valor de prova e pode chegar a advogado, por isso segue com "Comprovante de
+ciência" e "Protocolo", mais a linha *"Este é o comprovante da sua resposta no Portal
+3e."*. Na tela do funcionário:
+
+| Equipe e banco | Funcionário |
+|---|---|
+| Confirmar ciência (espelho) | Está tudo certo |
+| Confirmar ciência (comunicado, norma) | Confirmar que li |
+| Registrar divergência | Tem algo errado |
+| Competência `08/2026` | agosto de 2026 (título: "Espelho de ponto de agosto de 2026") |
+| Protocolo | Número do comprovante (documento) · Pedido nº (pedido) |
+| Pendente · Vencido · Em divergência | Falta responder · Prazo passou · Você apontou erro |
+| Solicitação, no feminino (Aberta, Aprovada…) | Pedido, no masculino: Enviado · O RH está vendo · Esperando você · Aprovado · Recusado · Concluído · Cancelado |
+| Atualização cadastral · Suporte | Atualizar meus dados · Dúvida ou problema no Portal |
+| Data `10/09/2026` | 10 de setembro (o ano só quando não é o corrente) |
+
+Prazo vencido nunca tranca: *"O prazo era 10 de setembro. Você ainda pode responder."* — a
+mesma frase no início e na tela do documento.
+
+Contador de mínimo diz só o número (*"faltam 12"*), sem "letras" nem "caracteres": a
+contagem inclui espaço e pontuação, e "12 letras" não bateria com o que a pessoa vê.
+
+### Dizer o que vai acontecer
+
+Antes de cada ação, uma linha dizendo o que ela faz e o que vem depois: na tela de
+resposta, antes do documento; no formulário de erro, que o RH recebe e responde em Meus
+pedidos; em Fazer um pedido; ao responder um pedido, que ele volta para o RH. No
+**primeiro acesso** do funcionário, antes da senha: o que é o Portal, o que ele vai
+encontrar ali, e que o ponto continua sendo batido como sempre — dito na afirmativa
+(*"Você continua batendo o ponto como sempre. Aqui você só confere o resumo do mês."*):
+a negativa deixa a dúvida de para que o Portal serve.
+
+### Nunca sem saída
+
+- Toda tela do funcionário termina com a linha de ajuda: *"Precisa de ajuda? Faça um
+  pedido de Dúvida ou fale com o RH da 3e."* (vem do layout da área).
+- "Portal 3e", no cabeçalho, leva ao início.
+- Documento ou pedido que não existe: tela própria com "Voltar ao início"
+  (`(funcionario)/not-found.tsx`); endereço que não existe: `app/not-found.tsx`. Nunca a
+  página padrão do Next, em inglês.
+- Erro inesperado: "Tentar de novo" e "Voltar ao início" (`(funcionario)/error.tsx`).
+- Link de arquivo que falha (`/api/documentos/…/download`, `/api/ciencias/…/comprovante`,
+  `/api/anexos/…`) abre uma página mínima com a mensagem e "Voltar ao Portal" — nunca texto
+  puro numa aba.
 
 ---
 

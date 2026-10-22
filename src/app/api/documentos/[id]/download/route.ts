@@ -27,10 +27,10 @@ import { criarClienteServidor } from "@/lib/supabase/server";
  */
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const usuario = await getUsuario();
-  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para abrir o documento.", 401);
+  if (!usuario) return resposta("Sua sessão expirou. Entre de novo para abrir o documento.", 401, request);
 
   const { id } = await params;
-  if (!idValido(id)) return resposta("Documento não encontrado.", 404);
+  if (!idValido(id)) return resposta("Documento não encontrado.", 404, request);
 
   const supabase = await criarClienteServidor();
   const { data: documento, error } = await supabase
@@ -42,15 +42,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
 
   if (error) {
     console.error("[documentos] download: leitura falhou", id, error.message);
-    return resposta("Não foi possível abrir o documento. Tente novamente em alguns minutos.", 500);
+    return resposta("Não foi possível abrir o documento. Tente novamente em alguns minutos.", 500, request);
   }
-  if (!documento || !documento.documento_tipos) return resposta("Documento não encontrado.", 404);
+  if (!documento || !documento.documento_tipos) return resposta("Documento não encontrado.", 404, request);
 
   if (documento.documento_tipos.exige_2fa) {
     // F3.3: aqui entra "a sessão tem verificação válida nos últimos 15 min?".
     return resposta(
       "Este documento exige um código de confirmação enviado ao seu e-mail antes de abrir.",
       428,
+      request,
     );
   }
 

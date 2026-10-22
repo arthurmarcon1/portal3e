@@ -4,12 +4,8 @@ import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
 import { idValido } from "@/features/documentos/entrega";
-import { formatarData } from "@/features/documentos/formato";
-import {
-  documentoParaCiencia,
-  hojeEmBrasilia,
-  perguntaDaCiencia,
-} from "@/features/documentos/funcionario";
+import { documentoParaCiencia, hojeEmBrasilia } from "@/features/documentos/funcionario";
+import { ATENDIMENTO, linhaDoPrazo, textosDaResposta, tituloParaFuncionario } from "@/features/funcionario/textos";
 import { paginaProtegida } from "@/lib/auth/pagina-protegida";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +43,7 @@ export default paginaProtegida(
     if (!documento) notFound();
 
     const hoje = hojeEmBrasilia();
-    const vencido = documento.prazo_ciencia !== null && documento.prazo_ciencia < hoje;
+    const titulo = tituloParaFuncionario(documento.titulo);
     const aguardando =
       documento.status === "publicado" && documento.tipo.exige_ciencia && !documento.resposta;
 
@@ -57,8 +53,8 @@ export default paginaProtegida(
     if (respondido === "1" && documento.resposta) {
       return (
         <main className="mx-auto w-full max-w-xl flex-1 px-4 py-4">
-          <h1 className="sr-only">{documento.titulo}</h1>
-          <p className="mb-2 text-texto-suave">{documento.titulo}</p>
+          <h1 className="sr-only">{titulo}</h1>
+          <p className="mb-2 text-texto-suave">{titulo}</p>
           <Protocolo
             cienciaId={documento.resposta.id}
             tipo={documento.resposta.tipo}
@@ -67,7 +63,7 @@ export default paginaProtegida(
             solicitacaoProtocolo={documento.solicitacao_protocolo}
             aviso={
               aviso === "foto"
-                ? "Sua divergência foi registrada, mas a foto não foi enviada. Envie a foto ao RH pelo chamado, informando o protocolo."
+                ? `Seu aviso de erro foi registrado, mas a foto não chegou. Mostre a foto para ${ATENDIMENTO.contato} e diga o número do comprovante.`
                 : null
             }
             destaque
@@ -76,7 +72,9 @@ export default paginaProtegida(
       );
     }
 
-    const visualizador = <VisualizadorPdf documentoId={documento.id} titulo={documento.titulo} />;
+    const visualizador = <VisualizadorPdf documentoId={documento.id} titulo={titulo} />;
+    const textos = aguardando ? textosDaResposta(documento.tipo.chave, documento.titulo) : null;
+    const prazo = aguardando && documento.prazo_ciencia ? linhaDoPrazo(documento.prazo_ciencia, hoje) : null;
 
     return (
       <main className="mx-auto w-full max-w-xl flex-1 px-4 pt-3 pb-6">
@@ -92,15 +90,13 @@ export default paginaProtegida(
           {documento.tipo.nome}
           {documento.versao > 1 ? ` · versão ${documento.versao}` : ""}
         </p>
-        <h1 className="text-xl leading-snug">{documento.titulo}</h1>
-        {aguardando && documento.prazo_ciencia ? (
-          <p className={cn("mt-1", vencido ? "text-erro" : "text-alerta")}>
-            {vencido
-              ? `O prazo terminou em ${formatarData(documento.prazo_ciencia)}. Você ainda pode responder.`
-              : `Responda até ${formatarData(documento.prazo_ciencia)}.`}
-          </p>
+        <h1 className="text-xl leading-snug">{titulo}</h1>
+        {prazo ? (
+          <p className={cn("mt-1", prazo.vencido ? "text-erro" : "text-alerta")}>{prazo.texto}</p>
         ) : null}
         {documento.descricao ? <p className="mt-2">{documento.descricao}</p> : null}
+        {/* Antes de o documento abrir: o que fazer e o que acontece depois (docs/04). */}
+        {textos ? <p className="mt-3">{textos.instrucao}</p> : null}
 
         {documento.status === "arquivado" ? (
           <div className="mt-3 rounded-lg border border-borda bg-fundo-alt p-3">
@@ -129,12 +125,8 @@ export default paginaProtegida(
         ) : null}
 
         <div className="mt-4">
-          {aguardando ? (
-            <TelaCiencia
-              documentoId={documento.id}
-              titulo={documento.titulo}
-              pergunta={perguntaDaCiencia(documento.tipo.chave)}
-            >
+          {textos ? (
+            <TelaCiencia documentoId={documento.id} textos={textos}>
               {visualizador}
             </TelaCiencia>
           ) : (

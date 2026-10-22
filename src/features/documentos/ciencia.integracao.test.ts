@@ -475,7 +475,7 @@ describe("quem responde", () => {
     const { registrarCiencia } = await modulosComo(MARIA.email);
     expect(await registrarCiencia(resposta(holerite, "confirmacao"))).toEqual({
       ok: false,
-      erro: "Este documento não pede ciência.",
+      erro: "Este documento não precisa de resposta.",
     });
   });
 });

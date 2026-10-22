@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { BadgeSituacao } from "@/components/solicitacoes/badge-situacao";
 import { Button } from "@/components/ui/button";
 import { formatarDataHora } from "@/features/documentos/formato";
-import { ROTULO_TIPO } from "@/features/solicitacoes/fluxo";
+import { ROTULO_TIPO_FUNCIONARIO } from "@/features/funcionario/textos";
 import { listarSolicitacoes } from "@/features/solicitacoes/queries";
 import { paginaProtegida } from "@/lib/auth/pagina-protegida";
 
@@ -47,13 +47,13 @@ export default paginaProtegida({ tipo: "funcionario" }, async function PaginaPed
             <li key={p.id}>
               <Link href={`/pedidos/${p.id}`} className="flex min-h-14 items-center justify-between gap-3 px-3 py-2">
                 <span className="min-w-0">
-                  <span className="block">{ROTULO_TIPO[p.tipo]}</span>
+                  <span className="block">{ROTULO_TIPO_FUNCIONARIO[p.tipo]}</span>
                   <span className="block text-sm text-texto-suave tabular-nums">
-                    {p.protocolo} · {formatarDataHora(p.criado_em).slice(0, 10)}
+                    Pedido nº {p.protocolo} · enviado em {formatarDataHora(p.criado_em).slice(0, 10)}
                   </span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1">
-                  <BadgeSituacao status={p.status} />
+                  <BadgeSituacao status={p.status} perspectiva="funcionario" />
                   <ChevronRight aria-hidden strokeWidth={1.5} className="size-5 text-texto-suave" />
                 </span>
               </Link>

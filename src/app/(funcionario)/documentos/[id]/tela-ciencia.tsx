@@ -18,10 +18,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { registrarCiencia } from "@/features/documentos/ciencia";
 import { MINIMO_JUSTIFICATIVA } from "@/features/documentos/ciencia-regras";
+import { ATENDIMENTO, maiuscula, type TextosDaResposta } from "@/features/funcionario/textos";
 
 /**
  * Tela de ciência (docs/04 — "a mais importante do produto"), desenhada para
  * 360px de largura primeiro.
+ *
+ * Os textos vêm de `textosDaResposta`, por tipo de documento: no espelho,
+ * "Está tudo certo" / "Tem algo errado"; no resto, "Confirmar que li".
  *
  * Uma coluna: o documento, a pergunta, duas ações de mesmo tamanho. A
  * pergunta e as ações ficam numa barra presa ao pé da tela — o documento rola
@@ -39,13 +43,11 @@ type Modo = "escolha" | "divergencia";
 
 export function TelaCiencia({
   documentoId,
-  titulo,
-  pergunta,
+  textos,
   children,
 }: {
   documentoId: string;
-  titulo: string;
-  pergunta: string;
+  textos: TextosDaResposta;
   /** O visualizador do documento, vindo da página. */
   children: ReactNode;
 }) {
@@ -65,7 +67,7 @@ export function TelaCiencia({
         toast.error(r.erro);
         return false;
       }
-      toast.success(tipo === "confirmacao" ? "Ciência confirmada" : "Divergência registrada");
+      toast.success(tipo === "confirmacao" ? "Confirmação registrada" : "Aviso de erro enviado");
       // A tela de protocolo é da página, com o número lido do banco — não
       // deste estado local, que o refresh do servidor desmontaria.
       const aviso = r.dados.aviso ? "&aviso=foto" : "";
@@ -84,8 +86,9 @@ export function TelaCiencia({
 
   return (
     <>
-      {/* Espaço para a barra fixa não cobrir o fim do documento. */}
-      <div className={modo === "escolha" ? "pb-48" : undefined}>{children}</div>
+      {/* O espaço para a barra fixa não cobrir o fim da página fica no layout,
+          que reage ao `data-barra-resposta`. */}
+      {children}
 
       {modo === "divergencia" ? (
         <FormularioDivergencia
@@ -95,11 +98,14 @@ export function TelaCiencia({
           aoEnviar={(dados) => enviar(dados, "divergencia")}
         />
       ) : (
-        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-borda bg-fundo px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div
+          data-barra-resposta
+          className="fixed inset-x-0 bottom-0 z-10 border-t border-borda bg-fundo px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+        >
           <div className="mx-auto grid w-full max-w-xl gap-2">
-            <p className="font-medium">{pergunta}</p>
+            <p className="font-medium">{textos.pergunta}</p>
             <Button type="button" className="h-12 w-full text-base" onClick={() => setConfirmando(true)}>
-              Confirmar ciência
+              {textos.confirmar}
             </Button>
             <Button
               type="button"
@@ -107,7 +113,7 @@ export function TelaCiencia({
               className="h-12 w-full text-base"
               onClick={() => setModo("divergencia")}
             >
-              Registrar divergência
+              {textos.apontarErro}
             </Button>
           </div>
         </div>
@@ -116,11 +122,9 @@ export function TelaCiencia({
       <Dialog open={confirmando} onOpenChange={(v) => !enviando && setConfirmando(v)}>
         <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Confirmar ciência?</DialogTitle>
-            <DialogDescription className="text-base">
-              Você declara que leu <strong>{titulo}</strong>. A confirmação fica registrada com
-              data, hora e número de protocolo, e não pode ser desfeita.
-            </DialogDescription>
+            {/* `pr-8`: o título longo não passa por baixo do botão de fechar. */}
+            <DialogTitle className="pr-8 leading-snug">{textos.dialogoTitulo}</DialogTitle>
+            <DialogDescription className="text-base">{textos.dialogoTexto}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="grid gap-2 sm:flex">
             <Button
@@ -129,7 +133,7 @@ export function TelaCiencia({
               disabled={enviando}
               onClick={() => void enviar(new FormData(), "confirmacao")}
             >
-              {enviando ? "Registrando…" : "Confirmar ciência"}
+              {enviando ? "Registrando…" : textos.dialogoConfirmar}
             </Button>
             <Button
               type="button"
@@ -138,7 +142,7 @@ export function TelaCiencia({
               disabled={enviando}
               onClick={() => setConfirmando(false)}
             >
-              Voltar
+              Voltar e ler de novo
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -198,7 +202,7 @@ function FormularioDivergencia({
   async function enviar(evento: React.FormEvent) {
     evento.preventDefault();
     if (faltam > 0) {
-      setErro(`Escreva mais ${faltam} ${faltam === 1 ? "caractere" : "caracteres"} explicando o que está diferente.`);
+      setErro(`Escreva mais um pouco explicando o que está errado (faltam ${faltam}).`);
       return;
     }
     setErro(null);
@@ -212,15 +216,15 @@ function FormularioDivergencia({
     <section ref={ref} aria-labelledby={`${id}-titulo`} className="mt-6 scroll-mt-4">
       <form onSubmit={enviar} className="grid gap-4" noValidate>
         <h2 id={`${id}-titulo`} className="text-xl">
-          Registrar divergência
+          O que está errado?
         </h2>
 
         <div className="grid gap-1.5">
           <Label htmlFor={`${id}-texto`} className="text-base">
-            O que está diferente?
+            Explique com suas palavras
           </Label>
           <p id={`${id}-dica`} className="text-texto-suave">
-            Explique com suas palavras. O RH recebe e responde pelo Portal.
+            Por exemplo: <em>No dia 12 eu entrei às 7h, não às 8h.</em>
           </p>
           <Textarea
             id={`${id}-texto`}
@@ -233,7 +237,7 @@ function FormularioDivergencia({
             maxLength={2000}
           />
           <p id={`${id}-contagem`} aria-live="polite" className="text-sm text-texto-suave">
-            {faltam > 0 ? `Mínimo de ${MINIMO_JUSTIFICATIVA} caracteres — faltam ${faltam}.` : "Pronto para enviar."}
+            {faltam > 0 ? `Escreva mais um pouco (faltam ${faltam}).` : "Pronto para enviar."}
           </p>
           <p id={`${id}-erro`} aria-live="polite" className="min-h-5 text-erro">
             {erro}
@@ -241,7 +245,7 @@ function FormularioDivergencia({
         </div>
 
         <div className="grid gap-1.5">
-          <span className="font-medium">Foto (opcional)</span>
+          <span className="font-medium">Foto que ajude a mostrar (não é obrigatória)</span>
           <input
             ref={campoFoto}
             id={`${id}-foto`}
@@ -277,9 +281,14 @@ function FormularioDivergencia({
           )}
         </div>
 
+        <p>
+          {maiuscula(ATENDIMENTO.curto)} recebe sua explicação, analisa e responde aqui no Portal, em{" "}
+          <strong className="font-medium">Meus pedidos</strong>.
+        </p>
+
         <div className="grid gap-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Button type="submit" className="h-12 w-full text-base" disabled={enviando}>
-            {enviando ? "Enviando…" : "Enviar divergência"}
+            {enviando ? "Enviando…" : `Enviar para ${ATENDIMENTO.curto}`}
           </Button>
           <Button
             type="button"
@@ -288,7 +297,7 @@ function FormularioDivergencia({
             disabled={enviando}
             onClick={aoVoltar}
           >
-            Voltar
+            Voltar ao documento
           </Button>
         </div>
       </form>

@@ -4,12 +4,13 @@ import { ChevronRight, ClipboardList, MessageSquarePlus } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
 import { Button } from "@/components/ui/button";
-import { formatarData, formatarDataHora } from "@/features/documentos/formato";
+import { formatarDataHora } from "@/features/documentos/formato";
 import {
   documentosDoFuncionario,
   hojeEmBrasilia,
   pendencias,
 } from "@/features/documentos/funcionario";
+import { linhaDoPrazo, ROTULO_RESPOSTA, tituloParaFuncionario } from "@/features/funcionario/textos";
 import { plural } from "@/features/inicio/saudacao";
 import { encerrada } from "@/features/solicitacoes/fluxo";
 import { listarSolicitacoes } from "@/features/solicitacoes/queries";
@@ -64,25 +65,23 @@ export default paginaProtegida(
         ) : (
           <section aria-labelledby="pendencias" className="mt-4 grid gap-3">
             <h2 id="pendencias" className="font-medium">
-              {abertas.length === 1 ? "1 pendência" : `${abertas.length} pendências`}
+              {abertas.length === 1
+                ? "1 documento esperando sua resposta"
+                : `${abertas.length} documentos esperando sua resposta`}
             </h2>
             {abertas.map((d) => {
-              const vencido = d.prazo_ciencia !== null && d.prazo_ciencia < hoje;
+              const prazo = d.prazo_ciencia ? linhaDoPrazo(d.prazo_ciencia, hoje) : null;
               return (
                 <article key={d.id} className="grid gap-3 rounded-lg border border-borda p-4">
                   <div>
                     <p className="text-sm text-texto-suave">{d.tipo_nome}</p>
-                    <h3 className="text-lg leading-snug font-medium">{d.titulo}</h3>
-                    {d.prazo_ciencia ? (
-                      <p className={cn("mt-1", vencido ? "text-erro" : "text-alerta")}>
-                        {vencido
-                          ? `Prazo terminou em ${formatarData(d.prazo_ciencia)}`
-                          : `Responda até ${formatarData(d.prazo_ciencia)}`}
-                      </p>
+                    <h3 className="text-lg leading-snug font-medium">{tituloParaFuncionario(d.titulo)}</h3>
+                    {prazo ? (
+                      <p className={cn("mt-1", prazo.vencido ? "text-erro" : "text-alerta")}>{prazo.texto}</p>
                     ) : null}
                   </div>
                   <Button asChild className="h-12 w-full text-base">
-                    <Link href={`/documentos/${d.id}`}>Ver e confirmar</Link>
+                    <Link href={`/documentos/${d.id}`}>Abrir e responder</Link>
                   </Button>
                 </article>
               );
@@ -128,14 +127,16 @@ export default paginaProtegida(
                     className="flex min-h-14 items-center justify-between gap-3 px-3 py-2"
                   >
                     <span className="min-w-0">
-                      <span className="line-clamp-2 block">{d.titulo}</span>
+                      <span className="line-clamp-2 block">{tituloParaFuncionario(d.titulo)}</span>
                       <span className="block text-sm text-texto-suave">
                         {d.tipo_nome}
                         {d.publicado_em ? ` · ${formatarDataHora(d.publicado_em).slice(0, 10)}` : ""}
                       </span>
                     </span>
                     <span className="flex shrink-0 items-center gap-1">
-                      {d.resposta ? <BadgeStatus status={d.resposta.tipo} /> : null}
+                      {d.resposta ? (
+                        <BadgeStatus status={d.resposta.tipo} rotulo={ROTULO_RESPOSTA[d.resposta.tipo]} />
+                      ) : null}
                       <ChevronRight aria-hidden strokeWidth={1.5} className="size-5 text-texto-suave" />
                     </span>
                   </Link>

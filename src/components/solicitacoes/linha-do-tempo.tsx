@@ -1,9 +1,11 @@
 import { Paperclip } from "lucide-react";
 
 import { formatarBytes, formatarDataHora } from "@/features/documentos/formato";
-import { ROTULO_STATUS, ROTULO_STATUS_INTERNO } from "@/features/solicitacoes/fluxo";
+import { ATENDIMENTO, maiuscula } from "@/features/funcionario/textos";
 import type { Anexo, EventoDaLinhaDoTempo } from "@/features/solicitacoes/queries";
 import { cn } from "@/lib/utils";
+
+import { ROTULOS, type Perspectiva } from "./badge-situacao";
 
 /**
  * Linha do tempo da solicitação — imutável no banco (0020), só leitura aqui.
@@ -18,12 +20,18 @@ export function LinhaDoTempo({
 }: {
   eventos: EventoDaLinhaDoTempo[];
   usuarioId: string;
-  perspectiva: "solicitante" | "interno";
+  perspectiva: Perspectiva;
 }) {
-  const rotulos = perspectiva === "interno" ? ROTULO_STATUS_INTERNO : ROTULO_STATUS;
+  const rotulos = ROTULOS[perspectiva];
 
   if (eventos.length === 0) {
-    return <p className="text-texto-suave">Nenhuma movimentação ainda.</p>;
+    return (
+      <p className="text-texto-suave">
+        {perspectiva === "funcionario"
+          ? `Ainda não houve resposta. ${maiuscula(ATENDIMENTO.curto)} responde aqui mesmo.`
+          : "Nenhuma movimentação ainda."}
+      </p>
+    );
   }
 
   return (
@@ -32,7 +40,7 @@ export function LinhaDoTempo({
         const autor =
           e.autor?.id === usuarioId
             ? "Você"
-            : perspectiva === "solicitante" && e.autor?.interno
+            : perspectiva !== "interno" && e.autor?.interno
               ? `${e.autor.nome} (3e)`
               : (e.autor?.nome ?? "Portal");
         return (
@@ -48,10 +56,16 @@ export function LinhaDoTempo({
               {e.interno ? <span className="ml-1 text-alerta">· nota interna, o solicitante não vê</span> : null}
             </p>
             {e.tipo === "mudanca_status" && e.status_novo ? (
-              <p>
-                Situação: {e.status_anterior ? `${rotulos[e.status_anterior]} → ` : ""}
-                <strong className="font-medium">{rotulos[e.status_novo]}</strong>
-              </p>
+              perspectiva === "funcionario" ? (
+                <p>
+                  O pedido mudou para: <strong className="font-medium">{rotulos[e.status_novo]}</strong>
+                </p>
+              ) : (
+                <p>
+                  Situação: {e.status_anterior ? `${rotulos[e.status_anterior]} → ` : ""}
+                  <strong className="font-medium">{rotulos[e.status_novo]}</strong>
+                </p>
+              )
             ) : e.tipo === "atribuicao" ? (
               <p>Responsável: {e.conteudo}</p>
             ) : (

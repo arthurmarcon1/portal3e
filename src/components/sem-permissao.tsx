@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { ATENDIMENTO } from "@/features/funcionario/textos";
 import { ROTULOS_ACAO, ROTULOS_MODULO, type Acao, type Modulo } from "@/lib/auth/modulos";
 import { rotaInicial, type TipoUsuario } from "@/lib/auth/rotas";
 
@@ -21,7 +22,7 @@ const A_QUEM_PEDIR: Record<TipoUsuario, string> = {
   interno:
     "o Administrador geral do Portal. Ele libera permissões em Acessos › Perfis e permissões, ou incluindo um perfil no seu acesso.",
   contratante: "o seu contato na 3e, que encaminha o pedido ao administrador do Portal.",
-  funcionario: "o RH da 3e.",
+  funcionario: `${ATENDIMENTO.contato}.`,
 };
 
 export function SemPermissao({

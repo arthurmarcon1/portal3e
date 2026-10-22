@@ -8,7 +8,8 @@ import { FormularioResposta } from "@/components/solicitacoes/formulario-respost
 import { LinhaDoTempo, ListaDeAnexos } from "@/components/solicitacoes/linha-do-tempo";
 import { idValido } from "@/features/documentos/entrega";
 import { formatarData } from "@/features/documentos/formato";
-import { encerrada, ROTULO_TIPO } from "@/features/solicitacoes/fluxo";
+import { ATENDIMENTO, ROTULO_TIPO_FUNCIONARIO } from "@/features/funcionario/textos";
+import { encerrada } from "@/features/solicitacoes/fluxo";
 import { buscarSolicitacao } from "@/features/solicitacoes/queries";
 import { paginaProtegida } from "@/lib/auth/pagina-protegida";
 
@@ -29,16 +30,17 @@ export default paginaProtegida(
           Meus pedidos
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-xl">{ROTULO_TIPO[s.tipo]}</h1>
-          <BadgeSituacao status={s.status} />
+          <h1 className="text-xl">{ROTULO_TIPO_FUNCIONARIO[s.tipo]}</h1>
+          <BadgeSituacao status={s.status} perspectiva="funcionario" />
         </div>
-        <p className="mt-1 text-texto-suave tabular-nums">Protocolo {s.protocolo}</p>
+        <p className="mt-1 text-texto-suave tabular-nums">Pedido nº {s.protocolo}</p>
         {s.prazo && !encerrada(s.status) ? (
           <p className="text-texto-suave">Resposta prevista até {formatarData(s.prazo)}.</p>
         ) : null}
 
         {s.status === "pendente_solicitante" && s.aberta_por === usuario.id ? (
-          <div className="mt-4">
+          <div className="mt-4 grid gap-2">
+            <p>Depois que você responder, o pedido volta para {ATENDIMENTO.curto}.</p>
             <FormularioResposta solicitacaoId={s.id} />
           </div>
         ) : null}
@@ -49,7 +51,7 @@ export default paginaProtegida(
         </div>
 
         <h2 className="mt-6 mb-2 font-medium">Andamento</h2>
-        <LinhaDoTempo eventos={s.eventos} usuarioId={usuario.id} perspectiva="solicitante" />
+        <LinhaDoTempo eventos={s.eventos} usuarioId={usuario.id} perspectiva="funcionario" />
       </main>
     );
   },

@@ -48,7 +48,8 @@ export function dataHoraBrasilia(instante: Date): string {
 const estilos = StyleSheet.create({
   pagina: { paddingTop: 48, paddingBottom: 72, paddingHorizontal: 56, fontFamily: "Helvetica", fontSize: 10, color: "#1A1D21" },
   titulo: { fontSize: 16, fontFamily: "Helvetica-Bold", marginBottom: 4 },
-  subtitulo: { fontSize: 10, color: "#5B6570", marginBottom: 20 },
+  subtitulo: { fontSize: 10, color: "#5B6570", marginBottom: 4 },
+  explicacao: { fontSize: 10, marginBottom: 20 },
   protocoloRotulo: { fontSize: 9, color: "#5B6570" },
   protocolo: { fontSize: 22, fontFamily: "Helvetica-Bold", marginBottom: 20, letterSpacing: 1 },
   bloco: { borderTopWidth: 1, borderTopColor: "#DDE1E6", paddingTop: 10, marginBottom: 14 },
@@ -96,6 +97,9 @@ function Comprovante({ dados }: { dados: DadosDoComprovante }) {
           {confirmou ? "Comprovante de ciência" : "Comprovante de divergência"}
         </Text>
         <Text style={estilos.subtitulo}>{dados.organizacao.nome}</Text>
+        {/* O título e "Protocolo" ficam: documento com valor de prova. A linha
+            é para quem o recebe — o funcionário — saber o que tem na mão (docs/04). */}
+        <Text style={estilos.explicacao}>Este é o comprovante da sua resposta no Portal 3e.</Text>
 
         <Text style={estilos.protocoloRotulo}>Protocolo</Text>
         <Text style={estilos.protocolo}>{dados.protocolo}</Text>

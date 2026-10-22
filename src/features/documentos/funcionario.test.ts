@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { hojeEmBrasilia, pendencias, perguntaDaCiencia, type DocumentoDoFuncionario } from "./funcionario";
+import { hojeEmBrasilia, pendencias, type DocumentoDoFuncionario } from "./funcionario";
 
 const doc = (p: Partial<DocumentoDoFuncionario>): DocumentoDoFuncionario => ({
   id: "x",
@@ -29,12 +29,5 @@ describe("pendencias", () => {
 describe("hojeEmBrasilia", () => {
   it("usa o dia de Brasília, não o UTC", () => {
     expect(hojeEmBrasilia(new Date("2026-09-29T02:00:00Z"))).toBe("2026-09-28");
-  });
-});
-
-describe("perguntaDaCiencia", () => {
-  it("espelho pede conferência; o resto, leitura", () => {
-    expect(perguntaDaCiencia("espelho_ponto")).toBe("Você confere as informações deste espelho?");
-    expect(perguntaDaCiencia("qualquer")).toBe("Você leu e está ciente deste documento?");
   });
 });

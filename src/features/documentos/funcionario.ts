@@ -144,14 +144,3 @@ export async function documentoParaCiencia(id: string): Promise<DocumentoParaCie
     solicitacao_protocolo: solicitacaoProtocolo,
   };
 }
-
-/**
- * A pergunta da tela de ciência (docs/04): direta, com o nome do documento.
- * Espelho pede conferência dos números; o resto, leitura.
- */
-export function perguntaDaCiencia(chaveTipo: string): string {
-  if (chaveTipo === "espelho_ponto") return "Você confere as informações deste espelho?";
-  if (chaveTipo === "norma_interna") return "Você leu e está ciente desta norma?";
-  if (chaveTipo === "comunicado") return "Você leu e está ciente deste comunicado?";
-  return "Você leu e está ciente deste documento?";
-}

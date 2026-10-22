@@ -222,6 +222,15 @@ custa mais caro.
       backup (dado de funcionário de terceiro sem cópia). Os dois mudam de plano no
       mesmo projeto, sem migrar dados; o `vercel.json` diário segue valendo (docs/08,
       passo 8 e "Riscos dos planos gratuitos").
+- [ ] **A REVISAR COM CLIENTE EXTERNO — quem atende o funcionário** (Arthur,
+      2026-10-22). A área do funcionário manda pedir ajuda a **"o RH da 3e"** — certo no
+      piloto, em que o quadro é da própria 3e. Num cliente futuro quem atende pode ser
+      outro setor, ou outra empresa. Por isso o texto não está espalhado: é uma
+      constante só, `ATENDIMENTO` em `src/features/funcionario/textos.ts` (com a forma
+      curta "o RH", usada em "o RH vai analisar"). Também a usam a tela de sem permissão
+      do funcionário e o aviso de acesso inativo. Quando entrar o primeiro cliente
+      externo, decidir se vira configuração por organização (coluna em `organizacoes`) ou
+      por contrato — e quem preenche.
 - [ ] **Domínio e hospedagem.** Sugestão: `portal.3e.srv.br` ou domínio próprio do
       produto, se a intenção é vender como produto independente da marca 3e.
 - [ ] **Nome comercial.** "Portal 3e" funciona internamente, mas não para vender a um

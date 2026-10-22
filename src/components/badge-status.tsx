@@ -19,11 +19,17 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   divergencia: { rotulo: "Em divergência", classe: "border-erro/30 text-erro" },
 };
 
-export function BadgeStatus({ status }: { status: string }) {
-  const { rotulo, classe } = ESTILOS[status] ?? {
+/**
+ * `rotulo` troca só o texto, mantendo a cor do status: a área do funcionário
+ * tem vocabulário próprio ("Você apontou erro", não "Em divergência").
+ */
+export function BadgeStatus({ status, rotulo: rotuloProprio }: { status: string; rotulo?: string }) {
+  const estilo = ESTILOS[status] ?? {
     rotulo: status,
     classe: "border-borda text-texto-suave",
   };
+  const rotulo = rotuloProprio ?? estilo.rotulo;
+  const classe = estilo.classe;
 
   return (
     <span
