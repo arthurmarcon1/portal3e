@@ -360,6 +360,22 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 
 ## Decisões já tomadas (registro)
 
+- **2026-10-22 — Rota de job não passa pelo proxy** (decisão do Arthur). Achado no
+  primeiro deploy de produção: o matcher do proxy cobria `/api/jobs/notificacoes`, e o
+  proxy manda para `/login` toda rota sem sessão — o cron da Vercel não tem usuário,
+  levava 307 e o job nunca rodava. No plano gratuito isso tem consequência: o job é a
+  única atividade diária no banco, e sem ela o Supabase pausa em 7 dias. **Rota de job
+  autentica por segredo (`CRON_SECRET`), não por sessão**, e por isso `/api/jobs/` fica
+  fora do matcher (`src/proxy.ts`). É a mesma lógica do invariante 9: a rota valida
+  sozinha, e o proxy nunca é a barreira dela — aqui ele era a barreira errada. **Quem
+  mexer no matcher**: toda rota tirada dele tem de validar sozinha, e toda rota que
+  autentica por segredo tem de ficar fora. `src/proxy.test.ts` lê as rotas de API do
+  disco e falha se uma rota sair do proxy sem estar na lista de fora, ou se a de job
+  voltar para dentro. Hoje fora: só `/api/jobs/notificacoes`. Dentro, todas validando
+  sozinhas com `getUsuario()`: `anexos/[id]`, `auditoria/exportar`,
+  `ciencias/[id]/comprovante`, `documentos/[id]/download`, `documentos/[id]/previa`,
+  `pessoas/modelo-importacao`, `relatorios/[chave]`.
+
 - **2026-09-30 — Contratante vê o espelho individual depois que o funcionário confirma
   a ciência** (decisão do gestor; migração 0027). Era a leitura (a) da pendência "pode
   ver após aprovação". Exceção **por documento**, não liberação de categoria: `jornada`

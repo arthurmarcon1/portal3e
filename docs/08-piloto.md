@@ -166,7 +166,24 @@ No painel do projeto de produção, **Authentication**:
    - **Site URL:** `$APP_URL`
    - **Redirect URLs:** `$APP_URL/**`
 
-**Conferir:** tentar criar conta pela API pública precisa ser recusado.
+> ⚠ **Confira o valor depois de salvar — não basta clicar.** No projeto de produção do
+> piloto (2026-10-22) o cadastro público veio **ligado** por padrão, e continuava ligado
+> depois de reportado como desligado; a Site URL também seguia em
+> `http://localhost:3000`. O painel não avisa: só a leitura abaixo mostra o valor que
+> vale.
+
+**Conferir**, primeiro só lendo — esta consulta não grava nada:
+
+```bash
+curl -s "$PROD_URL/auth/v1/settings" -H "apikey: $PROD_ANON"
+```
+
+Na resposta, `"disable_signup": true`. Se vier `false`, **pare e volte ao item 1**: não
+rode a tentativa de cadastro abaixo, porque com o cadastro ligado ela **cria um usuário
+de verdade** em produção.
+
+Com `true`, a prova pelo outro lado: tentar criar conta pela API pública precisa ser
+recusado.
 
 ```bash
 curl -s -X POST "$PROD_URL/auth/v1/signup" \
@@ -175,6 +192,14 @@ curl -s -X POST "$PROD_URL/auth/v1/signup" \
 ```
 
 Resposta esperada: erro com `Signups not allowed for this instance`.
+
+A Site URL e as Redirect URLs não aparecem nessa leitura pública: confira no painel,
+**depois de salvar**, que mostram `$APP_URL` e `$APP_URL/**`.
+
+**Chaves no formato novo** (`sb_publishable_…` no lugar da anon, `sb_secret_…` no lugar
+da service_role): entram nas mesmas variáveis, e nada no código valida formato. Elas não
+são JWT — nos `curl` deste guia, a chave secreta vai só no cabeçalho `apikey`, sem
+`Authorization: Bearer`.
 
 ---
 
@@ -265,9 +290,16 @@ matriz de docs/02 os descreve, e o teste do passo 4.3 os confere. Ficam sem usu�
 
 ### 4.3 Aplicar
 
+O `db query` não aceita vários comandos num envio só ("cannot insert multiple commands
+into a prepared statement"). O arquivo vai envolvido num bloco `do $$ … $$`, que é um
+comando só — e grava tudo ou nada:
+
 ```bash
-npx supabase db query --db-url "$PROD_DB" -f /tmp/configuracao-producao.sql
+{ echo 'do $$ begin'; cat /tmp/configuracao-producao.sql; echo 'end $$;'; } > /tmp/configuracao-producao-bloco.sql
+npx supabase db query --db-url "$PROD_DB" -f /tmp/configuracao-producao-bloco.sql
 ```
+
+Resposta esperada: `DO`.
 
 **Conferir** as contagens:
 
@@ -320,7 +352,7 @@ acesso):
 
 ```bash
 curl -s -X POST "$PROD_URL/auth/v1/admin/users" \
-  -H "apikey: $PROD_SERVICE" -H "Authorization: Bearer $PROD_SERVICE" \
+  -H "apikey: $PROD_SERVICE" \
   -H "content-type: application/json" \
   -d '{"email":"arthur@3e.srv.br","password":"<senha provisória forte>","email_confirm":true}'
 ```
@@ -367,6 +399,14 @@ Na Vercel: **Add New › Project**, importar este repositório. Framework: Next.
 de cadastrar as variáveis:** as `NEXT_PUBLIC_*` são gravadas no código no momento do
 build.
 
+**Confira, em Settings › General e Settings › Functions:**
+
+- **Framework Preset: Next.js.** Só é detectado ao importar pelo painel. O projeto do
+  piloto foi criado pelo CLI (`vercel project add`) e nasceu com "Other" — o build
+  procuraria a pasta `public` como saída.
+- **Function Region: São Paulo (`gru1`).** O padrão é Washington (`iad1`): cada consulta
+  ao banco, que está em `sa-east-1`, cruzaria o continente, várias vezes por página.
+
 ### 6.2 Variáveis de ambiente
 
 Em **Settings › Environment Variables**, marcando **só o ambiente Production** (nunca
@@ -407,7 +447,7 @@ Um push na branch `main` publica. Ou, em **Deployments**, **Redeploy** do últim
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" "$APP_URL/login"      # 200
 curl -s -o /dev/null -w "%{http_code}\n" "$APP_URL/admin"      # 307 (manda para o login)
-curl -s -o /dev/null -w "%{http_code}\n" "$APP_URL/api/jobs/notificacoes"   # 401 (sem o segredo)
+curl -s -o /dev/null -w "%{http_code}\n" "$APP_URL/api/jobs/notificacoes"   # 401 (sem o segredo; 307 = o proxy pegou a rota de job, ver passo 8)
 ```
 
 Em **Logs** da Vercel, depois do primeiro acesso, aparece
@@ -496,6 +536,15 @@ prazo vencido e o alerta de SST a 30 dias do vencimento, e envia a fila de e-mai
 só roda com o segredo no cabeçalho `Authorization: Bearer <CRON_SECRET>` — é o que a
 Vercel manda nos crons do projeto. Sem `CRON_SECRET`, responde 401 a tudo (falha
 fechada).
+
+> **Rota de job não passa pelo proxy** (docs/06, 2026-10-22). Ela autentica por
+> segredo, não por sessão — o cron da Vercel não tem usuário. No primeiro deploy do
+> piloto o matcher do proxy (`src/proxy.ts`) a cobria, e o proxy a mandava para
+> `/login` (307) antes de ela conferir o segredo: o job nunca rodava, e o banco ficava
+> sem a atividade diária. Por isso `/api/jobs/` está fora do matcher. **Quem mexer no
+> matcher:** rota que sai dele tem de validar sozinha (invariante 9), e rota que
+> autentica por segredo tem de ficar fora; `src/proxy.test.ts` trava as duas coisas.
+> Sinal de que voltou a acontecer: a conferência abaixo dá **307** em vez de 401.
 
 **Neste piloto o job não produz nada visível para o usuário** (passo 7): só grava avisos
 que ninguém lê. Mas ele tem outra função no plano gratuito: é a **única atividade diária

@@ -102,8 +102,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Fora: estáticos do Next, imagens otimizadas e arquivos com extensão.
+  // Fora: estáticos do Next, imagens otimizadas, arquivos com extensão — e
+  // `/api/jobs/`. Rota de job autentica por SEGREDO (`CRON_SECRET`), não por
+  // sessão: o cron da Vercel não tem usuário, e o proxy o mandava para
+  // `/login` antes de a rota conferir o segredo (docs/06, 2026-10-22). É o
+  // invariante 9 ao contrário: a rota valida sozinha e o proxy nunca é a
+  // barreira dela. Toda rota tirada daqui tem de validar sozinha —
+  // `src/proxy.test.ts` trava o que fica dentro e o que fica fora.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/jobs/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|txt|xml|webmanifest)$).*)",
   ],
 };
