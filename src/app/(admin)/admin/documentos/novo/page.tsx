@@ -15,7 +15,7 @@ export default paginaProtegida(
     const opcoes = await opcoesDePublicacao();
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <Link
           href="/admin/documentos"
           className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto"
@@ -31,7 +31,7 @@ export default paginaProtegida(
         </p>
 
         {opcoes.tipos.length === 0 ? (
-          <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-8 text-center">
+          <div className="superficie px-4 py-8 text-center">
             <p className="font-medium">Nenhum tipo de documento liberado para o seu perfil.</p>
             <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">
               Peça ao administrador do Portal a categoria do documento que você precisa

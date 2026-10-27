@@ -120,7 +120,7 @@ export function FormularioDocumento({ opcoes }: { opcoes: OpcoesDePublicacao }) 
   const erroPublicos = errors.publicos?.message ?? errors.publicos?.root?.message;
 
   return (
-    <form onSubmit={handleSubmit(enviar)} className="grid max-w-2xl gap-4" noValidate>
+    <form onSubmit={handleSubmit(enviar)} className="superficie grid max-w-2xl gap-4 p-5" noValidate>
       <AvisoErro mensagem={erroGeral} />
 
       <Controller
@@ -373,13 +373,13 @@ function SeletorDePessoa({
       />
       {busca.trim() ? (
         encontradas.length ? (
-          <ul className="-mt-4 divide-y divide-borda rounded-lg border border-borda">
+          <ul className="-mt-4 divide-y divide-borda superficie">
             {encontradas.map((p) => (
               <li key={p.id}>
                 <button
                   type="button"
                   onClick={() => aoMudar(p.id)}
-                  className="flex min-h-11 w-full items-center justify-between gap-2 px-3 text-left text-sm hover:bg-fundo-alt"
+                  className="flex min-h-11 w-full items-center justify-between gap-2 px-3 text-left text-sm hover:bg-fundo-hover"
                 >
                   <span>{p.nome}</span>
                   <span className="text-texto-suave tabular-nums">{formatarCpf(p.cpf)}</span>

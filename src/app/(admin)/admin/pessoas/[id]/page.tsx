@@ -67,7 +67,7 @@ export default paginaProtegida(
     if (!pessoa) notFound();
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <Link
           href="/admin/pessoas"
           className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto"
@@ -151,7 +151,7 @@ export default paginaProtegida(
 /** Aba sem conteúdo próprio ainda. Diz o que aconteceu e onde encontrar (docs/04, estado vazio). */
 function Reservado({ titulo, descricao, href, acao }: { titulo: string; descricao: string; href: string; acao: string }) {
   return (
-    <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+    <div className="superficie px-4 py-10 text-center">
       <p className="font-medium">{titulo}</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">{descricao}</p>
       <Button asChild variant="outline" className="mt-4">

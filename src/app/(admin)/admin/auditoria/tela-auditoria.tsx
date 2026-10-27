@@ -145,7 +145,7 @@ export function TelaAuditoria({
 
   if (total === 0) {
     return (
-      <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+      <div className="superficie px-4 py-10 text-center">
         <p className="font-medium">
           {temFiltro ? "Nenhum evento neste recorte." : "Nenhum evento registrado ainda."}
         </p>
@@ -161,7 +161,7 @@ export function TelaAuditoria({
   const zebrado = eventos.length > 15;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-borda">
+    <div className="overflow-hidden superficie">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader className="bg-fundo-alt">
@@ -275,7 +275,7 @@ function LinkPagina({
     "inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs tabular-nums",
     atual
       ? "border-primary bg-primary text-primary-foreground"
-      : "border-borda bg-fundo text-texto hover:bg-fundo-alt",
+      : "border-borda bg-fundo text-texto hover:bg-fundo-hover",
     desabilitado && "pointer-events-none opacity-50",
   );
 

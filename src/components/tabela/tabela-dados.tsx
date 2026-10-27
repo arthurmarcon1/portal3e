@@ -31,6 +31,7 @@ import {
 /**
  * Tabela padrão da área interna (docs/04).
  *
+ * - uma superfície só: busca e filtros no topo, tabela, paginação no rodapé
  * - cabeçalho em `--fundo-alt`, linha com borda inferior de 1px
  * - zebrado só acima de 15 linhas
  * - paginação no rodapé, com o total à esquerda: o usuário precisa saber
@@ -118,8 +119,8 @@ export function TabelaDados<T extends RowData>({
   const [singular, plural] = substantivo;
 
   return (
-    <div className="grid gap-3">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <div className="overflow-hidden superficie">
+      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-borda p-3">
         <div className="flex flex-wrap items-end gap-2">
           <div className="relative">
             <Search
@@ -149,7 +150,7 @@ export function TabelaDados<T extends RowData>({
           descricao="Confira a escrita ou limpe os filtros para ver a lista inteira."
         />
       ) : (
-        <div className="overflow-hidden rounded-lg border border-borda">
+        <>
           <Table>
             <TableHeader className="bg-fundo-alt">
               {tabela.getHeaderGroups().map((grupo) => (
@@ -215,7 +216,7 @@ export function TabelaDados<T extends RowData>({
               </div>
             ) : null}
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -224,7 +225,7 @@ export function TabelaDados<T extends RowData>({
 /** Uma frase que diz o que aconteceu e o que fazer. Sem ilustração (docs/04). */
 function EstadoVazio({ titulo, descricao }: { titulo: string; descricao: string }) {
   return (
-    <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+    <div className="px-4 py-10 text-center">
       <p className="font-medium">{titulo}</p>
       <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">{descricao}</p>
     </div>

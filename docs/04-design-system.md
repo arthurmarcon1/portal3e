@@ -16,26 +16,78 @@ o WhatsApp e o projeto falha.
 
 ## Direção visual
 
-Sistema de registro corporativo. A referência não é SaaS de startup — é o extrato do
-banco: legível, sóbrio, previsível, com a informação em primeiro plano.
+Sistema de registro corporativo, com superfície. A informação continua em primeiro
+plano — legível, sóbria, previsível —, mas a tela se organiza em blocos brancos sobre um
+fundo levemente cinza, com respiro entre eles: a pessoa enxerga de relance onde começa e
+onde termina cada coisa.
+
+**Revisão de 2026-10-27** (pedido da gestão, aprovado pelo Arthur). A versão anterior
+tinha como referência "o extrato do banco" e proibia sombra em card; na prática a tela
+ficou chapada, sem hierarquia de superfície. Mudaram: o fundo da página (cinza, não mais
+branco), a sombra do card (agora permitida, junto da borda), o respiro e a navegação da
+equipe (barra lateral). O que **não** mudou está em "O que ficou de propósito", logo
+abaixo das regras.
 
 ### Tokens
 
 ```css
---fundo:            #FFFFFF;
---fundo-alt:        #F6F7F8;   /* faixas, cabeçalho de tabela, cards */
---borda:            #DDE1E6;
+/* superfícies */
+--fundo:            #FFFFFF;   /* card, tabela, navegação, modal, campo */
+--fundo-alt:        #F6F7F8;   /* cabeçalho de tabela e faixas DENTRO de uma superfície */
+--fundo-pagina:     #F4F5F7;   /* atrás das superfícies, nas três áreas */
+--fundo-pagina-funcionario: var(--fundo-pagina);  /* ver "Área do funcionário" */
+--fundo-hover:      #EEF0F2;   /* hover de linha e de item de navegação */
+
+/* contorno */
+--borda:            #DDE1E6;   /* divisória e contorno de superfície */
+--borda-campo:      #7E8792;   /* input, select, textarea, checkbox — 3:1 */
+
+/* texto e ação */
 --texto:            #1A1D21;
 --texto-suave:      #5B6570;
 --acao:             #14532D;   /* verde institucional 3e — botão primário, links */
 --acao-hover:       #0F3D22;
+--acao-suave:       #E8F0EB;   /* item de navegação ativo */
 --alerta:           #B45309;   /* pendência, prazo vencendo */
 --erro:             #B42318;
 --sucesso:          #15803D;
+
+/* profundidade: duas sombras e só duas */
+--sombra-card:      0 1px 2px rgb(16 24 40 / .06);   /* card, sempre com borda */
+--sombra-elevada:   0 4px 12px rgb(16 24 40 / .08);  /* dropdown, popover, modal */
 ```
+
+Contraste conferido (WCAG):
+
+| Par | Contraste |
+|---|---|
+| `--texto` sobre `--fundo-pagina` | 15.5:1 |
+| `--texto-suave` sobre `--fundo` / `--fundo-pagina` / `--fundo-hover` | 5.93 / 5.44 / 5.19:1 |
+| `--acao` sobre `--fundo` / `--fundo-pagina` / `--acao-suave` | 9.11 / 8.35 / 7.85:1 |
+| `--alerta` e `--sucesso` sobre `--fundo` | 5.02:1 |
+| `--alerta` e `--sucesso` sobre `--fundo-pagina` | 4.6:1 — no limite |
+| `--borda-campo` sobre `--fundo` / `--fundo-pagina` | 3.64 / 3.34:1 |
+
+Consequência do 4.6:1: **texto em cor de status não fica solto no fundo da página**. Ele
+vai dentro de uma superfície, ou no badge, que tem fundo branco próprio. Antes de
+2026-10-27 a borda de campo usava `--borda` (1.3:1), abaixo do piso de 3:1 desta própria
+página; `--borda-campo` corrige isso.
 
 Ajustar `--acao` ao verde exato da marca 3e assim que o manual chegar. Cor só carrega
 significado junto com texto ou ícone — nunca sozinha (daltonismo e impressão em P&B).
+
+### Superfície e respiro
+
+- **Superfície** é a classe `superficie` (`src/app/globals.css`): fundo branco, borda
+  `--borda`, raio 8px, `--sombra-card`. Card, tabela, lista, painel e formulário solto
+  na página são superfícies. Borda e sombra andam juntas: a borda segura a forma onde a
+  sombra some (impressão, tela ruim, luz forte).
+- Superfície dentro de superfície não leva sombra: o que está dentro de um card é faixa
+  (`--fundo-alt`) ou divisória, não outro card.
+- Respiro na área interna e na do contratante: 32px de margem na página a partir de
+  1024px (16px abaixo), 24px entre blocos, 20px dentro de card.
+- A tabela padrão (`TabelaDados`) é uma superfície só: busca e filtros no topo, tabela,
+  paginação no rodapé.
 
 ### Tipografia
 
@@ -50,17 +102,36 @@ significado junto com texto ou ícone — nunca sozinha (daltonismo e impressão
 Estas existem porque o padrão gerado por ferramenta de IA é reconhecível e passa
 impressão de protótipo. O Portal precisa parecer sistema corporativo confiável.
 
-- `border-radius` máximo **8px**. Botão e input: 6px. Card: 8px. Nada arredondado além disso.
+- `border-radius` máximo **8px**. Botão e input: 6px. Card: 8px. Nada arredondado além
+  disso. **Exceção nomeada: o avatar**, que é círculo (ver "Avatar").
 - **Sem glassmorphism**, sem `backdrop-blur`, sem transparência decorativa.
-- **Sem sombra pesada.** No máximo `0 1px 2px rgba(0,0,0,.06)` e só em dropdown, modal e popover. Card usa borda, não sombra.
+- **Duas sombras e só duas.** `--sombra-card` no card, sempre junto da borda;
+  `--sombra-elevada` no que flutua (dropdown, popover, modal). Nenhuma outra, nenhuma
+  maior, nenhuma colorida.
 - **Sem gradiente** em fundo, botão ou card.
-- **Sem barra de destaque colorida** na lateral ou no topo de card, e sem linha de
-  acento embaixo de título.
+- **Sem barra de destaque colorida** na lateral ou no topo de card, nem em item de
+  navegação ativo, e sem linha de acento embaixo de título.
 - **Sem emoji** na interface.
 - **Sem animação de entrada.** Transição só responde a ação do usuário (abrir, expandir,
   confirmar) e dura no máximo 150ms. Respeitar `prefers-reduced-motion`.
 - Ícones: **lucide-react**, traço 1.5px, tamanho 16 ou 20. Sempre acompanhados de texto
   em ação destrutiva ou ambígua.
+
+### O que ficou de propósito
+
+A revisão de 2026-10-27 mexeu em superfície, sombra, respiro e navegação. Estas regras
+foram reavaliadas e **mantidas de propósito** — não sobreviveram por esquecimento. Quem
+quiser mudá-las precisa de um motivo novo, não do mesmo pedido de "mais moderno":
+
+| Regra | Por que fica |
+|---|---|
+| Sem emoji | O Portal registra ciência com valor de prova. Emoji infantiliza o registro e muda de desenho entre celulares — o mesmo texto aparece diferente para quem confirma e para quem audita. |
+| Sem gradiente decorativo | Gradiente não informa nada, piora a legibilidade do texto por cima e é a marca mais reconhecível de tela gerada por ferramenta. Profundidade vem de superfície e sombra sutil, não de cor. |
+| Raio até 8px, avatar como única exceção | Cantos muito redondos são o sinal visual de "app de startup", que é o que a 3e não quer parecer para cliente de contrato público. O avatar é círculo porque rosto e iniciais em círculo são convenção — e por ser a única exceção, não abre precedente. |
+| Contraste mínimo 4.5:1 | O funcionário lê na portaria, no sol, num celular antigo, às vezes com vista cansada. Abaixo disso o texto some — não é estética, é a pessoa não conseguir responder. |
+| Alvo de toque de 44px | Mesmo público, com dedo e pressa. Botão menor vira toque errado, e toque errado numa ciência é registro errado. |
+| Foco de teclado visível | A equipe interna trabalha o dia inteiro no teclado, e há quem dependa dele. Sem foco visível a tela fica inoperável para essas pessoas. |
+| Nada que dependa só de cor | Daltonismo e impressão em preto e branco. Badge, item ativo, contador e avatar levam texto, peso ou forma além da cor. |
 
 ---
 

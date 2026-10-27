@@ -19,7 +19,7 @@ export default paginaProtegida(
     ]);
 
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="mb-1 text-xl">Publicar espelhos</h1>
         <p className="mb-5 text-sm text-texto-suave">
           Envie os PDFs do fechamento (ou um ZIP com eles). Cada arquivo é casado com a pessoa pelo

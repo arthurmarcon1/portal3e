@@ -57,7 +57,7 @@ export function FormularioRetificacao({
   }
 
   return (
-    <form onSubmit={handleSubmit(enviar)} className="grid max-w-2xl gap-4" noValidate>
+    <form onSubmit={handleSubmit(enviar)} className="superficie grid max-w-2xl gap-4 p-5" noValidate>
       <AvisoErro mensagem={erroGeral} />
       <input type="hidden" {...register("documento_id")} />
 

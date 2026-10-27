@@ -21,7 +21,7 @@ export default paginaProtegida(
     const resumo = resumoPorUnidade(linhas);
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="mb-1 text-xl">SST</h1>
         <p className="mb-5 text-sm text-texto-suave">
           ASO e treinamentos por vencimento. Para publicar norma, treinamento ou ASO, use Documentos — o vencimento
@@ -33,7 +33,7 @@ export default paginaProtegida(
           {resumo.length === 0 ? (
             <p className="mt-2 text-texto-suave">Nenhum documento com vencimento no seu alcance ainda.</p>
           ) : (
-            <div className="mt-3 overflow-x-auto rounded-lg border border-borda">
+            <div className="mt-3 overflow-x-auto superficie">
               <table className="w-full text-sm">
                 <thead className="bg-fundo-alt text-left text-texto-suave">
                   <tr>

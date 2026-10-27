@@ -48,7 +48,7 @@ export default paginaProtegida(
         : null;
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <Link
           href="/admin/documentos"
           className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto"
@@ -101,7 +101,7 @@ function Resumo({ documento }: { documento: Documento }) {
   const pendentes = Math.max(0, r.destinatarios - r.confirmadas - r.divergencias);
 
   return (
-    <dl className="mb-6 grid gap-2 rounded-lg border border-borda bg-fundo-alt px-4 py-4 text-sm sm:grid-cols-4">
+    <dl className="mb-6 grid gap-2 superficie px-4 py-4 text-sm sm:grid-cols-4">
       <Numero rotulo="Pessoas alcançadas" valor={r.destinatarios} />
       {documento.tipo.exige_ciencia ? (
         <>
@@ -185,7 +185,7 @@ function Dados({ documento }: { documento: Documento }) {
       {documento.versoes.length > 1 ? (
         <section>
           <h2 className="mb-2 text-base font-medium">Versões</h2>
-          <ol className="divide-y divide-borda rounded-lg border border-borda text-sm">
+          <ol className="divide-y divide-borda superficie text-sm">
             {documento.versoes.map((v) => (
               <li key={v.id} className="flex items-center justify-between gap-2 px-3 py-2">
                 {v.id === documento.id ? (
@@ -229,7 +229,7 @@ function Item({ rotulo, children }: { rotulo: string; children: React.ReactNode 
 function Previa({ documento }: { documento: Documento }) {
   if (documento.tipo.exige_2fa) {
     return (
-      <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+      <div className="superficie px-4 py-10 text-center">
         <p className="font-medium">A prévia deste tipo exige código de uso único.</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">
           A verificação por código ainda não está disponível no Portal. Até lá, confira o

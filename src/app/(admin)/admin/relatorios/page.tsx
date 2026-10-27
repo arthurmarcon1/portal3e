@@ -19,7 +19,7 @@ export default paginaProtegida(
     for (const r of RELATORIOS) if (await temPermissao(r.ver.modulo, r.ver.acao)) visiveis.push(r);
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="mb-1 text-xl">Relatórios</h1>
         <p className="mb-5 text-sm text-texto-suave">
           Sempre no seu escopo de contratos e unidades. Toda exportação em CSV ou PDF fica registrada na auditoria.
@@ -29,7 +29,7 @@ export default paginaProtegida(
             <li key={r.chave}>
               <Link
                 href={`/admin/relatorios/${r.chave}`}
-                className="flex h-full items-center justify-between gap-3 rounded-lg border border-borda px-4 py-3 hover:bg-fundo-alt"
+                className="flex h-full items-center justify-between gap-3 superficie px-4 py-3 hover:bg-fundo-hover"
               >
                 <span>
                   <span className="block font-medium">{r.titulo}</span>

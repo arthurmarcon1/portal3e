@@ -35,7 +35,7 @@ export function TelaPerfis({
 
   if (!perfil) {
     return (
-      <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+      <div className="superficie px-4 py-10 text-center">
         <p className="font-medium">Nenhum perfil cadastrado.</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">
           Os perfis vêm do seed da organização. Se a lista está vazia, o cadastro
@@ -47,7 +47,7 @@ export function TelaPerfis({
 
   return (
     <div className="grid gap-4 md:grid-cols-[16rem_1fr]">
-      <nav aria-label="Perfis" className="overflow-hidden rounded-lg border border-borda">
+      <nav aria-label="Perfis" className="overflow-hidden superficie">
         <ul className="divide-y divide-borda">
           {perfis.map((p) => {
             const ativo = p.id === perfil.id;
@@ -58,7 +58,7 @@ export function TelaPerfis({
                   onClick={() => setSelecionado(p.id)}
                   aria-current={ativo ? "true" : undefined}
                   className={`w-full px-3 py-2 text-left text-sm ${
-                    ativo ? "bg-fundo-alt font-medium" : "hover:bg-fundo-alt"
+                    ativo ? "bg-fundo-alt font-medium" : "hover:bg-fundo-hover"
                   }`}
                 >
                   {p.nome}
@@ -121,7 +121,7 @@ function GradeDoPerfil({
         ) : null}
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-borda">
+      <div className="overflow-x-auto superficie">
         <table className="w-full text-sm">
           <caption className="sr-only">
             Permissões do perfil {perfil.nome}, por módulo e ação

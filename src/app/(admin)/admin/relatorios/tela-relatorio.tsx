@@ -64,7 +64,7 @@ export async function TelaRelatorio({
   }
 
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
       <Link href="/admin/relatorios" className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto">
         <ChevronLeft aria-hidden strokeWidth={1.5} className="size-4" />
         Relatórios
@@ -160,7 +160,7 @@ function FormularioRecorte({ recorte }: { recorte: Recorte }) {
 
 function TabelaSimples({ tabela }: { tabela: Tabela }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-borda">
+    <div className="overflow-x-auto superficie">
       <table className="w-full text-sm">
         <thead className="bg-fundo-alt text-left text-texto-suave">
           <tr>

@@ -85,7 +85,7 @@ export function TelaImportacao() {
   if (resumo) {
     return (
       <div className="grid gap-4">
-        <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-5">
+        <div className="superficie px-4 py-5">
           <p className="flex items-center gap-2 font-medium">
             <Check aria-hidden strokeWidth={1.5} className="size-5 text-sucesso" />
             Importação concluída.
@@ -127,7 +127,7 @@ export function TelaImportacao() {
           Arquivo <strong className="text-texto">{nomeArquivo}</strong>
         </p>
 
-        <dl className="grid gap-2 rounded-lg border border-borda bg-fundo-alt px-4 py-4 text-sm sm:grid-cols-4">
+        <dl className="grid gap-2 superficie px-4 py-4 text-sm sm:grid-cols-4">
           <Numero rotulo="Linhas válidas" valor={analise.validas} />
           <Numero rotulo="Linhas com erro" valor={analise.comErro} alerta={analise.comErro > 0} />
           <Numero rotulo="Serão criadas" valor={analise.criara} />
@@ -143,7 +143,7 @@ export function TelaImportacao() {
         ) : null}
 
         {comErro.length > 0 ? (
-          <div className="overflow-hidden rounded-lg border border-borda">
+          <div className="overflow-hidden superficie">
             <p className="flex items-center gap-2 border-b border-borda bg-fundo-alt px-4 py-2 text-sm font-medium">
               <AlertTriangle aria-hidden strokeWidth={1.5} className="size-4 text-alerta" />
               {comErro.length === 1
@@ -194,7 +194,7 @@ export function TelaImportacao() {
   // ------------------------------------------------------------------
   return (
     <div className="grid gap-4">
-      <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-8 text-center">
+      <div className="superficie px-4 py-8 text-center">
         <p className="font-medium">Envie a planilha do quadro.</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">
           Arquivo .xlsx ou .csv, com as colunas nome, cpf, matricula, funcao, contrato,

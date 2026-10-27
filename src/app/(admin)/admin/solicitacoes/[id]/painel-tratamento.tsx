@@ -61,14 +61,14 @@ export function PainelTratamento({
 
   if (encerrada(status)) {
     return (
-      <aside className="h-fit rounded-lg border border-borda bg-fundo-alt p-4 text-sm text-texto-suave">
+      <aside className="h-fit superficie p-4 text-sm text-texto-suave">
         Solicitação encerrada. A linha do tempo fica como registro.
       </aside>
     );
   }
 
   return (
-    <aside className="grid h-fit gap-5 rounded-lg border border-borda p-4">
+    <aside className="grid h-fit gap-5 superficie p-4">
       <div className="grid gap-2">
         <CampoSelecao
           rotulo="Responsável"

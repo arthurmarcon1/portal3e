@@ -12,7 +12,7 @@ export default paginaProtegida(
   { tipo: "interno", modulo: "pessoas", acao: "criar" },
   async function PaginaImportarPessoas() {
     return (
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <Link
           href="/admin/pessoas"
           className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto"

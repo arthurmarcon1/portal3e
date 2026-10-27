@@ -61,7 +61,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
   }
 
   return (
-    <div className="flex min-h-dvh flex-col">
+    <div className="flex min-h-dvh flex-col bg-fundo-pagina">
       <CabecalhoArea nome={usuario.nome} />
       <NavAdmin itens={itens} />
       {children}

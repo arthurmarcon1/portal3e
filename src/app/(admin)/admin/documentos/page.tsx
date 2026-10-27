@@ -22,7 +22,7 @@ export default paginaProtegida(
     ]);
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="mb-1 text-xl">Documentos</h1>
         <p className="mb-5 text-sm text-texto-suave">
           Comunicados, normas, espelhos e holerites publicados no Portal, com a versão e o

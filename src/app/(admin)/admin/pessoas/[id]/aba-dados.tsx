@@ -38,7 +38,7 @@ export function AbaDados({ pessoa }: { pessoa: Pessoa }) {
   ];
 
   return (
-    <dl className="grid gap-px overflow-hidden rounded-lg border border-borda bg-borda sm:grid-cols-2">
+    <dl className="grid gap-px overflow-hidden superficie bg-borda sm:grid-cols-2">
       {campos.map((campo) => (
         <div key={campo.rotulo} className="bg-fundo px-4 py-3">
           <dt className="text-xs text-texto-suave">{campo.rotulo}</dt>

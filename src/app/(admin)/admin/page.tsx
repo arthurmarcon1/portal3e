@@ -245,7 +245,7 @@ export default paginaProtegida(
     }
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="text-xl">
           {saudacao()}, {usuario.nome.split(" ")[0]}
         </h1>
@@ -288,7 +288,7 @@ export default paginaProtegida(
                 <li key={a.href}>
                   <Link
                     href={a.href}
-                    className="flex h-full items-start gap-3 rounded-lg border border-borda px-4 py-3 hover:bg-fundo-alt"
+                    className="flex h-full items-start gap-3 superficie px-4 py-3 hover:bg-fundo-hover"
                   >
                     <a.icone aria-hidden strokeWidth={1.5} className="mt-0.5 size-5 shrink-0 text-acao" />
                     <span className="min-w-0 flex-1">
@@ -312,7 +312,7 @@ function CartaoContador({ contador: c }: { contador: Contador }) {
   return (
     <Link
       href={c.href}
-      className="flex h-full items-center justify-between gap-2 rounded-lg border border-borda px-4 py-3 hover:bg-fundo-alt"
+      className="flex h-full items-center justify-between gap-2 superficie px-4 py-3 hover:bg-fundo-hover"
     >
       <span>
         <span className={cn("block text-2xl tabular-nums", atencao && "text-alerta")}>{c.valor}</span>
@@ -339,7 +339,7 @@ function CienciaEmAndamento({ campanhas }: { campanhas: ProgressoDeCampanha[] })
           Nenhum documento esperando ciência. Quando um comunicado ou espelho for publicado, o andamento aparece aqui.
         </p>
       ) : (
-        <ul className="mt-3 divide-y divide-borda rounded-lg border border-borda">
+        <ul className="mt-3 divide-y divide-borda superficie">
           {campanhas.map((c) => (
             <li key={c.chave}>
               <Link
@@ -348,7 +348,7 @@ function CienciaEmAndamento({ campanhas }: { campanhas: ProgressoDeCampanha[] })
                     ? `/admin/documentos/${c.documento_id}`
                     : `/admin/documentos?situacao=publicado&tipo=${encodeURIComponent(c.tipo_nome)}`
                 }
-                className="grid gap-2 px-4 py-3 hover:bg-fundo-alt"
+                className="grid gap-2 px-4 py-3 hover:bg-fundo-hover"
               >
                 <span className="flex flex-wrap items-baseline justify-between gap-x-3">
                   <span className="font-medium">{c.titulo}</span>

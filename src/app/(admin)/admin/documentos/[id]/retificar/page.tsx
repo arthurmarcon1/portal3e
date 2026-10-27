@@ -29,7 +29,7 @@ export default paginaProtegida(
     if (documento.status !== "publicado") redirect(`/admin/documentos/${id}`);
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <Link
           href={`/admin/documentos/${id}`}
           className="mb-4 inline-flex items-center gap-1 text-sm text-texto-suave hover:text-texto"

@@ -186,7 +186,7 @@ export function TelaPublicacaoEspelhos({
   if (etapa === "resultado" && resultado && analise) {
     return (
       <div className="grid gap-4">
-        <dl className="grid gap-2 rounded-lg border border-borda bg-fundo-alt px-4 py-4 text-sm sm:grid-cols-3">
+        <dl className="grid gap-2 superficie px-4 py-4 text-sm sm:grid-cols-3">
           <Numero rotulo="Espelhos publicados" valor={resultado.publicados.length} />
           <Numero rotulo="Não publicados" valor={resultado.recusados.length} alerta={resultado.recusados.length > 0} />
           <Numero rotulo="Pessoas sem espelho" valor={analise.semEspelho.length} alerta={analise.semEspelho.length > 0} />
@@ -215,7 +215,7 @@ export function TelaPublicacaoEspelhos({
 
   if (etapa === "publicando") {
     return (
-      <p aria-live="polite" className="rounded-lg border border-borda bg-fundo-alt px-4 py-8 text-center">
+      <p aria-live="polite" className="superficie px-4 py-8 text-center">
         Publicando {progresso.feitos} de {progresso.total}… Não feche esta página.
       </p>
     );
@@ -228,7 +228,7 @@ export function TelaPublicacaoEspelhos({
           Competência <strong className="text-texto">{rotuloCompetencia(analise.competencia)}</strong> ·{" "}
           {arquivos.length} {arquivos.length === 1 ? "arquivo" : "arquivos"}
         </p>
-        <dl className="grid gap-2 rounded-lg border border-borda bg-fundo-alt px-4 py-4 text-sm sm:grid-cols-3">
+        <dl className="grid gap-2 superficie px-4 py-4 text-sm sm:grid-cols-3">
           <Numero rotulo="Serão publicados" valor={analise.casados.length} />
           <Numero rotulo="Não casados" valor={analise.naoCasados.length} alerta={analise.naoCasados.length > 0} />
           <Numero rotulo="Pessoas sem espelho" valor={analise.semEspelho.length} alerta={analise.semEspelho.length > 0} />
@@ -249,7 +249,7 @@ export function TelaPublicacaoEspelhos({
           vazio="Nenhuma. Toda pessoa esperada tem arquivo."
           itens={analise.semEspelho.map((p) => ({ chave: p.id, principal: p.nome }))}
         />
-        <details className="rounded-lg border border-borda">
+        <details className="superficie">
           <summary className="cursor-pointer px-4 py-2 text-sm font-medium">
             Ver os {analise.casados.length} casamentos
           </summary>
@@ -281,7 +281,7 @@ export function TelaPublicacaoEspelhos({
 
   // ------------------------------------------------------------------
   return (
-    <div className="grid max-w-2xl gap-4">
+    <div className="superficie grid max-w-2xl gap-4 p-5">
       <AvisoErro mensagem={erro} />
 
       <div className="grid gap-x-3 sm:grid-cols-2">
@@ -392,7 +392,7 @@ function ListaArquivos({
   destaque?: boolean;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg border border-borda">
+    <section className="overflow-hidden superficie">
       <h2 className="flex items-center gap-2 border-b border-borda bg-fundo-alt px-4 py-2 text-sm font-medium">
         {itens.length ? (
           <AlertTriangle aria-hidden strokeWidth={1.5} className={cn("size-4", destaque ? "text-alerta" : "text-texto-suave")} />

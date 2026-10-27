@@ -74,7 +74,7 @@ export function AbaAlocacoes({
       </div>
 
       {alocacoes.length === 0 ? (
-        <div className="rounded-lg border border-borda bg-fundo-alt px-4 py-10 text-center">
+        <div className="superficie px-4 py-10 text-center">
           <p className="font-medium">Esta pessoa ainda não foi alocada.</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-texto-suave">
             A alocação liga a pessoa a um contrato, uma unidade e uma função. É por ela
@@ -82,7 +82,7 @@ export function AbaAlocacoes({
           </p>
         </div>
       ) : (
-        <ol className="grid gap-px overflow-hidden rounded-lg border border-borda bg-borda">
+        <ol className="grid gap-px overflow-hidden superficie bg-borda">
           {alocacoes.map((a) => {
             const situacao = SITUACAO[a.status] ?? {
               rotulo: a.status,

@@ -15,13 +15,20 @@
    Tokens da marca — nomes de docs/04
    ------------------------------------------------------------------ */
 :root {
-  --fundo: #ffffff;
-  --fundo-alt: #f6f7f8; /* faixas, cabeçalho de tabela, cards */
-  --borda: #dde1e6;
+  --fundo: #ffffff; /* superfície: card, tabela, navegação, modal */
+  --fundo-alt: #f6f7f8; /* cabeçalho de tabela e faixas dentro de uma superfície */
+  --fundo-pagina: #f4f5f7; /* fundo da área de conteúdo, atrás das superfícies */
+  /* Área do funcionário: hoje igual ao da equipe. Se o cinza sumir no celular em luz
+     forte, escurece um degrau aqui (#eceef1) — e só aqui. */
+  --fundo-pagina-funcionario: var(--fundo-pagina);
+  --fundo-hover: #eef0f2; /* hover de linha e de item de navegação */
+  --borda: #dde1e6; /* divisória e contorno de superfície */
+  --borda-campo: #7e8792; /* contorno de input, select, textarea: 3:1 no branco e no cinza */
   --texto: #1a1d21;
   --texto-suave: #5b6570;
   --acao: #14532d; /* verde institucional 3e — botão primário, links */
   --acao-hover: #0f3d22;
+  --acao-suave: #e8f0eb; /* item de navegação ativo */
   --alerta: #b45309; /* pendência, prazo vencendo */
   --erro: #b42318;
   --sucesso: #15803d;
@@ -44,19 +51,24 @@
   --destructive: var(--erro);
   --destructive-foreground: #ffffff;
   --border: var(--borda);
-  --input: var(--borda);
+  --input: var(--borda-campo);
   --ring: var(--acao);
 
-  --sidebar: var(--fundo-alt);
+  --sidebar: var(--fundo);
   --sidebar-foreground: var(--texto);
   --sidebar-primary: var(--acao);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eceef0;
+  --sidebar-accent: var(--fundo-hover);
   --sidebar-accent-foreground: var(--texto);
   --sidebar-border: var(--borda);
   --sidebar-ring: var(--acao);
 
-  /* Card usa borda, não sombra (docs/04). 8px é o teto de arredondamento. */
+  /* Sombra: card leva borda E esta sombra; só o que flutua (dropdown, popover,
+     modal) leva a elevada. Nada além destas duas (docs/04). */
+  --sombra-card: 0 1px 2px rgb(16 24 40 / 0.06);
+  --sombra-elevada: 0 4px 12px rgb(16 24 40 / 0.08);
+
+  /* 8px é o teto de arredondamento. A exceção nomeada é o avatar, que é círculo. */
   --radius: 8px;
 }
 
@@ -64,11 +76,16 @@
   /* ---- Cores da marca, utilitárias: bg-fundo-alt, text-texto-suave… ---- */
   --color-fundo: var(--fundo);
   --color-fundo-alt: var(--fundo-alt);
+  --color-fundo-pagina: var(--fundo-pagina);
+  --color-fundo-pagina-funcionario: var(--fundo-pagina-funcionario);
+  --color-fundo-hover: var(--fundo-hover);
   --color-borda: var(--borda);
+  --color-borda-campo: var(--borda-campo);
   --color-texto: var(--texto);
   --color-texto-suave: var(--texto-suave);
   --color-acao: var(--acao);
   --color-acao-hover: var(--acao-hover);
+  --color-acao-suave: var(--acao-suave);
   --color-alerta: var(--alerta);
   --color-erro: var(--erro);
   --color-sucesso: var(--sucesso);
@@ -132,17 +149,33 @@
   --radius-3xl: 8px;
   --radius-4xl: 8px;
 
-  /* ---- Sombra: só dropdown, modal e popover. Nunca mais que isto. ---- */
-  --shadow-2xs: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-lg: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-xl: 0 1px 2px rgb(0 0 0 / 0.06);
-  --shadow-2xl: 0 1px 2px rgb(0 0 0 / 0.06);
+  /* ---- Sombra: duas e só duas. shadow-card no card (com borda), shadow-elevada no
+     que flutua. As escalas do shadcn caem numa delas: md para cima é o que ele usa
+     em dropdown, popover e modal. ---- */
+  --shadow-card: var(--sombra-card);
+  --shadow-elevada: var(--sombra-elevada);
+  --shadow-2xs: var(--sombra-card);
+  --shadow-xs: var(--sombra-card);
+  --shadow-sm: var(--sombra-card);
+  --shadow-md: var(--sombra-elevada);
+  --shadow-lg: var(--sombra-elevada);
+  --shadow-xl: var(--sombra-elevada);
+  --shadow-2xl: var(--sombra-elevada);
 
   /* Transição responde a ação do usuário e dura no máximo 150ms. */
   --default-transition-duration: 150ms;
+}
+
+/*
+  Superfície: o bloco branco sobre o fundo da página. Card, tabela, lista, painel,
+  formulário. Borda e sombra juntas — a borda segura a forma onde a sombra some
+  (impressão, tela ruim, luz forte).
+*/
+@utility superficie {
+  background-color: var(--fundo);
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  box-shadow: var(--sombra-card);
 }
 
 @layer base {
