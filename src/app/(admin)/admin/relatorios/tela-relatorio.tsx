@@ -71,7 +71,7 @@ export async function TelaRelatorio({
       </Link>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl">{def.titulo}</h1>
+          <h1 className="text-xl font-semibold">{def.titulo}</h1>
           <p className="mt-1 text-sm text-texto-suave">{def.descricao}</p>
         </div>
         {podeExportar && resultado.ok && !semRastro ? <ExportarRelatorio chave={chave} query={paraQuery(recorte)} /> : null}
@@ -95,12 +95,12 @@ export async function TelaRelatorio({
           </p>
           {resultado.r.resumo && resultado.r.resumo.linhas.length > 0 ? (
             <section className="mb-6">
-              <h2 className="mb-2 text-lg">Resumo</h2>
+              <h2 className="mb-2 text-base font-semibold">Resumo</h2>
               <TabelaSimples tabela={resultado.r.resumo} />
             </section>
           ) : null}
           <section>
-            <h2 className="mb-2 text-lg">Detalhe</h2>
+            <h2 className="mb-2 text-base font-semibold">Detalhe</h2>
             {resultado.r.detalhe.linhas.length === 0 ? (
               <p className="text-texto-suave">Nenhum registro no recorte.</p>
             ) : (

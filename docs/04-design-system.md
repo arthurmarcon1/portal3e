@@ -126,6 +126,23 @@ com a situação da alocação escrita quando não é "Alocado".
 - Escala: 12 / 14 / 16 / 20 / 24 / 32. Corpo **16px na área do funcionário** (14 só na
   área interna, onde a densidade compensa).
 - Sentence case em tudo. Sem ALL CAPS em rótulo.
+- Pesos: 400, 500 e 600. Nada de 700 ou mais.
+
+Papéis na área interna e na do contratante (2026-10-27):
+
+| Papel | Tamanho / peso | Cor |
+|---|---|---|
+| Título de página (`h1`) | 24 / 600 | texto |
+| Subtítulo de página | 14 / 400 | texto-suave |
+| Título de seção ou de card (`h2`) | 16 / 600 | texto |
+| Rótulo de grupo (navegação, blocos do início) | 12 / 500 | texto-suave |
+| Item principal de lista (nome, título) | 14 / 500 | **texto**, link sublinhado no hover e no foco |
+| Linha de apoio | 12 / 400 | texto-suave |
+| Cabeçalho de tabela | 12 / 500 | texto-suave |
+| Link secundário ("Ver todas as pendências") | 14 / 400 | `--acao` |
+
+O item principal da lista sai do verde de propósito: com o nome em verde, toda linha
+competia com o botão primário pelo olhar. O verde fica para ação e para link secundário.
 
 ### Regras rígidas
 

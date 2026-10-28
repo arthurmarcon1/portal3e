@@ -71,7 +71,7 @@ export function TelaDocumentos({
           cell: (ctx) => (
             <Link
               href={`/admin/documentos/${ctx.row.original.id}`}
-              className="font-medium text-acao underline-offset-2 hover:underline"
+              className="font-medium text-texto underline-offset-2 hover:underline focus-visible:underline"
             >
               {ctx.getValue()}
             </Link>

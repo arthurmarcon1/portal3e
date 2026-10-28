@@ -32,7 +32,7 @@ export default paginaProtegida(
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="mb-1 text-xl">Acessos</h1>
+            <h1 className="mb-1 text-xl font-semibold">Acessos</h1>
             <p className="text-sm text-texto-suave">
               Quem entra no Portal, com que perfil e sobre qual escopo.
             </p>

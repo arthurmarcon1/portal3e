@@ -24,7 +24,7 @@ export default paginaProtegida(
           Documentos
         </Link>
 
-        <h1 className="mb-1 text-xl">Novo documento</h1>
+        <h1 className="mb-1 text-xl font-semibold">Novo documento</h1>
         <p className="mb-5 text-sm text-texto-suave">
           O documento é salvo como rascunho. Ninguém recebe nada até você conferir a
           prévia e publicar.

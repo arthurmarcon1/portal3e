@@ -28,7 +28,7 @@ export default paginaProtegida(
           Acessos
         </Link>
 
-        <h1 className="mb-1 text-xl">Perfis e permissões</h1>
+        <h1 className="mb-1 text-xl font-semibold">Perfis e permissões</h1>
         <p className="mb-5 max-w-2xl text-sm text-texto-suave">
           Permissão é dado, não código: marcar uma caixa aqui muda o que o perfil pode
           fazer na hora, sem deploy. Toda alteração vai para a auditoria com o estado

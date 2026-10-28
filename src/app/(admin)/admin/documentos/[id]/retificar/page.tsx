@@ -38,7 +38,7 @@ export default paginaProtegida(
           {documento.titulo}
         </Link>
 
-        <h1 className="mb-1 text-xl">Retificar documento</h1>
+        <h1 className="mb-1 text-xl font-semibold">Retificar documento</h1>
         <p className="mb-5 max-w-2xl text-sm text-texto-suave">
           Cria a versão {documento.versao + 1} como rascunho, para o mesmo público. A versão{" "}
           {documento.versao} continua valendo até você publicar a nova; aí ela é arquivada,

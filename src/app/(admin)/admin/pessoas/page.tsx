@@ -18,7 +18,7 @@ export default paginaProtegida(
 
     return (
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
-        <h1 className="mb-1 text-xl">Pessoas</h1>
+        <h1 className="mb-1 text-xl font-semibold">Pessoas</h1>
         <p className="mb-5 text-sm text-texto-suave">
           O quadro de funcionários e onde cada um está alocado hoje.
         </p>

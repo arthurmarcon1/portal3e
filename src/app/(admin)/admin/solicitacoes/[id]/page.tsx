@@ -45,7 +45,7 @@ export default paginaProtegida(
         </Link>
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
-          <h1 className="text-xl">{s.titulo}</h1>
+          <h1 className="text-xl font-semibold">{s.titulo}</h1>
           <BadgeSituacao status={s.status} perspectiva="interno" />
         </div>
 
@@ -89,7 +89,7 @@ export default paginaProtegida(
             <ListaDeAnexos anexos={s.anexos} />
 
             <div>
-              <h2 className="mb-2 text-base font-medium">Linha do tempo</h2>
+              <h2 className="mb-2 text-base font-semibold">Linha do tempo</h2>
               <LinhaDoTempo eventos={s.eventos} usuarioId={usuario.id} perspectiva="interno" />
             </div>
           </section>

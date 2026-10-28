@@ -246,7 +246,7 @@ export default paginaProtegida(
 
     return (
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
-        <h1 className="text-xl">
+        <h1 className="text-xl font-semibold">
           {saudacao()}, {usuario.nome.split(" ")[0]}
         </h1>
         <p className="mt-1 text-sm text-texto-suave">
@@ -256,13 +256,13 @@ export default paginaProtegida(
 
         {grupos.length > 0 ? (
           <section aria-labelledby="fila" className="mt-6">
-            <h2 id="fila" className="text-lg">
+            <h2 id="fila" className="text-base font-semibold">
               Sua fila
             </h2>
             <div className="mt-3 grid gap-4 md:grid-cols-2">
               {grupos.map((g) => (
                 <div key={g.titulo}>
-                  <h3 className="mb-2 text-sm text-texto-suave">{g.titulo}</h3>
+                  <h3 className="mb-2 text-xs font-medium text-texto-suave">{g.titulo}</h3>
                   <ul className="grid gap-2 sm:grid-cols-2">
                     {g.contadores.map((c) => (
                       <li key={c.href}>
@@ -280,7 +280,7 @@ export default paginaProtegida(
 
         {atalhos.length > 0 ? (
           <section aria-labelledby="atalhos" className="mt-8">
-            <h2 id="atalhos" className="text-lg">
+            <h2 id="atalhos" className="text-base font-semibold">
               Atalhos
             </h2>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -327,7 +327,7 @@ function CienciaEmAndamento({ campanhas }: { campanhas: ProgressoDeCampanha[] })
   return (
     <section aria-labelledby="andamento" className="mt-8">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="andamento" className="text-lg">
+        <h2 id="andamento" className="text-base font-semibold">
           Ciência em andamento
         </h2>
         <Link href="/admin/relatorios/pendencias" className="text-sm text-acao underline-offset-2 hover:underline">

@@ -115,7 +115,7 @@ function GradeDoPerfil({
   return (
     <div className="grid gap-3">
       <div>
-        <h2 className="text-base font-medium">{perfil.nome}</h2>
+        <h2 className="text-base font-semibold">{perfil.nome}</h2>
         {perfil.descricao ? (
           <p className="text-sm text-texto-suave">{perfil.descricao}</p>
         ) : null}

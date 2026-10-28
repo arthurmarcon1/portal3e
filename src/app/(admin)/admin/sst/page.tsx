@@ -22,14 +22,14 @@ export default paginaProtegida(
 
     return (
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
-        <h1 className="mb-1 text-xl">SST</h1>
+        <h1 className="mb-1 text-xl font-semibold">SST</h1>
         <p className="mb-5 text-sm text-texto-suave">
           ASO e treinamentos por vencimento. Para publicar norma, treinamento ou ASO, use Documentos — o vencimento
           é informado ao publicar.
         </p>
 
         <section className="mb-8">
-          <h2 className="text-lg">Por contrato e unidade</h2>
+          <h2 className="text-base font-semibold">Por contrato e unidade</h2>
           {resumo.length === 0 ? (
             <p className="mt-2 text-texto-suave">Nenhum documento com vencimento no seu alcance ainda.</p>
           ) : (
@@ -60,7 +60,7 @@ export default paginaProtegida(
           )}
         </section>
 
-        <h2 className="mb-3 text-lg">Por pessoa</h2>
+        <h2 className="mb-3 text-base font-semibold">Por pessoa</h2>
         <TelaConformidade key={situacao ?? ""} linhas={linhas} situacaoInicial={situacao} />
       </main>
     );

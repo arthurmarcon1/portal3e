@@ -60,7 +60,7 @@ export default paginaProtegida(
         <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl">{documento.titulo}</h1>
+              <h1 className="text-xl font-semibold">{documento.titulo}</h1>
               <BadgeStatus status={documento.status} />
             </div>
             <p className="mt-1 text-sm text-texto-suave">
@@ -184,7 +184,7 @@ function Dados({ documento }: { documento: Documento }) {
 
       {documento.versoes.length > 1 ? (
         <section>
-          <h2 className="mb-2 text-base font-medium">Versões</h2>
+          <h2 className="mb-2 text-base font-semibold">Versões</h2>
           <ol className="divide-y divide-borda superficie text-sm">
             {documento.versoes.map((v) => (
               <li key={v.id} className="flex items-center justify-between gap-2 px-3 py-2">

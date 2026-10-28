@@ -21,7 +21,7 @@ export default paginaProtegida(
           Pessoas
         </Link>
 
-        <h1 className="mb-1 text-xl">Importar pessoas</h1>
+        <h1 className="mb-1 text-xl font-semibold">Importar pessoas</h1>
         <p className="mb-5 text-sm text-texto-suave">
           Envie a planilha do quadro. Nada é gravado antes de você conferir a
           pré-visualização.
