@@ -180,7 +180,9 @@ rígidas acima — nada aqui as relaxa.
   número escrito ao lado ("312 de 340 responderam · 92%"). A barra dá a proporção de
   relance; quem informa é o número. Componente: `src/components/barra-progresso.tsx`.
   Percentual arredonda para baixo: 100% só quando ninguém falta.
-- **Número zerado não some.** "0 solicitações vencidas" é informação; o bloco
+- **Número zerado não some** — no painel de início. Esta regra e a seguinte valem para
+  os contadores do início, não para badge de item de menu (ver "Navegação da equipe").
+  "0 solicitações vencidas" é informação; o bloco
   desaparecido parece defeito. O que some é o bloco inteiro de um módulo que o perfil não
   tem.
 - **Todo contador leva à tela correspondente já filtrada** no recorte que ele conta:
@@ -199,6 +201,36 @@ registro: o valor dela está em a pessoa ter lido e concordado, ou registrado
 divergência. Incentivar a confirmar empurra a clicar sem ler, desestimula a divergência
 e enfraquece o protocolo. O início do funcionário pode **informar** a situação ("12 de 14
 documentos respondidos"); nunca premiar, apressar ou comparar.
+
+### Navegação da equipe
+
+Barra lateral fixa de 240px a partir de 1024px; abaixo disso, um botão "Menu" na barra
+superior abre o mesmo conteúdo num painel (`src/components/nav-lateral.tsx`). Itens
+agrupados por assunto — Início, **Dia a dia** (Solicitações, Documentos, Espelhos),
+**Acompanhamento** (Relatórios, SST), **Cadastro** (Pessoas, Contratantes, Contratos,
+Unidades), **Administração** (Acessos, Auditoria). Rótulo de grupo em 12px,
+`--texto-suave`, sentence case. Item que o perfil não abre não aparece, e grupo vazio
+some (filtro de tela; quem barra é `paginaProtegida`). Nome de quem entrou e Sair no pé
+da barra.
+
+Item ativo: fundo `--acao-suave`, texto `--acao`, peso 500 e `aria-current="page"` —
+fundo e peso além da cor, sem barrinha lateral.
+
+**Badge** (decisão do Arthur, 2026-10-27):
+
+- **Informa e some no zero.** Badge "0" em todo item é ruído; o início continua
+  mostrando os zeros.
+- **Não é o contador do início.** O que leva ao recorte exato é o contador do início.
+  Mas o item com badge **abre a tela num filtro onde os itens contados aparecem de
+  primeira** — badge dizendo 2 e lista mostrando 47 sem destaque é pior que badge
+  nenhum: Solicitações → `?responsavel=comigo`, Documentos → `?situacao=rascunho`, SST →
+  `?situacao=vencido`. Com o badge em zero, o item abre a tela inteira.
+- Mesmas consultas do início, com o client do usuário (a RLS decide o número). Neutro
+  por padrão; `--alerta` só no que conta algo vencido. O número entra no nome acessível
+  ("Solicitações, 2 em aberto com você").
+- Badge é adorno: se a contagem falhar, o item aparece sem ele, e a navegação não cai.
+- O layout persiste entre navegações, então o badge se atualiza ao recarregar ou quando
+  uma Server Action chama `revalidatePath` — o que outra pessoa fez não aparece na hora.
 
 ### Início da equipe interna (`/admin`)
 

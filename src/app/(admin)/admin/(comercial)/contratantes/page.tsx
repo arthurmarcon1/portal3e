@@ -18,7 +18,7 @@ export default paginaProtegida(
     ]);
 
     return (
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <h1 className="mb-1 text-xl">Contratantes</h1>
         <p className="mb-5 text-sm text-texto-suave">
           As empresas clientes que contratam mão de obra da 3e.
