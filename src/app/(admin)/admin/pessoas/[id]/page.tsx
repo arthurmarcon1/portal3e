@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
+import { AvatarPessoa } from "@/components/avatar-pessoa";
 import { BadgeStatus } from "@/components/badge-status";
 import { Button } from "@/components/ui/button";
 import { contratosParaAlocacao, buscarPessoa } from "@/features/pessoas/queries";
@@ -76,16 +77,19 @@ export default paginaProtegida(
           Pessoas
         </Link>
 
-        <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl">{pessoa.nome}</h1>
-              <BadgeStatus status={pessoa.status} />
+        <div className="superficie mb-6 flex flex-wrap items-center justify-between gap-4 p-5">
+          <div className="flex min-w-0 items-center gap-4">
+            <AvatarPessoa nome={pessoa.nome} semente={pessoa.id} tamanho={64} />
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-semibold">{pessoa.nome}</h1>
+                <BadgeStatus status={pessoa.status} />
+              </div>
+              <p className="mt-1 text-sm text-texto-suave tabular-nums">
+                CPF {formatarCpf(pessoa.cpf)}
+                {pessoa.matricula ? ` · matrícula ${pessoa.matricula}` : ""}
+              </p>
             </div>
-            <p className="mt-1 text-sm text-texto-suave tabular-nums">
-              CPF {formatarCpf(pessoa.cpf)}
-              {pessoa.matricula ? ` · matrícula ${pessoa.matricula}` : ""}
-            </p>
           </div>
           {podeEditar ? <AcoesPessoa pessoa={pessoa} /> : null}
         </div>

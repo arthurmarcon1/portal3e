@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Plus, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { AvatarPessoa } from "@/components/avatar-pessoa";
 import { BadgeStatus } from "@/components/badge-status";
 import { FiltroSelecao, TODOS } from "@/components/tabela/filtro-selecao";
 import { FiltroSituacao, useFiltroSituacao } from "@/components/tabela/filtro-situacao";
@@ -104,29 +105,27 @@ export function TelaPessoas({
     () =>
       helper.columns([
         helper.accessor("nome", {
-          header: "Nome",
-          cell: (ctx) => (
-            <Link
-              href={`/admin/pessoas/${ctx.row.original.id}`}
-              className="font-medium text-acao underline-offset-2 hover:underline"
-            >
-              {ctx.getValue()}
-            </Link>
-          ),
-        }),
-        helper.accessor("cpf", {
-          header: "CPF",
-          cell: (ctx) => (
-            <span className="tabular-nums whitespace-nowrap">
-              {formatarCpf(ctx.getValue())}
-            </span>
-          ),
-        }),
-        helper.accessor("matricula", {
-          header: "Matrícula",
-          cell: (ctx) => (
-            <span className="tabular-nums">{ctx.getValue() ?? "—"}</span>
-          ),
+          header: "Pessoa",
+          cell: (ctx) => {
+            const p = ctx.row.original;
+            return (
+              <div className="flex items-center gap-3">
+                <AvatarPessoa nome={p.nome} semente={p.id} />
+                <div className="min-w-0">
+                  <Link
+                    href={`/admin/pessoas/${p.id}`}
+                    className="font-medium text-texto underline-offset-2 hover:underline focus-visible:underline"
+                  >
+                    {ctx.getValue()}
+                  </Link>
+                  <span className="block text-xs text-texto-suave tabular-nums whitespace-nowrap">
+                    {p.matricula ? `Matrícula ${p.matricula} · ` : ""}
+                    {formatarCpf(p.cpf)}
+                  </span>
+                </div>
+              </div>
+            );
+          },
         }),
         helper.display({
           id: "alocacao",
@@ -137,28 +136,21 @@ export function TelaPessoas({
               return <span className="text-alerta">Sem alocação</span>;
             }
             return (
-              <span>
-                {primeira.contrato_numero} · {primeira.unidade_nome}
-                {resto.length > 0 ? ` e mais ${resto.length}` : ""}
-              </span>
-            );
-          },
-        }),
-        helper.display({
-          id: "funcao",
-          header: "Função",
-          cell: (ctx) => {
-            const primeira = ctx.row.original.vigentes[0];
-            if (!primeira) return <span className="text-texto-suave">—</span>;
-            return (
-              <span>
-                {primeira.funcao}
-                {primeira.status !== "ativa" ? (
-                  <span className="block text-xs text-alerta">
-                    {SITUACAO_ALOCACAO[primeira.status] ?? primeira.status}
-                  </span>
-                ) : null}
-              </span>
+              <div>
+                <span className="block">
+                  {primeira.contrato_numero} · {primeira.unidade_nome}
+                  {resto.length > 0 ? ` e mais ${resto.length}` : ""}
+                </span>
+                <span className="block text-xs text-texto-suave">
+                  {primeira.funcao}
+                  {primeira.status !== "ativa" ? (
+                    <span className="text-alerta">
+                      {" · "}
+                      {SITUACAO_ALOCACAO[primeira.status] ?? primeira.status}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
             );
           },
         }),

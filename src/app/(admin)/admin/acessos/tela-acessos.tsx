@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { AvatarPessoa } from "@/components/avatar-pessoa";
 import { BadgeStatus } from "@/components/badge-status";
 import { DialogoConfirmacao } from "@/components/dialogo-confirmacao";
 import { MenuLinha } from "@/components/menu-linha";
@@ -67,11 +68,18 @@ export function TelaAcessos({
         helper.accessor("nome", {
           header: "Nome",
           cell: (ctx) => (
-            <div>
-              <span className="font-medium">{ctx.getValue()}</span>
-              <span className="block text-xs break-all text-texto-suave">
-                {ctx.row.original.email_login}
-              </span>
+            <div className="flex items-center gap-3">
+              {/* Funcionário pela pessoa: a mesma cor que ele tem em Pessoas. */}
+              <AvatarPessoa
+                nome={ctx.getValue()}
+                semente={ctx.row.original.pessoa_id ?? ctx.row.original.id}
+              />
+              <div className="min-w-0">
+                <span className="font-medium">{ctx.getValue()}</span>
+                <span className="block text-xs break-all text-texto-suave">
+                  {ctx.row.original.email_login}
+                </span>
+              </div>
             </div>
           ),
         }),

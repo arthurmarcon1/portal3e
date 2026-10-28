@@ -89,6 +89,36 @@ significado junto com texto ou ícone — nunca sozinha (daltonismo e impressão
 - A tabela padrão (`TabelaDados`) é uma superfície só: busca e filtros no topo, tabela,
   paginação no rodapé.
 
+### Avatar
+
+Iniciais em círculo ao lado do nome, em toda lista e ficha de pessoa da área interna
+(Pessoas, ficha, Acessos, SST, pé da navegação). Componente
+`src/components/avatar-pessoa.tsx`; regra em `src/lib/avatar.ts`, com teste.
+
+- **Tamanhos:** 24 (navegação), 32 (lista), 64 (ficha).
+- **Iniciais:** primeira letra do primeiro nome + primeira do último; partículas (da,
+  de, do, das, dos, e) não contam; uma palavra só dá uma letra; acento fica.
+- **Cor estável:** FNV-1a 32 bits do **id** da pessoa, módulo 8. Id, e não nome
+  (homônimos teriam a mesma cor, e corrigir a grafia trocaria a cor), nem CPF (não vira
+  insumo de nada no navegador). Usuário funcionário usa o id da pessoa, para ter a mesma
+  cor em Acessos e em Pessoas.
+- **Paleta** (`--avatar-N-fundo` / `--avatar-N-texto`): fundo claro, texto escuro do
+  mesmo tom, todos acima de 6:1 — ardósia, azul, índigo, violeta, ameixa, petróleo,
+  sépia, grafite. **Sem verde, âmbar e vermelho**: já significam ação, alerta e erro.
+- **A cor não significa nada.** O avatar é `aria-hidden`; o nome está sempre escrito
+  ao lado.
+- **Sem avatar na área do funcionário**: quem já sabe quem é não ganha nada com as
+  próprias iniciais, e o espaço no celular é disputado.
+- **Só iniciais por enquanto.** Foto precisa de caminho próprio no Storage, decidido à
+  parte (docs/06, "Foto de perfil exige caminho próprio").
+- Listas cujo assunto é o pedido ou o documento (Solicitações, Documentos) não levam
+  avatar.
+
+**Hierarquia na lista de pessoas:** nome em 14px peso 500 na cor de texto (link de
+verdade, sublinhado no hover e no foco), linha de apoio em 12px `--texto-suave`
+(matrícula · CPF). Alocação também em duas linhas: contrato · unidade, e função embaixo,
+com a situação da alocação escrita quando não é "Alocado".
+
 ### Tipografia
 
 - **Inter** (variável), uma família só. Corporativo, alta legibilidade em tela pequena,

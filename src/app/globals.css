@@ -63,6 +63,18 @@
   --sidebar-border: var(--borda);
   --sidebar-ring: var(--acao);
 
+  /* Avatar de iniciais: fundo claro, texto escuro do mesmo tom (6:1 ou mais).
+     Sem verde, âmbar e vermelho — já significam ação, alerta e erro. A cor não
+     significa nada; o índice sai de `corDoAvatar` (src/lib/avatar.ts). */
+  --avatar-0-fundo: #e3e7ec; --avatar-0-texto: #334155; /* ardósia */
+  --avatar-1-fundo: #dbe4f5; --avatar-1-texto: #1e3a8a; /* azul */
+  --avatar-2-fundo: #e0dff5; --avatar-2-texto: #312e81; /* índigo */
+  --avatar-3-fundo: #ebe3f7; --avatar-3-texto: #5b21b6; /* violeta */
+  --avatar-4-fundo: #f5e1f3; --avatar-4-texto: #86198f; /* ameixa */
+  --avatar-5-fundo: #d9eef2; --avatar-5-texto: #155e75; /* petróleo */
+  --avatar-6-fundo: #f1e6d8; --avatar-6-texto: #713f12; /* sépia */
+  --avatar-7-fundo: #e7e5e4; --avatar-7-texto: #3f3f46; /* grafite */
+
   /* Sombra: card leva borda E esta sombra; só o que flutua (dropdown, popover,
      modal) leva a elevada. Nada além destas duas (docs/04). */
   --sombra-card: 0 1px 2px rgb(16 24 40 / 0.06);

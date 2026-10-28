@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { AvatarPessoa } from "@/components/avatar-pessoa";
 import { FiltroSelecao, TODOS } from "@/components/tabela/filtro-selecao";
 import { criarColunas, TabelaDados, type ColunaDe } from "@/components/tabela/tabela-dados";
 import { formatarData } from "@/features/documentos/formato";
@@ -57,7 +58,15 @@ export function TelaConformidade({
   const colunas = useMemo<ColunaDe<LinhaDeConformidade>[]>(
     () =>
       helper.columns([
-        helper.accessor("pessoa_nome", { header: "Pessoa", cell: (ctx) => <span className="font-medium">{ctx.getValue()}</span> }),
+        helper.accessor("pessoa_nome", {
+          header: "Pessoa",
+          cell: (ctx) => (
+            <span className="flex items-center gap-3">
+              <AvatarPessoa nome={ctx.getValue()} semente={ctx.row.original.pessoa_id} />
+              <span className="font-medium">{ctx.getValue()}</span>
+            </span>
+          ),
+        }),
         helper.accessor("titulo", {
           header: "Documento",
           cell: (ctx) => (

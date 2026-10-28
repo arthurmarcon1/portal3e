@@ -360,6 +360,20 @@ resposta definitiva e o que muda quando ela vier. Até lá, valem como decididas
 
 ## Decisões já tomadas (registro)
 
+- **2026-10-27 — Foto de perfil exige caminho próprio; por ora, só iniciais** (decisão do
+  Arthur). O redesign pôs avatar em listas e fichas. Com foto, cada avatar sairia pela
+  regra de arquivo do invariante 3 — URL assinada gerada por rota que grava `auditoria`
+  —, e uma lista de 50 pessoas viraria 50 downloads auditados a cada abertura: a trilha
+  se enche de ruído e o que importa (download de documento sensível) se perde. **Foto
+  não é documento.** Quando entrar, entra com caminho próprio: bucket dedicado, URL
+  assinada de TTL curto emitida em lote para a lista, **provavelmente sem auditoria por
+  imagem** (a auditoria fica na troca da foto, não na exibição). Até lá, `foto_path`
+  continua sem uso e o avatar é de iniciais (`src/components/avatar-pessoa.tsx`).
+  **Ainda em aberto, para quando a foto entrar:** quem envia (funcionário, RH ou
+  ambos), consentimento (LGPD — foto é dado pessoal) e se o contratante vê. O docs/02
+  promete foto ao contratante, mas isso pede coluna nova em `quadro_do_contratante()`
+  (invariante 10), com teste campo a campo.
+
 - **2026-10-22 — Rota de job não passa pelo proxy** (decisão do Arthur). Achado no
   primeiro deploy de produção: o matcher do proxy cobria `/api/jobs/notificacoes`, e o
   proxy manda para `/login` toda rota sem sessão — o cron da Vercel não tem usuário,

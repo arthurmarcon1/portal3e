@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { AvatarPessoa } from "@/components/avatar-pessoa";
 import { BotaoSair } from "@/components/botao-sair";
 import { NavLateral, type GrupoNav, type ItemNav } from "@/components/nav-lateral";
 import { hojeEmBrasilia } from "@/features/documentos/funcionario";
@@ -139,7 +140,10 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
 
   const rodape = (
     <div className="flex items-center justify-between gap-2 px-3">
-      <span className="min-w-0 truncate text-sm font-medium">{usuario.nome}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        <AvatarPessoa nome={usuario.nome} semente={usuario.id} tamanho={24} />
+        <span className="truncate text-sm font-medium">{usuario.nome}</span>
+      </span>
       <BotaoSair />
     </div>
   );
