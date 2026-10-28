@@ -281,6 +281,12 @@ log no primeiro insert que falhasse.
   `login_bloqueado`. Contar faria o bloqueio de quem insiste — o dono da conta, quase
   sempre — nunca terminar.
 - `login` e `senha_redefinida` zeram a contagem.
+- **Falha do próprio Auth não é tentativa** (2026-10-28): limite de taxa (429), servidor
+  fora (5xx) e rede (status 0) não testaram a senha. Gravam `falha_login` com `motivo =
+  'servico_indisponivel'` e **sem** `chave_login`, então não contam para o bloqueio, e a
+  tela diz que a senha não foi recusada, sem citar cadastro. Antes disso, um soluço do
+  Auth aparecia como "senha incorreta" e somava para bloquear quem digitou certo. Regra
+  em `falhaDoServico` (`src/lib/auth/bloqueio.ts`); erro sem status continua contando.
 - A chave é `detalhes.chave_login`, **HMAC** do e-mail de login com segredo derivado da
   `service_role` — nunca o CPF em claro, e não sha256 simples, que se desfaz por força
   bruta nos 10⁹ CPFs possíveis. Existe também para identificador sem cadastro: CPF

@@ -98,3 +98,28 @@ export function mensagemDeBloqueio(ate: Date, agora: Date): string {
     "Se esqueceu a senha, use “Esqueci minha senha”."
   );
 }
+
+/**
+ * O erro do Supabase Auth é do serviço, não da senha?
+ *
+ * Limite de taxa (429), servidor fora (5xx) e falha de rede (status 0, do
+ * `AuthRetryableFetchError`) não testaram a senha: contá-los como `falha_login`
+ * bloquearia quem digitou certo durante um soluço do Auth, e dizer "senha
+ * incorreta" mandaria a pessoa trocar uma senha que está certa. Qualquer outro
+ * erro — inclusive sem status — continua sendo tratado como credencial
+ * inválida, que é o lado seguro: na dúvida, conta para o bloqueio.
+ */
+export function falhaDoServico(erro: { status?: number; name?: string } | null): boolean {
+  if (!erro) return false;
+  if (erro.name === "AuthRetryableFetchError") return true;
+  const status = erro.status;
+  if (status === undefined) return false;
+  return status === 0 || status === 429 || status >= 500;
+}
+
+/**
+ * Mensagem para falha do serviço. Igual para quem tem e quem não tem cadastro
+ * — a senha não foi testada, então a tela não pode revelar se o CPF existe.
+ */
+export const ERRO_SERVICO_LOGIN =
+  "Não foi possível entrar agora: o Portal não conseguiu conferir sua senha. Ela não foi recusada. Espere alguns minutos e tente de novo.";

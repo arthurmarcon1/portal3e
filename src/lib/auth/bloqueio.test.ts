@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   avaliarBloqueio,
+  falhaDoServico,
   JANELA_MINUTOS,
   LIMITE_FALHAS,
   mensagemDeBloqueio,
@@ -88,5 +89,22 @@ describe("mensagemDeBloqueio", () => {
 
   it("no singular e nunca em zero", () => {
     expect(mensagemDeBloqueio(new Date(AGORA.getTime() + 5_000), AGORA)).toContain("daqui a 1 minuto)");
+  });
+});
+
+describe("falhaDoServico", () => {
+  it("limite de taxa, servidor fora e rede são do serviço", () => {
+    expect(falhaDoServico({ status: 429 })).toBe(true);
+    expect(falhaDoServico({ status: 500 })).toBe(true);
+    expect(falhaDoServico({ status: 503 })).toBe(true);
+    expect(falhaDoServico({ status: 0 })).toBe(true);
+    expect(falhaDoServico({ name: "AuthRetryableFetchError", status: 400 })).toBe(true);
+  });
+
+  it("senha errada e erro sem status contam como credencial — na dúvida, bloqueia", () => {
+    expect(falhaDoServico({ status: 400, name: "AuthApiError" })).toBe(false);
+    expect(falhaDoServico({ status: 422 })).toBe(false);
+    expect(falhaDoServico({})).toBe(false);
+    expect(falhaDoServico(null)).toBe(false);
   });
 });

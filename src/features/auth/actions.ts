@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 
 import { registrarAuditoria } from "@/lib/audit";
-import { mensagemDeBloqueio } from "@/lib/auth/bloqueio";
+import { ERRO_SERVICO_LOGIN, falhaDoServico, mensagemDeBloqueio } from "@/lib/auth/bloqueio";
 import { gerarCodigo, validarCodigo, VALIDADE_MINUTOS } from "@/lib/auth/codigos";
 import {
   mascararIdentificador,
@@ -109,6 +109,22 @@ export async function entrar(entrada: EntradaLogin): Promise<ResultadoLogin> {
     email: identificador.email,
     password: validado.data.senha,
   });
+
+  // Falha do Auth (limite de taxa, servidor, rede): a senha não foi testada.
+  // Fica na trilha, mas sem `chave_login` — não é palpite, não conta para o
+  // bloqueio — e a tela não diz "senha incorreta".
+  if (error && falhaDoServico(error)) {
+    console.error("[login] Supabase Auth indisponível", error.status, error.message);
+    await registrarAuditoria({
+      acao: "falha_login",
+      entidade: "usuarios",
+      entidadeId: cadastro?.id ?? null,
+      usuarioId: cadastro?.id ?? null,
+      orgId,
+      detalhes: { identificador: mascarado, motivo: "servico_indisponivel", status: error.status ?? null },
+    });
+    return { ok: false, erro: ERRO_SERVICO_LOGIN };
+  }
 
   if (error || !data.user) {
     await registrarAuditoria({
