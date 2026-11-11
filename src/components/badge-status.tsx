@@ -17,6 +17,12 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   vencido: { rotulo: "Vencido", classe: "border-erro/30 text-erro" },
   confirmacao: { rotulo: "Confirmado", classe: "border-sucesso/30 text-sucesso" },
   divergencia: { rotulo: "Em divergência", classe: "border-erro/30 text-erro" },
+  // Financeiro do contrato (0029): competência e lançamento.
+  aberta: { rotulo: "Aberta", classe: "border-alerta/30 text-alerta" },
+  fechada: { rotulo: "Fechada", classe: "border-borda text-texto-suave" },
+  confirmado: { rotulo: "Confirmado", classe: "border-sucesso/30 text-sucesso" },
+  em_conferencia: { rotulo: "A conferir", classe: "border-alerta/30 text-alerta" },
+  descartado: { rotulo: "Descartado", classe: "border-borda text-texto-suave" },
 };
 
 /**

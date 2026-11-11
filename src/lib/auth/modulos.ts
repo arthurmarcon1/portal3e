@@ -8,7 +8,7 @@
  * o banco recusa.
  *
  * O `check` de `perfil_permissoes` reproduz estas listas no banco (migração
- * 0001). Módulo novo entra aqui, lá, e na matriz de docs/02.
+ * 0001, refeito na 0029). Módulo novo entra aqui, lá, e na matriz de docs/02.
  */
 
 export const MODULOS = [
@@ -21,6 +21,7 @@ export const MODULOS = [
   "sst",
   "relatorios",
   "administracao",
+  "financeiro",
 ] as const;
 
 export const ACOES = ["ver", "criar", "editar", "excluir", "exportar"] as const;
@@ -39,6 +40,7 @@ export const ROTULOS_MODULO: Record<Modulo, string> = {
   sst: "SST",
   relatorios: "Relatórios",
   administracao: "Administração",
+  financeiro: "Financeiro",
 };
 
 export const ROTULOS_ACAO: Record<Acao, string> = {

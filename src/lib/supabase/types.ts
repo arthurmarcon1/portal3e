@@ -325,6 +325,77 @@ export type Database = {
           },
         ]
       }
+      competencias: {
+        Row: {
+          atualizado_em: string
+          contrato_id: string
+          criado_em: string
+          fechada_em: string | null
+          fechada_por: string | null
+          id: string
+          mes: string
+          observacao: string | null
+          org_id: string
+          planilha_id: string
+          status: Database["public"]["Enums"]["status_competencia"]
+        }
+        Insert: {
+          atualizado_em?: string
+          contrato_id: string
+          criado_em?: string
+          fechada_em?: string | null
+          fechada_por?: string | null
+          id?: string
+          mes: string
+          observacao?: string | null
+          org_id: string
+          planilha_id: string
+          status?: Database["public"]["Enums"]["status_competencia"]
+        }
+        Update: {
+          atualizado_em?: string
+          contrato_id?: string
+          criado_em?: string
+          fechada_em?: string | null
+          fechada_por?: string | null
+          id?: string
+          mes?: string
+          observacao?: string | null
+          org_id?: string
+          planilha_id?: string
+          status?: Database["public"]["Enums"]["status_competencia"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competencias_contrato_fk"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competencias_fechada_por_fk"
+            columns: ["fechada_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competencias_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "competencias_planilha_fk"
+            columns: ["planilha_id", "contrato_id"]
+            isOneToOne: false
+            referencedRelation: "planilhas_de_custo"
+            referencedColumns: ["id", "contrato_id"]
+          },
+        ]
+      }
       contratantes: {
         Row: {
           atualizado_em: string
@@ -657,6 +728,166 @@ export type Database = {
           },
         ]
       }
+      lancamento_anexos: {
+        Row: {
+          arquivo_path: string
+          bytes: number
+          criado_em: string
+          enviado_por: string | null
+          id: string
+          lancamento_id: string
+          mime: string
+          nome: string
+          org_id: string
+        }
+        Insert: {
+          arquivo_path: string
+          bytes: number
+          criado_em?: string
+          enviado_por?: string | null
+          id?: string
+          lancamento_id: string
+          mime: string
+          nome: string
+          org_id: string
+        }
+        Update: {
+          arquivo_path?: string
+          bytes?: number
+          criado_em?: string
+          enviado_por?: string | null
+          id?: string
+          lancamento_id?: string
+          mime?: string
+          nome?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamento_anexos_enviado_por_fk"
+            columns: ["enviado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamento_anexos_lancamento_fk"
+            columns: ["lancamento_id"]
+            isOneToOne: false
+            referencedRelation: "lancamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamento_anexos_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lancamentos: {
+        Row: {
+          atualizado_em: string
+          categoria: string
+          competencia_id: string
+          conferido_em: string | null
+          conferido_por: string | null
+          contrato_id: string
+          criado_em: string
+          criado_por: string | null
+          data_documento: string | null
+          descricao: string
+          id: string
+          motivo_descarte: string | null
+          natureza: Database["public"]["Enums"]["natureza_lancamento"]
+          org_id: string
+          origem: Database["public"]["Enums"]["origem_lancamento"]
+          posto_id: string | null
+          status: Database["public"]["Enums"]["status_lancamento"]
+          sugestao: Json | null
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria: string
+          competencia_id: string
+          conferido_em?: string | null
+          conferido_por?: string | null
+          contrato_id: string
+          criado_em?: string
+          criado_por?: string | null
+          data_documento?: string | null
+          descricao: string
+          id?: string
+          motivo_descarte?: string | null
+          natureza: Database["public"]["Enums"]["natureza_lancamento"]
+          org_id: string
+          origem?: Database["public"]["Enums"]["origem_lancamento"]
+          posto_id?: string | null
+          status?: Database["public"]["Enums"]["status_lancamento"]
+          sugestao?: Json | null
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          categoria?: string
+          competencia_id?: string
+          conferido_em?: string | null
+          conferido_por?: string | null
+          contrato_id?: string
+          criado_em?: string
+          criado_por?: string | null
+          data_documento?: string | null
+          descricao?: string
+          id?: string
+          motivo_descarte?: string | null
+          natureza?: Database["public"]["Enums"]["natureza_lancamento"]
+          org_id?: string
+          origem?: Database["public"]["Enums"]["origem_lancamento"]
+          posto_id?: string | null
+          status?: Database["public"]["Enums"]["status_lancamento"]
+          sugestao?: Json | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_competencia_fk"
+            columns: ["competencia_id", "contrato_id"]
+            isOneToOne: false
+            referencedRelation: "competencias"
+            referencedColumns: ["id", "contrato_id"]
+          },
+          {
+            foreignKeyName: "lancamentos_conferido_por_fk"
+            columns: ["conferido_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_criado_por_fk"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_posto_fk"
+            columns: ["posto_id"]
+            isOneToOne: false
+            referencedRelation: "planilha_postos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes: {
         Row: {
           assunto: string
@@ -892,6 +1123,154 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pessoas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planilha_postos: {
+        Row: {
+          beneficios: number
+          cargo: string
+          criado_em: string
+          custos_indiretos: number
+          encargos: number
+          id: string
+          insumos: number
+          lucro: number
+          ordem: number
+          org_id: string
+          planilha_id: string
+          quantidade: number
+          remuneracao: number
+          salario_base: number
+          tributos: number
+          valor_total: number | null
+          valor_unitario: number
+        }
+        Insert: {
+          beneficios?: number
+          cargo: string
+          criado_em?: string
+          custos_indiretos?: number
+          encargos?: number
+          id?: string
+          insumos?: number
+          lucro?: number
+          ordem?: number
+          org_id: string
+          planilha_id: string
+          quantidade: number
+          remuneracao?: number
+          salario_base?: number
+          tributos?: number
+          valor_total?: never
+          valor_unitario: number
+        }
+        Update: {
+          beneficios?: number
+          cargo?: string
+          criado_em?: string
+          custos_indiretos?: number
+          encargos?: number
+          id?: string
+          insumos?: number
+          lucro?: number
+          ordem?: number
+          org_id?: string
+          planilha_id?: string
+          quantidade?: number
+          remuneracao?: number
+          salario_base?: number
+          tributos?: number
+          valor_total?: never
+          valor_unitario?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planilha_postos_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planilha_postos_planilha_fk"
+            columns: ["planilha_id"]
+            isOneToOne: false
+            referencedRelation: "planilhas_de_custo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      planilhas_de_custo: {
+        Row: {
+          arquivo_nome: string
+          atualizado_em: string
+          contrato_id: string
+          criado_em: string
+          id: string
+          importada_por: string | null
+          meses_execucao: number | null
+          observacao: string | null
+          org_id: string
+          regime_tributario: string | null
+          status: Database["public"]["Enums"]["status_generico"]
+          valor_mensal: number
+          versao: number
+          vigente_desde: string
+        }
+        Insert: {
+          arquivo_nome: string
+          atualizado_em?: string
+          contrato_id: string
+          criado_em?: string
+          id?: string
+          importada_por?: string | null
+          meses_execucao?: number | null
+          observacao?: string | null
+          org_id: string
+          regime_tributario?: string | null
+          status?: Database["public"]["Enums"]["status_generico"]
+          valor_mensal: number
+          versao: number
+          vigente_desde: string
+        }
+        Update: {
+          arquivo_nome?: string
+          atualizado_em?: string
+          contrato_id?: string
+          criado_em?: string
+          id?: string
+          importada_por?: string | null
+          meses_execucao?: number | null
+          observacao?: string | null
+          org_id?: string
+          regime_tributario?: string | null
+          status?: Database["public"]["Enums"]["status_generico"]
+          valor_mensal?: number
+          versao?: number
+          vigente_desde?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planilhas_de_custo_contrato_fk"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planilhas_de_custo_importada_por_fk"
+            columns: ["importada_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "planilhas_de_custo_org_fk"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizacoes"
@@ -1348,6 +1727,21 @@ export type Database = {
         }[]
       }
       gerar_avisos_de_validade: { Args: never; Returns: number }
+      gravar_planilha_de_custo: {
+        Args: {
+          p_arquivo: string
+          p_contrato: string
+          p_meses: number
+          p_observacao: string
+          p_postos: Json
+          p_regime: string
+          p_vigente_desde: string
+        }
+        Returns: {
+          planilha_id: string
+          versao: number
+        }[]
+      }
       importar_pessoas: { Args: { p_linhas: Json }; Returns: Json }
       pendencias_de_ciencia_do_contratante: {
         Args: never
@@ -1447,9 +1841,13 @@ export type Database = {
         | "folha"
         | "jornada"
       escopo_documento: "individual" | "coletivo"
+      natureza_lancamento: "receita" | "despesa"
+      origem_lancamento: "plataforma" | "whatsapp"
       status_alocacao: "ativa" | "afastado" | "ferias" | "encerrada"
+      status_competencia: "aberta" | "fechada"
       status_documento: "rascunho" | "publicado" | "arquivado"
       status_generico: "ativo" | "inativo" | "arquivado"
+      status_lancamento: "confirmado" | "em_conferencia" | "descartado"
       status_solicitacao:
         | "aberta"
         | "em_analise"
@@ -1610,9 +2008,13 @@ export const Constants = {
         "jornada",
       ],
       escopo_documento: ["individual", "coletivo"],
+      natureza_lancamento: ["receita", "despesa"],
+      origem_lancamento: ["plataforma", "whatsapp"],
       status_alocacao: ["ativa", "afastado", "ferias", "encerrada"],
+      status_competencia: ["aberta", "fechada"],
       status_documento: ["rascunho", "publicado", "arquivado"],
       status_generico: ["ativo", "inativo", "arquivado"],
+      status_lancamento: ["confirmado", "em_conferencia", "descartado"],
       status_solicitacao: [
         "aberta",
         "em_analise",

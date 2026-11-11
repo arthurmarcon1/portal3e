@@ -627,3 +627,38 @@ ASO. O jurídico ainda fecha os definitivos por categoria — ver
 `documentos.prazo_ciencia` é a **data** efetiva daquele documento, preenchida na
 publicação a partir do padrão e editável. Tipo sem ciência não tem prazo (constraint).
 Provisório: 5 dias, lembrete no 3º dia (docs/06).
+
+## Financeiro do contrato (migração 0029)
+
+O que a 3e cobra de cada contrato, o que gasta nele mês a mês e o resultado. Interno
+só: toda policy exige `app.tipo() = 'interno'`, `financeiro:<ação>` e o contrato em
+`app.contratos_permitidos()` — o predicado único é `app.financeiro_alcanca(contrato, ação)`.
+O contratante (inclusive o Adm./Financeiro do cliente) não lê nada destas tabelas.
+
+| Tabela | O que é | Ciclo de vida |
+|---|---|---|
+| `planilhas_de_custo` | Base do contrato, da planilha de custos e formação de preços da licitação. **Versionada**: aditivo, reajuste ou repactuação = versão nova, com `vigente_desde` (1º dia do mês). | `status` ativo/inativo. Sem DELETE. |
+| `planilha_postos` | Cargo × quantidade × valor unitário cobrado, com a composição por empregado (módulos 1–5). `valor_total` é coluna gerada. | Imutável: muda com versão nova. |
+| `competencias` | O mês do contrato. Aponta para a planilha vigente no mês (FK composta garante que é do mesmo contrato). | `aberta` → `fechada` → (reabrir). Não fecha com lançamento `em_conferencia`. |
+| `lancamentos` | O realizado: nota emitida, glosa, folha, encargos, férias, viagem, alimentação, EPI… `natureza` + `categoria` (check casado). `origem` plataforma/whatsapp. `sugestao jsonb` guarda o que a IA leu. | `confirmado`, `em_conferencia`, `descartado` (com motivo, sem volta). Competência fechada não aceita insert nem update (gatilho). |
+| `lancamento_anexos` | Foto ou PDF do comprovante, bucket privado `financeiro`. | Imutável. Download só por `/api/financeiro/anexos/[id]`, com auditoria. |
+
+**Regras de cálculo** (`src/features/financeiro/painel.ts`, com teste):
+
+- previsto do mês = postos da planilha da competência × quantidade;
+- realizado = só lançamento `confirmado`; `em_conferencia` aparece à parte;
+- glosa subtrai da receita; tributo sem lançamento no mês é estimado pela alíquota
+  efetiva da planilha e a tela diz que estimou;
+- a nota fica na competência do serviço; o caixa (data do pagamento) ainda não é
+  modelado — ver docs/06.
+
+**Categorias** (`categorias.ts` ↔ check de `lancamentos`): receita — `faturamento`,
+`extra`, `glosa`; pessoal — `folha`, `encargos`, `beneficios`, `ferias_13`, `rescisao`;
+insumos — `epi_uniforme`, `materiais`, `equipamentos`; despesas do contrato — `viagem`,
+`alimentacao`, `deslocamento`, `exames_treinamentos`, `outros`; `tributos`.
+
+**IA plugável** (`ia.ts`): a IA sugere, a equipe confere. `sugestaoParaLancamento` manda
+para `em_conferencia` toda sugestão com dúvida, categoria desconhecida, posto ambíguo
+ou confiança abaixo de 0,8. Nenhum fornecedor configurado ainda (`leitorConfigurado()`
+devolve `null`).
+

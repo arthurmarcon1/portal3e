@@ -17,6 +17,7 @@ import {
   ScrollText,
   ShieldCheck,
   Users,
+  Wallet,
   X,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -30,6 +31,7 @@ const ICONES = {
   documentos: FileText,
   espelhos: CalendarCheck,
   relatorios: BarChart3,
+  financeiro: Wallet,
   sst: HardHat,
   pessoas: Users,
   contratantes: Building2,

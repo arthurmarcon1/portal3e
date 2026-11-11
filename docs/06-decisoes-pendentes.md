@@ -270,6 +270,24 @@ custa mais caro.
 
 ---
 
+## Financeiro do contrato (0029) — o que ficou em aberto
+
+- [ ] **Fornecedor da IA** (transcrição do áudio + leitura da foto + extração). Decisão
+      do Arthur (2026-11-11): interface plugável (`src/features/financeiro/ia.ts`), sem
+      fornecedor até ter a chave. Sem leitor, o lançamento é pela tela.
+- [ ] **Número e conta do WhatsApp Business** (API oficial da Meta). Próxima etapa:
+      webhook que grava pelo mesmo caminho de `criarLancamento`, com `origem = whatsapp`
+      e `em_conferencia` quando houver dúvida. Quem envia é reconhecido pelo telefone de
+      `usuarios`.
+- [ ] **Suporte/Auditoria no financeiro.** O perfil é "somente leitura de tudo", mas
+      `financeiro:ver` não foi dado a ele sem decisão — hoje só Admin geral, Financeiro
+      (V C E R) e Contratos (V).
+- [ ] **Caixa.** A competência guarda a nota no mês do serviço; recebimento por data de
+      entrada no banco (slide 6 do fluxo de terceirização) ainda não tem tabela.
+- [ ] **Quem confere** os lançamentos em dúvida: hoje qualquer um com `financeiro:editar`.
+- [ ] **.xls antigo.** A importação aceita só .xlsx: o `xlsx` do npm tem CVE sem correção
+      (ver `src/lib/planilha.ts`). A tela diz como converter.
+
 ## Decisões provisórias (registro)
 
 Fechadas para destravar a Fase 3, **todas reversíveis**. Cada uma diz quem dá a

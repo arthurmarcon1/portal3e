@@ -30,6 +30,8 @@ export const PERSONAS = {
   rhDp: { email: "rh_dp@3e.com.br", id: "c4c1bbd3-90c6-5c43-ac35-857b37a96fd3" },
   /** documentos:V C E R · só a categoria jornada. */
   contratos: { email: "contratos@3e.com.br", id: "9e5217c3-52f4-5b8c-bb99-3f3a0342f7e9" },
+  /** financeiro:V C E R · escopo nos contratos de cliente (042, 043, 077). */
+  financeiro: { email: "financeiro@3e.com.br", id: "b8864205-4ba3-5295-886e-f0c8e843f3b8" },
   /** documentos:V, sem editar. administracao:V. */
   suporte: { email: "suporte_auditoria@3e.com.br", id: "e32f544e-472f-58d5-8c6f-40c0272bc44c" },
   /** Contratante, escopo no contrato 042. */

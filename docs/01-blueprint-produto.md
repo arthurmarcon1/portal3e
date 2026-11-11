@@ -27,6 +27,7 @@ precisa e deixa registro do que fez.
 | Gestão por contrato, unidade e perfil | Folha de pagamento (cálculo) |
 | Espelho mensal **já fechado** | Gestão de estagiários (segue no site atual) |
 | Relatórios, protocolos e auditoria | Recrutamento e seleção |
+| Financeiro do contrato: valor cobrado, lançamentos do mês, previsto × realizado (0029) | Cálculo de folha e de tributo (o Portal registra o valor, não calcula) |
 
 O PontoTel continua sendo o sistema oficial da jornada. O Portal recebe o resultado.
 

@@ -122,6 +122,60 @@ export async function lerPlanilha(arquivo: File): Promise<MatrizPlanilha> {
   );
 }
 
+/** Uma aba da planilha, com o nome que a pessoa deu a ela. */
+export type AbaPlanilha = { nome: string; linhas: MatrizPlanilha };
+
+/** Assinatura do .xls antigo (contêiner OLE/CFB): D0 CF 11 E0. */
+function ehXlsAntigo(bytes: ArrayBuffer): boolean {
+  const b = new Uint8Array(bytes.slice(0, 4));
+  return b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0;
+}
+
+/**
+ * Todas as abas de um .xlsx, na ordem do arquivo.
+ *
+ * A planilha de custos da licitação tem uma aba por cargo e uma de resumo —
+ * a leitura de pessoas (uma aba só) não serve. Mesmas regras de célula que
+ * `lerPlanilha`: tudo vira texto, fórmula vira o resultado. Células vazias
+ * no meio da linha viram "" (a posição da coluna importa para quem lê).
+ */
+export async function lerAbasXlsx(arquivo: File): Promise<AbaPlanilha[]> {
+  const bytes = await arquivo.arrayBuffer();
+
+  if (ehXlsAntigo(bytes) || arquivo.name.toLowerCase().endsWith(".xls")) {
+    throw new ErroDePlanilha(
+      "Este arquivo é .xls (Excel 97-2003), que o Portal não lê. Abra no Excel ou no WPS, use Salvar como e escolha .xlsx.",
+    );
+  }
+  if (!arquivo.name.toLowerCase().endsWith(".xlsx")) {
+    throw new ErroDePlanilha("Envie a planilha de custos em .xlsx.");
+  }
+
+  const workbook = new ExcelJS.Workbook();
+  try {
+    await workbook.xlsx.load(bytes);
+  } catch (erro) {
+    console.error("[planilha] falha ao ler xlsx de várias abas", erro);
+    throw new ErroDePlanilha(
+      "Não foi possível ler este arquivo .xlsx. Confira se ele abre no Excel e tente de novo.",
+    );
+  }
+
+  const abas: AbaPlanilha[] = [];
+  for (const aba of workbook.worksheets) {
+    const linhas: MatrizPlanilha = [];
+    aba.eachRow({ includeEmpty: false }, (linha) => {
+      if (linhas.length >= MAX_LINHAS) return;
+      const valores = Array.isArray(linha.values) ? linha.values.slice(1) : [];
+      // `Array.from` preenche os buracos do array esparso do exceljs.
+      linhas.push(Array.from(valores, textoDaCelula));
+    });
+    abas.push({ nome: aba.name.trim(), linhas });
+  }
+  if (!abas.length) throw new ErroDePlanilha("A planilha não tem nenhuma aba com dados.");
+  return abas;
+}
+
 /** Monta o modelo de planilha que a tela oferece para download. */
 export async function gerarModeloXlsx(
   cabecalho: readonly string[],

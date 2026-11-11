@@ -40,6 +40,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     veSst,
     veRelatorios,
     veAdministracao,
+    veFinanceiro,
   ] = await Promise.all([
     temPermissao("pessoas", "ver"),
     temPermissao("contratos", "ver"),
@@ -51,6 +52,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     temPermissao("sst", "ver"),
     temPermissao("relatorios", "ver"),
     temPermissao("administracao", "ver"),
+    temPermissao("financeiro", "ver"),
   ]);
 
   // Badges: as mesmas consultas dos contadores do início, com o client do
@@ -96,6 +98,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
   const acompanhamento: ItemNav[] = [];
   if (veRelatorios) {
     acompanhamento.push({ secao: "/admin/relatorios", href: "/admin/relatorios", rotulo: "Relatórios", icone: "relatorios" });
+  }
+  if (veFinanceiro) {
+    acompanhamento.push({ secao: "/admin/financeiro", href: "/admin/financeiro", rotulo: "Financeiro", icone: "financeiro" });
   }
   if (veSst) {
     acompanhamento.push({

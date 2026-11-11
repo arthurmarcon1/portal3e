@@ -28,6 +28,7 @@ Legenda: `V` ver · `C` criar · `E` editar · `X` excluir · `R` exportar/relat
 | sst | V C E X R | V | V | — | V C E X R | V |
 | relatorios | V R | V R | V R | V R | V R | V R |
 | administracao | V C E X R | — | — | — | — | V |
+| financeiro | V C E X R | — | V | V C E R | — | — |
 
 Restrições adicionais por categoria de documento (aplicadas em cima da tabela acima).
 
@@ -89,9 +90,12 @@ Sempre limitado ao(s) contrato(s) e unidade(s) do escopo do usuário.
 | sst | V R | V | V | — |
 | relatorios | V R | V | V R | V R |
 | administracao | — | — | — | — |
+| financeiro | — | — | — | — |
 
 **Bloqueio absoluto para todo perfil de contratante**, independente da tabela acima:
 
+- o financeiro do contrato (planilha de custo, competência, lançamentos, margem):
+  é a conta da 3e, não do cliente. A RLS exige `tipo = interno` (migração 0029)
 - documentos das categorias `medico`, `bancario`, `folha`, `pessoal`
 - campos: CPF completo (só últimos 3 dígitos), data de nascimento, endereço
   residencial, telefone pessoal, e-mail pessoal, dados bancários, salário

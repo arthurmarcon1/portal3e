@@ -387,6 +387,20 @@ Toda exportação é auditada. Relatório respeita o escopo de quem exporta.
 
 ---
 
+### F5.4 Financeiro do contrato (protótipo: contrato Santo Ângelo)
+
+Entregue em 2026-11-11, migração 0029. Base para a oferta "3e Conecta Rural" à Marcon no
+Campo: a 3e é o cliente-piloto, com o contrato de Santo Ângelo.
+
+**Critério de aceite**
+- [x] Importar a planilha de custos (.xlsx: resumo + aba por cargo) como versão do contrato,
+      com prévia e avisos de inconsistência
+- [x] Abrir o mês pela planilha vigente; lançar pela tela com foto/PDF; descartar com motivo
+- [x] Painel previsto × realizado por grupo e por posto; fila de conferência
+- [x] Competência fechada não aceita lançamento; não fecha com conferência pendente
+- [x] RLS: interno com `financeiro` e escopo; contratante nunca (tests/rls/financeiro)
+- [ ] Webhook do WhatsApp + fornecedor de IA (docs/06)
+
 ## Fase 6 — Integrações e escala comercial (contínua)
 
 | Item | O que envolve |
