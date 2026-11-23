@@ -609,6 +609,37 @@ O `download` (entidade `ciencias`) vai para a auditoria **antes** de o arquivo s
 Coberto por `src/features/documentos/comprovante.integracao.test.ts`, que confere que o
 hash impresso é o sha256 do arquivo entregue pela rota de download.
 
+## 3e Conecta: alimentações e lançamentos (0029, prova de conceito)
+
+O Conecta mora dentro do Portal: mesma organização, mesmo login, mesma RLS. O produtor
+manda áudio ou foto; a equipe confere a sugestão antes de virar registro.
+
+| Tabela | O que é | Quem escreve |
+|---|---|---|
+| `rubricas` | Categoria do lançamento (combustível, venda de gado…), com `palavras_chave` para a extração | seed (sem policy de escrita até haver tela) |
+| `alimentacoes` | O original (bucket `alimentacoes`), a transcrição, a `extracao` sugerida e o status `pendente` / `conferida` / `recusada` | interno com `alimentacoes:criar` (envio) e `:editar` (transcrição, conferência, recusa) |
+| `lancamentos` | O registro que nasce da alimentação conferida — um por alimentação | só `conferir_alimentacao()` |
+
+- **Leitura:** interno com `alimentacoes:ver`, no escopo de contrato (`app.contratos_permitidos()`).
+  Contratante e funcionário não leem nada.
+- **Toda escrita exige `app.tipo() = 'interno'`.** É a regra "o produtor nunca confere,
+  só origina" (docs/02) posta no banco.
+- **Decidida não muda.** O trigger `alimentacao_ao_atualizar` recusa qualquer update
+  depois de `conferida` ou `recusada`, e grava `decidida_por`/`decidida_em` com o usuário
+  logado, não com o que o cliente mandou. Sem delete: recusar é status.
+- **`conferir_alimentacao()`** (`security invoker`): confere e lança na mesma transação.
+  Cliente (unidade) tem de ser do contrato; rubrica, ativa; competência vira o dia 1 do
+  mês. A policy de insert de `lancamentos` só aceita alimentação já conferida por quem
+  insere, então não há atalho por insert direto.
+- **Cliente = unidade do contrato.** As propriedades do produtor ("Estância Aurora") são
+  unidades do contrato provisório de Santo Ângelo (docs/06). `extracao` guarda a sugestão
+  original para comparar com o que foi conferido.
+- **Original:** bucket privado `alimentacoes`, `{org_id}/{ano}/{id}.{ext}`, até 8 MB,
+  validado pelo conteúdo (OGG, M4A, MP3, WAV, WebM, JPG, PNG). Sai por
+  `GET /api/alimentacoes/[id]/arquivo`, com os passos do download acima e `auditoria`
+  (`acao = 'download'`). O player usa `preload="none"`: só quem ouve gera registro.
+- **Auditoria:** `criar`, `editar` (transcrição), `conferir`, `recusar`, `download`.
+
 ## Retenção e descarte
 
 `documento_tipos.retencao_meses` define o prazo por categoria. Uma rotina mensal

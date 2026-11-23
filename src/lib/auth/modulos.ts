@@ -21,6 +21,8 @@ export const MODULOS = [
   "sst",
   "relatorios",
   "administracao",
+  // 3e Conecta (0029): áudio e foto do produtor, conferidos pela equipe.
+  "alimentacoes",
 ] as const;
 
 export const ACOES = ["ver", "criar", "editar", "excluir", "exportar"] as const;
@@ -39,6 +41,7 @@ export const ROTULOS_MODULO: Record<Modulo, string> = {
   sst: "SST",
   relatorios: "Relatórios",
   administracao: "Administração",
+  alimentacoes: "Alimentações (Conecta)",
 };
 
 export const ROTULOS_ACAO: Record<Acao, string> = {

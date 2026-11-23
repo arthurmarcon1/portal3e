@@ -39,6 +39,224 @@ export type Database = {
   }
   public: {
     Tables: {
+      alimentacoes: {
+        Row: {
+          arquivo_bytes: number
+          arquivo_hash: string
+          arquivo_mime: string
+          arquivo_path: string
+          atualizado_em: string
+          contrato_id: string
+          criado_em: string
+          decidida_em: string | null
+          decidida_por: string | null
+          enviada_por: string
+          extracao: Json | null
+          id: string
+          motivo_recusa: string | null
+          org_id: string
+          status: Database["public"]["Enums"]["status_alimentacao"]
+          tipo: Database["public"]["Enums"]["tipo_alimentacao"]
+          transcricao: string | null
+          transcricao_origem: string | null
+        }
+        Insert: {
+          arquivo_bytes: number
+          arquivo_hash: string
+          arquivo_mime: string
+          arquivo_path: string
+          atualizado_em?: string
+          contrato_id: string
+          criado_em?: string
+          decidida_em?: string | null
+          decidida_por?: string | null
+          enviada_por: string
+          extracao?: Json | null
+          id?: string
+          motivo_recusa?: string | null
+          org_id: string
+          status?: Database["public"]["Enums"]["status_alimentacao"]
+          tipo: Database["public"]["Enums"]["tipo_alimentacao"]
+          transcricao?: string | null
+          transcricao_origem?: string | null
+        }
+        Update: {
+          arquivo_bytes?: number
+          arquivo_hash?: string
+          arquivo_mime?: string
+          arquivo_path?: string
+          atualizado_em?: string
+          contrato_id?: string
+          criado_em?: string
+          decidida_em?: string | null
+          decidida_por?: string | null
+          enviada_por?: string
+          extracao?: Json | null
+          id?: string
+          motivo_recusa?: string | null
+          org_id?: string
+          status?: Database["public"]["Enums"]["status_alimentacao"]
+          tipo?: Database["public"]["Enums"]["tipo_alimentacao"]
+          transcricao?: string | null
+          transcricao_origem?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alimentacoes_contrato_fk"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alimentacoes_decidida_por_fk"
+            columns: ["decidida_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alimentacoes_enviada_por_fk"
+            columns: ["enviada_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alimentacoes_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lancamentos: {
+        Row: {
+          alimentacao_id: string
+          competencia: string
+          contrato_id: string
+          criado_em: string
+          criado_por: string
+          descricao: string
+          id: string
+          org_id: string
+          rubrica_id: string
+          unidade_id: string | null
+          valor: number
+        }
+        Insert: {
+          alimentacao_id: string
+          competencia: string
+          contrato_id: string
+          criado_em?: string
+          criado_por: string
+          descricao: string
+          id?: string
+          org_id: string
+          rubrica_id: string
+          unidade_id?: string | null
+          valor: number
+        }
+        Update: {
+          alimentacao_id?: string
+          competencia?: string
+          contrato_id?: string
+          criado_em?: string
+          criado_por?: string
+          descricao?: string
+          id?: string
+          org_id?: string
+          rubrica_id?: string
+          unidade_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_alimentacao_fk"
+            columns: ["alimentacao_id"]
+            isOneToOne: true
+            referencedRelation: "alimentacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_contrato_fk"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contratos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_criado_por_fk"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_rubrica_fk"
+            columns: ["rubrica_id"]
+            isOneToOne: false
+            referencedRelation: "rubricas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lancamentos_unidade_fk"
+            columns: ["unidade_id"]
+            isOneToOne: false
+            referencedRelation: "unidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rubricas: {
+        Row: {
+          atualizado_em: string
+          chave: string
+          criado_em: string
+          id: string
+          nome: string
+          org_id: string
+          palavras_chave: string[]
+          status: Database["public"]["Enums"]["status_generico"]
+        }
+        Insert: {
+          atualizado_em?: string
+          chave: string
+          criado_em?: string
+          id?: string
+          nome: string
+          org_id: string
+          palavras_chave?: string[]
+          status?: Database["public"]["Enums"]["status_generico"]
+        }
+        Update: {
+          atualizado_em?: string
+          chave?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+          org_id?: string
+          palavras_chave?: string[]
+          status?: Database["public"]["Enums"]["status_generico"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rubricas_org_fk"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       alocacoes: {
         Row: {
           atualizado_em: string
@@ -1386,6 +1604,17 @@ export type Database = {
           unidade_nome: string
         }[]
       }
+      conferir_alimentacao: {
+        Args: {
+          p_alimentacao: string
+          p_competencia: string
+          p_descricao: string
+          p_rubrica: string
+          p_unidade: string | null
+          p_valor: number
+        }
+        Returns: string
+      }
       registrar_ciencia: {
         Args: {
           p_documento: string
@@ -1450,6 +1679,8 @@ export type Database = {
       status_alocacao: "ativa" | "afastado" | "ferias" | "encerrada"
       status_documento: "rascunho" | "publicado" | "arquivado"
       status_generico: "ativo" | "inativo" | "arquivado"
+      status_alimentacao: "pendente" | "conferida" | "recusada"
+      tipo_alimentacao: "audio" | "foto"
       status_solicitacao:
         | "aberta"
         | "em_analise"
@@ -1613,6 +1844,8 @@ export const Constants = {
       status_alocacao: ["ativa", "afastado", "ferias", "encerrada"],
       status_documento: ["rascunho", "publicado", "arquivado"],
       status_generico: ["ativo", "inativo", "arquivado"],
+      status_alimentacao: ["pendente", "conferida", "recusada"],
+      tipo_alimentacao: ["audio", "foto"],
       status_solicitacao: [
         "aberta",
         "em_analise",

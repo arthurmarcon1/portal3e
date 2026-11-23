@@ -17,6 +17,9 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   vencido: { rotulo: "Vencido", classe: "border-erro/30 text-erro" },
   confirmacao: { rotulo: "Confirmado", classe: "border-sucesso/30 text-sucesso" },
   divergencia: { rotulo: "Em divergência", classe: "border-erro/30 text-erro" },
+  // Alimentação do Conecta (0029). "pendente" é o mesmo de cima.
+  conferida: { rotulo: "Conferida", classe: "border-sucesso/30 text-sucesso" },
+  recusada: { rotulo: "Recusada", classe: "border-borda text-texto-suave" },
 };
 
 /**

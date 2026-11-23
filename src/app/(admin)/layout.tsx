@@ -40,6 +40,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     veSst,
     veRelatorios,
     veAdministracao,
+    veAlimentacoes,
   ] = await Promise.all([
     temPermissao("pessoas", "ver"),
     temPermissao("contratos", "ver"),
@@ -51,6 +52,7 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
     temPermissao("sst", "ver"),
     temPermissao("relatorios", "ver"),
     temPermissao("administracao", "ver"),
+    temPermissao("alimentacoes", "ver"),
   ]);
 
   // Badges: as mesmas consultas dos contadores do início, com o client do
@@ -91,6 +93,9 @@ export default async function LayoutAdmin({ children }: { children: ReactNode })
   }
   if (publicaEspelhos) {
     diaADia.push({ secao: "/admin/jornada", href: "/admin/jornada/publicar", rotulo: "Espelhos", icone: "espelhos" });
+  }
+  if (veAlimentacoes) {
+    diaADia.push({ secao: "/admin/alimentacoes", href: "/admin/alimentacoes", rotulo: "Alimentações", icone: "alimentacoes" });
   }
 
   const acompanhamento: ItemNav[] = [];

@@ -270,6 +270,38 @@ custa mais caro.
 
 ---
 
+## 3e Conecta — prova de conceito (desde 2026-11-23)
+
+- [ ] **BLOQUEANTE PARA PRODUÇÃO — LGPD: áudio e foto de produtor real** (decisão do
+      Arthur, 2026-11-23). Na prova de conceito entram **só áudios gravados pelo Arthur
+      e pelo Wesley atuando como produtor**: não é dado de terceiro, então não há
+      tratamento a autorizar. **Áudio real de produtor não entra até haver decisão
+      formal**, e ela **envolve a Marcon, não só a 3e**: o produtor é cliente dela, e é
+      ela que responde pela relação. Serão **dois operadores externos** — o de
+      transcrição (hoje o Groq) e o de extração (hoje nenhum: regras no próprio Portal;
+      depois, um modelo de linguagem) — e os dois precisam estar no contrato.
+- [ ] **Blueprint do Conecta** — não está em docs/01 nem em docs/05. Escrever depois do
+      dia 6, se a direção for aprovada. Até lá não há critério de aceite: o que existe
+      é a prova de conceito do caminho do áudio (0029).
+- [ ] **Santo Ângelo — dados reais.** O contrato, o contratante e as duas propriedades
+      ("Estância Aurora", "Fazenda São Pedro") são **fictícios**, com "(provisório)" no
+      nome (seed). Os reais entram quando a Marcon mandar.
+- [ ] **Rubricas** — lista provisória do Arthur (combustível, venda de gado, venda de
+      grãos, insumos e materiais, manutenção, folha e encargos, arrendamento, frete,
+      outras), com palavras-chave inventadas para a extração. Validar com a Marcon.
+- [ ] **Quem confere na Marcon** — por ora só o Admin geral tem `alimentacoes`
+      (docs/02). Quando se souber, é `insert` em `perfil_permissoes`, não migração.
+- [ ] **Ciclo de vida do lançamento** — estorno, correção, exclusão. Hoje o lançamento
+      não muda depois de criado (sem policy de update/delete).
+- **Provisório, decidido (2026-11-23): custo zero até a demonstração.** Transcrição
+  pelo plano gratuito do Groq (Whisper large-v3; opcional — sem chave, a equipe digita o
+  texto). Extração **por regras** no Portal (`src/features/alimentacoes/extracao.ts`),
+  não pela Claude como aprovado antes: trocar é trocar uma função, a entrada e a saída
+  ficam. O áudio não vai para a extração; só o texto.
+- **Provisório, decidido (2026-11-23): cliente = unidade do contrato.** A propriedade
+  citada no áudio é procurada entre as unidades do contrato. Rever quando o blueprint
+  disser o que é "cliente" no Conecta.
+
 ## Decisões provisórias (registro)
 
 Fechadas para destravar a Fase 3, **todas reversíveis**. Cada uma diz quem dá a
