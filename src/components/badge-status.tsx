@@ -23,6 +23,9 @@ const ESTILOS: Record<string, { rotulo: string; classe: string }> = {
   confirmado: { rotulo: "Confirmado", classe: "border-sucesso/30 text-sucesso" },
   em_conferencia: { rotulo: "A conferir", classe: "border-alerta/30 text-alerta" },
   descartado: { rotulo: "Descartado", classe: "border-borda text-texto-suave" },
+  // Alimentação do Conecta (0029). "pendente" é o mesmo de cima.
+  conferida: { rotulo: "Conferida", classe: "border-sucesso/30 text-sucesso" },
+  recusada: { rotulo: "Recusada", classe: "border-borda text-texto-suave" },
 };
 
 /**

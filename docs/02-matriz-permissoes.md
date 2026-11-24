@@ -29,6 +29,7 @@ Legenda: `V` ver · `C` criar · `E` editar · `X` excluir · `R` exportar/relat
 | relatorios | V R | V R | V R | V R | V R | V R |
 | administracao | V C E X R | — | — | — | — | V |
 | financeiro | V C E X R | — | V | V C E R | — | — |
+| alimentacoes | V C E | — | — | — | — | — |
 
 Restrições adicionais por categoria de documento (aplicadas em cima da tabela acima).
 
@@ -75,6 +76,17 @@ divergência), chega ao contratante.
 
 ---
 
+### Alimentações (3e Conecta) — prova de conceito (2026-11-23)
+
+Decisão do Arthur: **só o Admin geral** vê, cria e confere alimentação nesta fase. Não
+há perfil de atendimento ainda — não se sabe quem na Marcon confere, e criar um agora
+seria estrutura para jogar fora. Quando se souber, é `insert` em `perfil_permissoes`,
+não migração.
+
+**O produtor nunca confere — ele só origina.** Regra de negócio, não detalhe: toda
+escrita em `alimentacoes` e `lancamentos_conecta` exige usuário `interno` (0030), então um
+produtor com acesso, quando existir, não confere nem a própria alimentação.
+
 ## Contratante (tipo de usuário: `contratante`)
 
 Sempre limitado ao(s) contrato(s) e unidade(s) do escopo do usuário.
@@ -91,6 +103,7 @@ Sempre limitado ao(s) contrato(s) e unidade(s) do escopo do usuário.
 | relatorios | V R | V | V R | V R |
 | administracao | — | — | — | — |
 | financeiro | — | — | — | — |
+| alimentacoes | — | — | — | — |
 
 **Bloqueio absoluto para todo perfil de contratante**, independente da tabela acima:
 

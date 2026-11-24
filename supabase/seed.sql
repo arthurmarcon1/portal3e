@@ -22,6 +22,12 @@ set search_path = public, extensions;
 -- ---------------------------------------------------------------------
 -- Limpeza — ordem de dependência, escopo restrito à organização '3e'.
 -- ---------------------------------------------------------------------
+-- Conecta (0030): alimentação e lançamento apontam para o usuário com
+-- `restrict`, então saem antes de auth.users.
+delete from lancamentos_conecta where org_id in (select id from organizacoes where slug = '3e');
+delete from alimentacoes where org_id in (select id from organizacoes where slug = '3e');
+delete from rubricas     where org_id in (select id from organizacoes where slug = '3e');
+
 delete from auth.users where email like '%@func.3e.portal3e'
    or email in ('admin_geral@3e.com.br','rh_dp@3e.com.br','contratos@3e.com.br','financeiro@3e.com.br','sst@3e.com.br','suporte_auditoria@3e.com.br','gestor.contrato@hsaolucas.com.br','fiscal@hsaolucas.com.br','gestor.unidade@hsaolucas.com.br','adm.financeiro@bompreco.com.br');
 
@@ -126,6 +132,10 @@ insert into perfil_permissoes (perfil_id, modulo, acao) values
   ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'financeiro', 'editar'),
   ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'financeiro', 'excluir'),
   ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'financeiro', 'exportar'),
+  -- Conecta, prova de conceito: só o Admin geral (decisão do Arthur, 2026-11-23).
+  ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'alimentacoes', 'ver'),
+  ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'alimentacoes', 'criar'),
+  ('fe9f7afe-04a3-582c-89c7-12f65d68018b', 'alimentacoes', 'editar'),
   ('9d433605-659e-5ba4-a24e-b1c0d498d71c', 'pessoas', 'ver'),
   ('9d433605-659e-5ba4-a24e-b1c0d498d71c', 'pessoas', 'criar'),
   ('9d433605-659e-5ba4-a24e-b1c0d498d71c', 'pessoas', 'editar'),
@@ -370,6 +380,49 @@ insert into contrato_unidades (contrato_id, unidade_id) values
   ('e716f5c1-3603-596b-a331-1d307ccf82f3', 'a6565dbb-e74b-5a93-9c62-4134b6f76473'),
   ('e716f5c1-3603-596b-a331-1d307ccf82f3', '12536647-f736-5ffb-ab19-a7b4c7ce2259'),
   ('676f9478-b525-55d6-8f06-f04ff5ceb496', '17b27ee2-43d4-5d4e-8459-cc6fb36cec62');
+
+-- ---------------------------------------------------------------------
+-- 3e Conecta — Santo Ângelo, PROVISÓRIO (docs/06, 2026-11-23).
+-- Tudo fictício: os dados reais do contrato entram quando a Marcon mandar.
+-- As propriedades do produtor são unidades do contrato; é nelas que a
+-- extração procura o "cliente" ("Estância Aurora").
+-- ---------------------------------------------------------------------
+insert into contratantes (id, org_id, nome, cnpj) values
+  ('ceb8612f-2b0f-4740-adac-b04057707bf3', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'Contratante provisório — Santo Ângelo', null);
+
+insert into unidades (id, org_id, contratante_id, nome, endereco, cidade, uf) values
+  ('6a6179a4-eebb-4b28-b637-af0964dca4ad', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'ceb8612f-2b0f-4740-adac-b04057707bf3', 'Estância Aurora (provisório)', null, 'Santo Ângelo', 'RS'),
+  ('a13e1d26-b2f7-4c6b-a6d0-a6b7209f6a30', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'ceb8612f-2b0f-4740-adac-b04057707bf3', 'Fazenda São Pedro (provisório)', null, 'Santo Ângelo', 'RS');
+
+insert into contratos (id, org_id, contratante_id, numero, descricao, vigencia_inicio) values
+  ('f308779d-7b6d-471a-90d3-c5e8ff5ec51d', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'ceb8612f-2b0f-4740-adac-b04057707bf3', 'Santo Ângelo (provisório)', '3e Conecta — prova de conceito. Dados fictícios até a Marcon mandar os reais.', '2026-11-01');
+
+insert into contrato_unidades (contrato_id, unidade_id) values
+  ('f308779d-7b6d-471a-90d3-c5e8ff5ec51d', '6a6179a4-eebb-4b28-b637-af0964dca4ad'),
+  ('f308779d-7b6d-471a-90d3-c5e8ff5ec51d', 'a13e1d26-b2f7-4c6b-a6d0-a6b7209f6a30');
+
+-- Rubricas PROVISÓRIAS (Arthur, 2026-11-23): do protótipo e do óbvio no agro.
+-- Palavras-chave sem acento, minúsculas — é o que a extração por regras
+-- procura (src/features/alimentacoes/extracao.ts). "Outras" não tem palavra:
+-- nunca é sugerida, só escolhida na conferência.
+insert into rubricas (id, org_id, chave, nome, palavras_chave) values
+  ('7de25b52-578c-4a62-b98d-8069136cfc1d', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'combustivel', 'Combustível',
+   array['gasolina', 'diesel', 'combustivel', 'abasteci', 'abastecimento', 'abastecer', 'etanol', 'alcool', 'posto']),
+  ('2bfe605b-48f3-4780-b57d-e7b878a017b9', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'venda_gado', 'Venda de gado',
+   array['gado', 'boi', 'bois', 'novilho', 'novilhos', 'novilha', 'terneiro', 'terneiros', 'vaca', 'vacas', 'rebanho', 'cabeca', 'cabecas', 'leilao']),
+  ('4784f5e9-b1e0-442a-afa7-a4c7d2653b4f', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'venda_graos', 'Venda de grãos',
+   array['soja', 'milho', 'trigo', 'arroz', 'grao', 'graos', 'saca', 'sacas', 'cooperativa']),
+  ('e9976335-6207-4f96-bec4-095b1b8a34ed', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'insumos', 'Insumos e materiais',
+   array['adubo', 'semente', 'sementes', 'fertilizante', 'ureia', 'defensivo', 'veneno', 'herbicida', 'racao', 'sal mineral', 'vacina', 'calcario', 'material', 'materiais', 'arame']),
+  ('50f798dd-077f-4ae2-9ed2-d728afecb155', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'manutencao', 'Manutenção',
+   array['conserto', 'consertei', 'manutencao', 'peca', 'pecas', 'pneu', 'pneus', 'mecanico', 'oficina', 'revisao', 'troca de oleo']),
+  ('0f12ffaf-6ca0-4949-a0d9-fba3aa2e0761', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'folha', 'Folha e encargos',
+   array['salario', 'salarios', 'peao', 'peoes', 'funcionario', 'funcionarios', 'folha', 'inss', 'fgts', 'diarista', 'diaria', 'diarias', 'ferias', 'decimo']),
+  ('6d3ae412-3a19-4f26-8884-1cf6329f7218', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'arrendamento', 'Arrendamento',
+   array['arrendamento', 'arrendei', 'arrendo', 'arrendada', 'aluguel da terra']),
+  ('b9a88816-ca72-4c5b-af90-3b54cc74afd5', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'frete', 'Frete',
+   array['frete', 'fretes', 'carreto', 'caminhoneiro', 'transporte']),
+  ('84c1fa31-32e3-4bd1-a95e-76a5d5294426', '1fac8b3c-4860-5606-836b-ca4c8dd420d0', 'outras', 'Outras', '{}');
 
 -- ---------------------------------------------------------------------
 -- 30 pessoas fictícias + alocações (CPF com dígito verificador válido)

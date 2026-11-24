@@ -14,6 +14,7 @@ import {
   Inbox,
   MapPin,
   Menu,
+  Mic,
   ScrollText,
   ShieldCheck,
   Users,
@@ -39,6 +40,7 @@ const ICONES = {
   unidades: MapPin,
   acessos: ShieldCheck,
   auditoria: ScrollText,
+  alimentacoes: Mic,
 } satisfies Record<string, LucideIcon>;
 
 export type IconeNav = keyof typeof ICONES;
