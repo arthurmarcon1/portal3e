@@ -275,6 +275,34 @@ custa mais caro.
 - [ ] **Fornecedor da IA** (transcrição do áudio + leitura da foto + extração). Decisão
       do Arthur (2026-11-11): interface plugável (`src/features/financeiro/ia.ts`), sem
       fornecedor até ter a chave. Sem leitor, o lançamento é pela tela.
+- [ ] **Importador de folha de pagamento (provisões) — decisão do Arthur, 2026-11-25.**
+      Pedido: ao receber a folha do mês, "entender e estimar provisões" (GPS/INSS, FGTS,
+      férias, 13º, salários) e alimentar o realizado. Dividido em duas partes:
+  - **Motor de provisões — FEITO (`src/features/financeiro/provisoes.ts`).** Puro,
+    alíquota sobre o salário, devolve lançamentos nas categorias `folha`, `encargos` e
+    `ferias_13`. Não lê arquivo nem usa IA; serve com o total digitado na tela.
+  - **BLOQUEANTE — alíquotas de referência são provisórias.** `ALIQUOTAS_DE_REFERENCIA`
+    (INSS 20%, RAT 2%, terceiros 5,8%, FGTS 8%, 13º/férias 1/12+1/12+1/3) **não é
+    verdade para faturamento**: varia por contrato (desoneração/CPRB, grau de risco no
+    RAT, regime tributário). Confirmar com a Marcon/contador por contrato. A planilha de
+    custo não serve de fonte da quebra: o módulo 4 (encargos) é um valor só, sem separar
+    INSS/FGTS/férias/13º.
+  - [ ] **Convenção contábil a decidir:** incidência de 2ª ordem (INSS/FGTS sobre o
+        próprio 13º e férias) e provisão de rescisão/reposição ficaram de fora do motor
+        até a definição. São parâmetros, entram sem reescrever.
+  - [ ] **BLOQUEANTE PARA PRODUÇÃO — LGPD: ler a folha com IA.** Ler "qualquer arquivo"
+        de folha significa mandar **salário/CPF reais de empregado** para extração por IA
+        externa. Esbarra no invariante do CLAUDE.md ("nunca importe dado real de
+        funcionário") e no mesmo tipo de decisão do áudio do Conecta. **Não liga a IA à
+        folha real até decisão formal** (provável envolvimento da Marcon). Até lá, o motor
+        roda com o total digitado; a extração entra depois atrás do `ia.ts`.
+- [ ] **Visão do contratante no financeiro — níveis de visualização (Arthur, 2026-11-25).**
+      Não é regra única: configurável por cliente. **Prefeitura NÃO vê** custo/margem da
+      3e; **cliente produtor** vê bem mais. Modelar um "nível de visualização financeira"
+      por contratante (ex.: `faturamento`/`operacional`/`completo`) e expor por função de
+      banco com colunas explícitas conforme o nível (invariante 10), nunca por select em
+      tabela. Falta definir a tabela de níveis (quantos e o que cada um mostra). Hoje o
+      contratante não vê nada do financeiro (`adm_financeiro` não tem `financeiro:ver`).
 - [ ] **Número e conta do WhatsApp Business** (API oficial da Meta). Próxima etapa:
       webhook que grava pelo mesmo caminho de `criarLancamento`, com `origem = whatsapp`
       e `em_conferencia` quando houver dúvida. Quem envia é reconhecido pelo telefone de
