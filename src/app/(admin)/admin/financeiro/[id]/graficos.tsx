@@ -34,41 +34,73 @@ function partes(painel: Painel, campo: "previsto" | "realizado"): Parte[] {
   ];
 }
 
-/** Uma faixa empilhada: cada parte em proporção da receita. */
-function Faixa({ titulo, receita, itens }: { titulo: string; receita: number; itens: Parte[] }) {
+const RAIO = 46;
+const ESPESSURA = 18;
+const CIRCUNFERENCIA = 2 * Math.PI * RAIO;
+/** Folga entre fatias, em unidades do SVG — separa as cores sem depender delas. */
+const FOLGA = 1.2;
+
+/**
+ * Rosca: cada fatia é uma parte da receita. No centro, a margem — o que sobra
+ * de cada R$ 100. Se o custo passou da receita, a rosca é medida pelo custo e
+ * o resultado (negativo) não vira fatia: aparece escrito, em vermelho.
+ */
+function Rosca({ titulo, receita, itens }: { titulo: string; receita: number; itens: Parte[] }) {
   const custos = itens.filter((p) => p.chave !== "resultado").reduce((s, p) => s + p.valor, 0);
-  // Se o custo passou da receita, a faixa é medida pelo custo, e o resultado
-  // (negativo) não ocupa espaço — ele aparece escrito, em vermelho.
   const base = Math.max(receita, custos, 1);
-  const visiveis = itens.filter((p) => p.valor > 0);
+  const resultado = itens.find((p) => p.chave === "resultado")?.valor ?? 0;
+  const margem = receita > 0 ? resultado / receita : null;
+
+  // Cada fatia começa onde a anterior terminou.
+  const fatias = itens
+    .filter((p) => p.valor > 0)
+    .reduce<Array<Parte & { comprimento: number; inicio: number }>>((lista, p) => {
+      const anterior = lista.at(-1);
+      const inicio = anterior ? anterior.inicio + anterior.comprimento : 0;
+      return [...lista, { ...p, comprimento: (p.valor / base) * CIRCUNFERENCIA, inicio }];
+    }, []);
 
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <p className="text-sm font-medium">{titulo}</p>
         <p className="text-sm text-texto-suave tabular-nums">Receita {formatarReais(receita)}</p>
       </div>
-      <div
-        role="img"
-        aria-label={`${titulo}: ${itens.map((p) => `${p.rotulo} ${formatarReais(p.valor)}`).join(", ")}`}
-        className="flex h-6 w-full overflow-hidden rounded-sm border border-borda bg-fundo-alt"
-      >
-        {visiveis.map((p) => (
-          <div
-            key={p.chave}
-            className="h-full border-r-2 border-fundo last:border-r-0"
-            style={{ width: `${(p.valor / base) * 100}%`, backgroundColor: CORES_COMPOSICAO[p.chave] }}
-          />
-        ))}
+
+      <div className="relative mx-auto size-44">
+        <svg
+          viewBox="0 0 120 120"
+          role="img"
+          aria-label={`${titulo}: ${itens.map((p) => `${p.rotulo} ${formatarReais(p.valor)}`).join(", ")}`}
+          className="size-full -rotate-90"
+        >
+          <circle cx="60" cy="60" r={RAIO} fill="none" stroke="var(--fundo-alt)" strokeWidth={ESPESSURA} />
+          {fatias.map((f) => (
+            <circle
+              key={f.chave}
+              cx="60"
+              cy="60"
+              r={RAIO}
+              fill="none"
+              stroke={CORES_COMPOSICAO[f.chave]}
+              strokeWidth={ESPESSURA}
+              strokeDasharray={`${Math.max(f.comprimento - FOLGA, 0.5)} ${CIRCUNFERENCIA}`}
+              strokeDashoffset={-f.inicio}
+            />
+          ))}
+        </svg>
+        <div aria-hidden className="absolute inset-0 grid place-content-center text-center">
+          <span className={cn("text-xl font-semibold tabular-nums", resultado < 0 && "text-erro")}>
+            {formatarPercentual(margem)}
+          </span>
+          <span className="text-xs text-texto-suave">de margem</span>
+        </div>
       </div>
-      <ul className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+
+      <ul className="grid gap-1.5 text-sm">
         {itens.map((p) => (
           <li key={p.chave} className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="size-3 shrink-0 rounded-[2px]"
-              style={{ backgroundColor: CORES_COMPOSICAO[p.chave] }}
-            />
+            <span aria-hidden className="size-3 shrink-0 rounded-full" style={{ backgroundColor: CORES_COMPOSICAO[p.chave] }} />
             <span className="min-w-0 flex-1 truncate">{p.rotulo}</span>
             <span className={cn("tabular-nums", p.valor < 0 ? "text-erro" : "text-texto-suave")}>
               {formatarReais(p.valor)}
@@ -93,17 +125,19 @@ export function ComposicaoDaReceita({ painel }: { painel: Painel }) {
           Para onde vai a receita
         </h3>
         <p className="mt-1 text-sm text-texto-suave">
-          Cada faixa é a receita do mês dividida entre os custos e o que sobra de resultado.
+          A receita do mês dividida entre os custos e o que sobra de resultado. No centro, a margem.
         </p>
       </div>
-      <Faixa titulo="Previsto pela planilha" receita={receita.previsto} itens={partes(painel, "previsto")} />
-      {painel.semFaturamento ? (
-        <p className="text-sm text-texto-suave">
-          A faixa do mês aparece quando a nota do mês for lançada.
-        </p>
-      ) : (
-        <Faixa titulo="Lançado no mês" receita={receita.realizado} itens={partes(painel, "realizado")} />
-      )}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <Rosca titulo="Previsto pela planilha" receita={receita.previsto} itens={partes(painel, "previsto")} />
+        {painel.semFaturamento ? (
+          <p className="self-center text-center text-sm text-texto-suave">
+            A rosca do mês aparece quando a nota do mês for lançada.
+          </p>
+        ) : (
+          <Rosca titulo="Lançado no mês" receita={receita.realizado} itens={partes(painel, "realizado")} />
+        )}
+      </div>
     </section>
   );
 }
