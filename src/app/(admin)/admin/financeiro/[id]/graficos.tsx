@@ -151,17 +151,23 @@ type Comparacao = {
   ruim: boolean;
 };
 
+/** Barra à esquerda, colunas de previsto e lançado à direita (a partir de `sm`). */
+const COLUNAS_AO_LADO = "sm:grid-cols-[minmax(0,1fr)_8rem_8rem]";
+
 /** Duas barras por linha — previsto e lançado — na mesma escala. */
 function BarrasComparadas({
   id,
   titulo,
   descricao,
   itens,
+  numerosAoLado = false,
 }: {
   id: string;
   titulo: string;
   descricao: string;
   itens: Comparacao[];
+  /** Previsto e lançado em colunas à direita da barra, no lugar de uma tabela à parte. */
+  numerosAoLado?: boolean;
 }) {
   const escala = Math.max(1, ...itens.flatMap((i) => [i.previsto, i.realizado]));
 
@@ -190,18 +196,18 @@ function BarrasComparadas({
         </ul>
       </div>
 
+      {numerosAoLado ? (
+        <div aria-hidden className={cn("-mb-2 hidden text-xs text-texto-suave sm:grid", COLUNAS_AO_LADO)}>
+          <span />
+          <span className="text-right">Previsto</span>
+          <span className="text-right">Lançado</span>
+        </div>
+      ) : null}
       <ul className="grid gap-4">
         {itens.map((i) => {
           const proporcao = i.previsto > 0 ? i.realizado / i.previsto : null;
-          return (
-            <li key={i.chave} className="grid gap-1.5">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="text-sm font-medium">{i.rotulo}</span>
-                <span className="text-sm text-texto-suave tabular-nums">
-                  {formatarReais(i.realizado)} de {formatarReais(i.previsto)}
-                  {proporcao !== null ? ` · ${formatarPercentual(proporcao)}` : ""}
-                </span>
-              </div>
+          const barras = (
+            <>
               <div aria-hidden className="grid gap-1">
                 <div className="h-2 rounded-[2px] bg-[#8a939d]" style={{ width: `${(i.previsto / escala) * 100}%` }} />
                 <div
@@ -215,6 +221,43 @@ function BarrasComparadas({
                   {formatarReais(Math.abs(i.realizado - i.previsto))}
                 </span>
               ) : null}
+            </>
+          );
+
+          if (numerosAoLado) {
+            return (
+              <li key={i.chave} className={cn("grid gap-x-4 gap-y-1.5 sm:items-center", COLUNAS_AO_LADO)}>
+                <div className="grid min-w-0 gap-1.5">
+                  <span className="text-sm font-medium">{i.rotulo}</span>
+                  {barras}
+                </div>
+                <div className="flex justify-between gap-4 text-sm tabular-nums sm:contents">
+                  <p className="sm:text-right">
+                    <span className="text-texto-suave sm:sr-only">Previsto </span>
+                    {formatarReais(i.previsto)}
+                  </p>
+                  <p className="text-right">
+                    <span className="text-texto-suave sm:sr-only">Lançado </span>
+                    {formatarReais(i.realizado)}
+                    {proporcao !== null ? (
+                      <span className="block text-xs text-texto-suave">{formatarPercentual(proporcao)} do previsto</span>
+                    ) : null}
+                  </p>
+                </div>
+              </li>
+            );
+          }
+
+          return (
+            <li key={i.chave} className="grid gap-1.5">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                <span className="text-sm font-medium">{i.rotulo}</span>
+                <span className="text-sm text-texto-suave tabular-nums">
+                  {formatarReais(i.realizado)} de {formatarReais(i.previsto)}
+                  {proporcao !== null ? ` · ${formatarPercentual(proporcao)}` : ""}
+                </span>
+              </div>
+              {barras}
             </li>
           );
         })}
@@ -252,7 +295,8 @@ export function PostosVisual({ painel }: { painel: Painel }) {
     <BarrasComparadas
       id="postos-visual"
       titulo="Pessoal por posto"
-      descricao="Salário, benefícios e encargos previstos para cada cargo, contra o lançado com o posto informado."
+      descricao="Salário, benefícios e encargos previstos para cada cargo, contra o lançado com o posto informado. Só entra aqui o lançamento de pessoal que indicou o posto; férias e afastamento costumam baixar o custo do mês."
+      numerosAoLado
       itens={painel.porPosto.map((p) => ({
         chave: p.id,
         rotulo: `${p.cargo} (${p.quantidade})`,

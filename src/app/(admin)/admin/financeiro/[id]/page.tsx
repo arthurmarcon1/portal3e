@@ -299,37 +299,10 @@ export default paginaProtegida(
                   )}
                 </section>
 
-                {/* Pessoal por posto */}
-                <div className="mb-4">
+                {/* Pessoal por posto: as barras já trazem previsto e lançado ao lado */}
+                <div className="mb-8">
                   <PostosVisual painel={painel} />
                 </div>
-                <section aria-labelledby="por-posto" className="mb-8 overflow-x-auto rounded-lg border border-borda bg-fundo">
-                  <h3 id="por-posto" className="px-4 pt-4 text-sm font-semibold">Pessoal por posto</h3>
-                  <p className="px-4 text-xs text-texto-suave">
-                    Só entra aqui o lançamento de pessoal que indicou o posto. Férias e afastamento costumam baixar o
-                    custo do mês.
-                  </p>
-                  <table className="mt-2 w-full min-w-[520px] text-sm">
-                    <thead className="bg-fundo-alt text-left text-texto-suave">
-                      <tr>
-                        <th scope="col" className="px-4 py-2 font-medium">Cargo</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Postos</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Previsto</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Lançado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {painel.porPosto.map((p) => (
-                        <tr key={p.id} className="border-t border-borda">
-                          <th scope="row" className="px-4 py-2.5 text-left font-normal">{p.cargo}</th>
-                          <td className="px-4 py-2.5 text-right tabular-nums">{p.quantidade}</td>
-                          <td className="px-4 py-2.5 text-right tabular-nums">{formatarReais(p.pessoalPrevisto)}</td>
-                          <td className="px-4 py-2.5 text-right tabular-nums">{formatarReais(p.pessoalRealizado)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </section>
               </>
             )}
 
