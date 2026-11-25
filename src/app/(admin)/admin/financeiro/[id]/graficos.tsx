@@ -149,6 +149,8 @@ type Comparacao = {
   realizado: number;
   /** Lançado acima do previsto é ruim (custo); abaixo é ruim (receita). */
   ruim: boolean;
+  /** Linha miúda sob o rótulo: de onde vem o previsto, o que falta conferir. */
+  nota?: string;
 };
 
 /** Barra à esquerda, colunas de previsto e lançado à direita (a partir de `sm`). */
@@ -251,7 +253,10 @@ function BarrasComparadas({
           return (
             <li key={i.chave} className="grid gap-1.5">
               <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="text-sm font-medium">{i.rotulo}</span>
+                <span className="text-sm font-medium">
+                  {i.rotulo}
+                  {i.nota ? <span className="block text-xs font-normal text-texto-suave">{i.nota}</span> : null}
+                </span>
                 <span className="text-sm text-texto-suave tabular-nums">
                   {formatarReais(i.realizado)} de {formatarReais(i.previsto)}
                   {proporcao !== null ? ` · ${formatarPercentual(proporcao)}` : ""}
@@ -276,6 +281,15 @@ export function ComparativoVisual({ painel }: { painel: Painel }) {
       itens={painel.linhas.map((l) => ({
         chave: l.grupo,
         rotulo: ROTULOS_GRUPO[l.grupo],
+        // O que só a antiga tabela dizia: origem do previsto e o que falta conferir.
+        nota:
+          [
+            l.grupo === "operacao" ? "previsto: custos indiretos da planilha" : null,
+            l.grupo === "tributos" && painel.tributoEstimado ? "lançado estimado pela alíquota da planilha" : null,
+            l.aConferir ? `${formatarReais(l.aConferir)} a conferir` : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || undefined,
         previsto: l.previsto,
         realizado: l.realizado,
         // Receita só é "ruim" depois que a nota entrou; antes, é só falta de lançamento.

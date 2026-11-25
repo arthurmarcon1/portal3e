@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Paperclip } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
-import { CATEGORIAS, ehCategoria, ROTULOS_GRUPO } from "@/features/financeiro/categorias";
+import { CATEGORIAS, ehCategoria } from "@/features/financeiro/categorias";
 import { formatarPercentual, formatarReais, mesPorExtenso, primeiroDiaDoMes } from "@/features/financeiro/painel";
 import { detalheDoContrato } from "@/features/financeiro/queries";
 import { idValido } from "@/features/documentos/entrega";
@@ -171,55 +171,11 @@ export default paginaProtegida(
                   </p>
                 ) : null}
 
-                {/* O mesmo mês em barras, antes do detalhe em tabela */}
+                {/* O mês em gráficos: rosca da receita e previsto × lançado por grupo */}
                 <div className="mb-6 grid gap-4 xl:grid-cols-2">
                   <ComposicaoDaReceita painel={painel} />
                   <ComparativoVisual painel={painel} />
                 </div>
-
-                {/* Previsto × realizado */}
-                <section aria-labelledby="comparativo" className="mb-6 overflow-x-auto rounded-lg border border-borda bg-fundo">
-                  <h3 id="comparativo" className="px-4 pt-4 text-sm font-semibold">Previsto na planilha × lançado no mês</h3>
-                  <table className="mt-2 w-full min-w-[640px] text-sm">
-                    <thead className="bg-fundo-alt text-left text-texto-suave">
-                      <tr>
-                        <th scope="col" className="px-4 py-2 font-medium">Grupo</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Previsto</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Lançado</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">Diferença</th>
-                        <th scope="col" className="px-4 py-2 text-right font-medium">A conferir</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {painel.linhas.map((l) => {
-                        // Receita abaixo do previsto é ruim; despesa acima do previsto é ruim.
-                        const ruim = l.grupo === "receita" ? l.diferenca < 0 : l.diferenca > 0;
-                        return (
-                          <tr key={l.grupo} className="border-t border-borda">
-                            <th scope="row" className="px-4 py-2.5 text-left font-normal">
-                              {ROTULOS_GRUPO[l.grupo]}
-                              {l.grupo === "operacao" ? (
-                                <span className="block text-xs text-texto-suave">previsto: custos indiretos da planilha</span>
-                              ) : null}
-                              {l.grupo === "tributos" && painel.tributoEstimado ? (
-                                <span className="block text-xs text-texto-suave">estimado pela alíquota da planilha</span>
-                              ) : null}
-                            </th>
-                            <td className="px-4 py-2.5 text-right tabular-nums">{formatarReais(l.previsto)}</td>
-                            <td className="px-4 py-2.5 text-right tabular-nums">{formatarReais(l.realizado)}</td>
-                            <td className={cn("px-4 py-2.5 text-right tabular-nums", ruim && l.diferenca !== 0 && "text-alerta")}>
-                              {l.diferenca > 0 ? "+" : ""}
-                              {formatarReais(l.diferenca)}
-                            </td>
-                            <td className="px-4 py-2.5 text-right tabular-nums text-texto-suave">
-                              {l.aConferir ? formatarReais(l.aConferir) : "—"}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </section>
 
                 {emConferencia.length > 0 ? (
                   <FilaDeConferencia itens={emConferencia} podeEditar={podeEditar && aberta} />
