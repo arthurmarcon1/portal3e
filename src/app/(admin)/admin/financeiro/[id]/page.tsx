@@ -16,6 +16,7 @@ import { AbrirCompetencia, AcoesDaCompetencia } from "./acoes-competencia";
 import { BotaoDescartar } from "./botao-descartar";
 import { FilaDeConferencia } from "./fila-conferencia";
 import { FormularioLancamento } from "./formulario-lancamento";
+import { ComparativoVisual, ComposicaoDaReceita, PostosVisual } from "./graficos";
 
 export const metadata: Metadata = { title: "Financeiro do contrato · Portal 3e" };
 
@@ -170,6 +171,12 @@ export default paginaProtegida(
                   </p>
                 ) : null}
 
+                {/* O mesmo mês em barras, antes do detalhe em tabela */}
+                <div className="mb-6 grid gap-4 xl:grid-cols-2">
+                  <ComposicaoDaReceita painel={painel} />
+                  <ComparativoVisual painel={painel} />
+                </div>
+
                 {/* Previsto × realizado */}
                 <section aria-labelledby="comparativo" className="mb-6 overflow-x-auto rounded-lg border border-borda bg-fundo">
                   <h3 id="comparativo" className="px-4 pt-4 text-sm font-semibold">Previsto na planilha × lançado no mês</h3>
@@ -293,6 +300,9 @@ export default paginaProtegida(
                 </section>
 
                 {/* Pessoal por posto */}
+                <div className="mb-4">
+                  <PostosVisual painel={painel} />
+                </div>
                 <section aria-labelledby="por-posto" className="mb-8 overflow-x-auto rounded-lg border border-borda bg-fundo">
                   <h3 id="por-posto" className="px-4 pt-4 text-sm font-semibold">Pessoal por posto</h3>
                   <p className="px-4 text-xs text-texto-suave">
