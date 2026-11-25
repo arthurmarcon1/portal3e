@@ -21,6 +21,19 @@ const lanc = (categoria: string, valor: number, extra: Partial<LancamentoDoPaine
 });
 
 describe("calcularPainel", () => {
+  it("resultado previsto por posto: cobrado menos o custo, negativo quando cobra abaixo", () => {
+    const abaixo: PostoDoPainel = {
+      id: "p3", cargo: "Educador", quantidade: 2, valor_total: 2 * 5000,
+      remuneracao: 2500, beneficios: 600, encargos: 1500, insumos: 50, custos_indiretos: 300, tributos: 200, lucro: -150,
+    };
+    const p = calcularPainel([...POSTOS, abaixo], []);
+    expect(p.porPosto.map((x) => [x.cargo, x.resultadoPrevisto])).toEqual([
+      ["Coordenador", 1350],
+      ["Visitador", 300],
+      ["Educador", -300],
+    ]);
+  });
+
   it("monta o previsto pela planilha, multiplicando pela quantidade", () => {
     const p = calcularPainel(POSTOS, []);
     const previsto = Object.fromEntries(p.linhas.map((l) => [l.grupo, l.previsto]));

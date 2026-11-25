@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Paperclip } from "lucide-react";
+import { Paperclip, TriangleAlert } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
 import { CATEGORIAS, ehCategoria } from "@/features/financeiro/categorias";
@@ -46,6 +46,8 @@ export default paginaProtegida(
     const emConferencia = lancamentos.filter((l) => l.status === "em_conferencia");
     const vigente = detalhe.planilhas.find((p) => p.status === "ativo") ?? null;
     const base = `/admin/financeiro/${contrato.id}`;
+    // Posto que a planilha cobra abaixo do próprio custo: aparece no topo, ao lado dos números.
+    const abaixoDoCusto = painel?.porPosto.filter((p) => p.resultadoPrevisto < -0.005) ?? [];
 
     return (
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
@@ -131,7 +133,13 @@ export default paginaProtegida(
                 </div>
 
                 {/* Números do mês */}
-                <section aria-label="Resumo do mês" className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <section
+                  aria-label="Resumo do mês"
+                  className={cn(
+                    "mb-4 grid gap-3 sm:grid-cols-2",
+                    abaixoDoCusto.length > 0 ? "lg:grid-cols-3 xl:grid-cols-5" : "lg:grid-cols-4",
+                  )}
+                >
                   <Numero
                     rotulo="Receita do mês"
                     valor={formatarReais(painel.linhas[0].realizado)}
@@ -160,6 +168,7 @@ export default paginaProtegida(
                       painel.margem.realizada < painel.margem.prevista
                     }
                   />
+                  {abaixoDoCusto.length > 0 ? <PostosAbaixoDoCusto postos={abaixoDoCusto} /> : null}
                 </section>
 
                 {painel.aConferir.quantidade > 0 ? (
@@ -339,6 +348,29 @@ function Numero({
       <p className="text-sm text-texto-suave">{rotulo}</p>
       <p className={cn("mt-1 text-xl font-semibold tabular-nums", erro && "text-erro")}>{valor}</p>
       <p className={cn("mt-0.5 text-sm", alerta ? "text-alerta" : "text-texto-suave")}>{nota}</p>
+    </div>
+  );
+}
+
+/**
+ * Atenção da planilha: posto cujo valor cobrado não cobre o custo dele. É
+ * dado da planilha, não do mês — aparece mesmo antes de qualquer lançamento.
+ */
+function PostosAbaixoDoCusto({ postos }: { postos: { id: string; cargo: string; resultadoPrevisto: number }[] }) {
+  return (
+    <div className="rounded-lg border border-alerta/50 bg-fundo px-4 py-3">
+      <p className="flex items-start gap-1.5 text-sm font-medium text-alerta">
+        <TriangleAlert aria-hidden strokeWidth={1.5} className="mt-0.5 size-4 shrink-0" />
+        Atenção: {postos.length === 1 ? "posto cobrado" : "postos cobrados"} abaixo do custo
+      </p>
+      <ul className="mt-1 grid gap-1">
+        {postos.map((p) => (
+          <li key={p.id} className="text-sm">
+            <span className="font-medium">{p.cargo}</span>
+            <span className="block tabular-nums text-erro">{formatarReais(p.resultadoPrevisto)} por mês</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

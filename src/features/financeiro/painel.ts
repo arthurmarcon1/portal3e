@@ -58,6 +58,11 @@ export type Painel = {
     quantidade: number;
     pessoalPrevisto: number;
     pessoalRealizado: number;
+    /**
+     * Cobrado − custo do posto na planilha, no mês (todos os postos do
+     * cargo). Negativo = posto cobrado abaixo do custo.
+     */
+    resultadoPrevisto: number;
   }[];
 };
 
@@ -136,6 +141,10 @@ export function calcularPainel(postos: PostoDoPainel[], lancamentos: LancamentoD
       quantidade: p.quantidade,
       pessoalPrevisto: c(p.quantidade * (p.remuneracao + p.beneficios + p.encargos)),
       pessoalRealizado: c(pessoalPorPosto.get(p.id) ?? 0),
+      resultadoPrevisto: c(
+        p.valor_total -
+          p.quantidade * (p.remuneracao + p.beneficios + p.encargos + p.insumos + p.custos_indiretos + p.tributos),
+      ),
     })),
   };
 }
