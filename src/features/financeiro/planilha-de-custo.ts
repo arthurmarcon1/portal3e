@@ -77,6 +77,37 @@ export function normalizar(texto: string | undefined): string {
 }
 
 /**
+ * Truncamentos conhecidos no nome do cargo, palavra inteira. A planilha da
+ * licitação é digitada à mão e já chegou com "EDUCADOR SOCIAI" (o L final
+ * virou I). Lista curta e explícita: só entra aqui erro que já apareceu.
+ */
+const TRUNCAMENTOS_DE_CARGO: Record<string, string> = {
+  sociai: "social",
+};
+
+/** Mantém a caixa da palavra original: "SOCIAI" → "SOCIAL", "Sociai" → "Social". */
+function naMesmaCaixa(original: string, correcao: string): string {
+  if (original === original.toUpperCase()) return correcao.toUpperCase();
+  if (original[0] === original[0].toUpperCase()) return correcao[0].toUpperCase() + correcao.slice(1);
+  return correcao;
+}
+
+/**
+ * Nome do cargo como ele é gravado: sem espaço sobrando nas pontas nem
+ * repetido no meio, e com os truncamentos conhecidos corrigidos.
+ * "  EDUCADOR   SOCIAI " → "EDUCADOR SOCIAL".
+ */
+export function nomeDeCargo(texto: string | undefined): string {
+  return (texto ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[\p{L}]+/gu, (palavra) => {
+      const correcao = TRUNCAMENTOS_DE_CARGO[palavra.toLowerCase()];
+      return correcao ? naMesmaCaixa(palavra, correcao) : palavra;
+    });
+}
+
+/**
  * Número de uma célula, ou `null` se ela não é número.
  *
  * Aceita o que o exceljs devolve ("2850", "0.15", "9273.9798") e o texto que
@@ -206,7 +237,7 @@ function lerResumo(abas: MatrizDeAba[]): { aba: string; linhas: LinhaResumo[]; t
 
   for (let l = cabecalho + 1; l < aba.linhas.length; l++) {
     const linha = aba.linhas[l];
-    const cargo = (linha[colunas.cargo] ?? "").trim();
+    const cargo = nomeDeCargo(linha[colunas.cargo]);
     const rotuloLinha = normalizar(linha.find((c) => !vazio(c)));
 
     if (rotuloLinha.startsWith("total")) {
@@ -249,14 +280,16 @@ function lerResumo(abas: MatrizDeAba[]): { aba: string; linhas: LinhaResumo[]; t
 
 /** A aba do cargo: pelo nome da aba ou pela linha "Tipo de Serviço". */
 function acharAbaDoCargo(abas: MatrizDeAba[], cargo: string, resumo: string): MatrizDeAba | null {
-  const alvo = normalizar(cargo);
+  // O cargo já vem corrigido; a aba pode ainda ter o nome truncado.
+  const comparavel = (texto: string | undefined) => normalizar(nomeDeCargo(texto));
+  const alvo = comparavel(cargo);
   const candidatas = abas.filter((a) => a.nome !== resumo);
-  const peloNome = candidatas.find((a) => normalizar(a.nome) === alvo);
+  const peloNome = candidatas.find((a) => comparavel(a.nome) === alvo);
   if (peloNome) return peloNome;
   return (
     candidatas.find((a) => {
       const l = linhaDoRotulo(a, { comeca: "tipo de servico" });
-      return l >= 0 && a.linhas[l + 1]?.some((c) => normalizar(c) === alvo);
+      return l >= 0 && a.linhas[l + 1]?.some((c) => comparavel(c) === alvo);
     }) ?? null
   );
 }

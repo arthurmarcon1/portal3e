@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ErroDePlanilhaDeCusto,
   lerPlanilhaDeCusto,
+  nomeDeCargo,
   normalizar,
   numero,
   previstoDosPostos,
@@ -155,6 +156,17 @@ describe("lerPlanilhaDeCusto", () => {
     expect(r.avisos.some((a) => a.startsWith("VIGIA"))).toBe(true);
   });
 
+  it("grava o cargo com o truncamento conhecido corrigido, e ainda acha a aba truncada", () => {
+    const educador: Cargo = { ...PORTEIRO, aba: "EDUCADOR SOCIAI", servico: "EDUCADOR SOCIAI" };
+    const abas = [
+      abaDeCargo(educador),
+      resumo([["", "  EDUCADOR   SOCIAI ", "2", String(valorPorPosto(educador)), String(2 * valorPorPosto(educador))]], 2 * valorPorPosto(educador)),
+    ];
+    const r = lerPlanilhaDeCusto(abas);
+    expect(r.postos.map((p) => [p.cargo, p.aba])).toEqual([["EDUCADOR SOCIAL", "EDUCADOR SOCIAI"]]);
+    expect(r.avisos).toEqual([]);
+  });
+
   it("recusa planilha sem aba de resumo, dizendo o que falta", () => {
     expect(() => lerPlanilhaDeCusto([abaDeCargo(PORTEIRO)])).toThrow(ErroDePlanilhaDeCusto);
     expect(() => lerPlanilhaDeCusto([abaDeCargo(PORTEIRO)])).toThrow(/Cargo, Quantidade e Valor Unitário/);
@@ -192,6 +204,15 @@ describe("numero e normalizar", () => {
     expect(numero("12,5%")).toBe(0.125);
     expect(numero("Valor (R$)")).toBeNull();
     expect(numero("")).toBeNull();
+  });
+
+  it("nomeDeCargo: tira espaço sobrando e corrige só o truncamento conhecido, na mesma caixa", () => {
+    expect(nomeDeCargo("  EDUCADOR   SOCIAI ")).toBe("EDUCADOR SOCIAL");
+    expect(nomeDeCargo("Educador Sociai")).toBe("Educador Social");
+    expect(nomeDeCargo("EDUCADOR SOCIAL")).toBe("EDUCADOR SOCIAL");
+    // Palavra inteira: não mexe em pedaço de outra palavra.
+    expect(nomeDeCargo("SOCIAIS")).toBe("SOCIAIS");
+    expect(nomeDeCargo(undefined)).toBe("");
   });
 
   it("ignora caixa, acento e o símbolo de grau", () => {
