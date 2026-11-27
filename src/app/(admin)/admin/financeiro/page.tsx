@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Upload } from "lucide-react";
+import { ChevronRight, ClipboardCheck, FileSpreadsheet, PiggyBank, Receipt, Upload } from "lucide-react";
 
 import { BadgeStatus } from "@/components/badge-status";
+import { IconeEmQuadro, type Tom } from "@/components/icone-em-quadro";
+import type { LucideIcon } from "lucide-react";
 import { formatarPercentual, formatarReais, mesPorExtenso } from "@/features/financeiro/painel";
 import { listarContratosDoFinanceiro } from "@/features/financeiro/queries";
 import { temPermissao } from "@/lib/auth/sessao";
@@ -27,12 +29,16 @@ export default paginaProtegida(
 
     const comBase = contratos.filter((c) => c.planilha);
     const semBase = contratos.filter((c) => !c.planilha);
+    const cobradoPorMes = comBase.reduce((s, c) => s + (c.planilha?.valor_mensal ?? 0), 0);
+    const comNota = comBase.filter((c) => c.competencia?.receitaLancada);
+    const resultado = comNota.reduce((s, c) => s + (c.competencia?.resultado ?? 0), 0);
+    const aConferir = comBase.reduce((s, c) => s + (c.competencia?.aConferir ?? 0), 0);
 
     return (
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 lg:px-8 lg:py-8">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="mb-1 text-xl font-semibold">Financeiro dos contratos</h1>
+            <h1 className="mb-1 text-2xl font-semibold tracking-tight">Financeiro dos contratos</h1>
             <p className="text-sm text-texto-suave">
               O valor cobrado de cada contrato, o que foi lançado no mês e o resultado.
             </p>
@@ -48,8 +54,30 @@ export default paginaProtegida(
           ) : null}
         </div>
 
+        {comBase.length > 0 ? (
+          <section aria-label="Resumo" className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Cartao rotulo="Contratos com planilha" valor={String(comBase.length)} nota={`${semBase.length} sem planilha`} icone={FileSpreadsheet} tom="cinza" />
+            <Cartao rotulo="Cobrado por mês" valor={formatarReais(cobradoPorMes)} nota="soma das planilhas vigentes" icone={Receipt} tom="verde" />
+            <Cartao
+              rotulo="Resultado do último mês"
+              valor={comNota.length ? formatarReais(resultado) : "—"}
+              nota={comNota.length ? `${comNota.length} ${comNota.length === 1 ? "contrato" : "contratos"} com nota lançada` : "nenhuma nota lançada ainda"}
+              icone={PiggyBank}
+              tom={resultado < 0 ? "vermelho" : "verde"}
+              corDoValor={comNota.length ? (resultado < 0 ? "text-erro" : "text-sucesso") : undefined}
+            />
+            <Cartao
+              rotulo="A conferir"
+              valor={String(aConferir)}
+              nota={aConferir ? "lançamentos esperando a equipe" : "nada esperando conferência"}
+              icone={ClipboardCheck}
+              tom="ambar"
+            />
+          </section>
+        ) : null}
+
         {comBase.length === 0 ? (
-          <div className="rounded-lg border border-borda bg-fundo p-6">
+          <div className="superficie p-6">
             <p className="font-medium">Nenhum contrato tem planilha de custo ainda.</p>
             <p className="mt-1 text-sm text-texto-suave">
               A planilha de custos e formação de preços da licitação é a base: ela diz quanto é cobrado
@@ -57,7 +85,7 @@ export default paginaProtegida(
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-borda bg-fundo">
+          <div className="superficie overflow-x-auto">
             <table className="w-full min-w-[760px] text-sm">
               <caption className="sr-only">Contratos com planilha de custo</caption>
               <thead className="bg-fundo-alt text-left text-texto-suave">
@@ -134,7 +162,7 @@ export default paginaProtegida(
             </p>
             <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {semBase.map((c) => (
-                <li key={c.id} className="flex items-center justify-between gap-3 rounded-lg border border-borda bg-fundo px-4 py-3">
+                <li key={c.id} className="superficie flex items-center justify-between gap-3 px-4 py-3">
                   <span className="min-w-0">
                     <span className="block truncate font-medium">{c.numero}</span>
                     <span className="block truncate text-sm text-texto-suave">{c.contratante}</span>
@@ -156,3 +184,30 @@ export default paginaProtegida(
     );
   },
 );
+
+function Cartao({
+  rotulo,
+  valor,
+  nota,
+  icone,
+  tom,
+  corDoValor,
+}: {
+  rotulo: string;
+  valor: string;
+  nota: string;
+  icone: LucideIcon;
+  tom: Tom;
+  corDoValor?: string;
+}) {
+  return (
+    <div className="superficie p-5">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium">{rotulo}</p>
+        <IconeEmQuadro icone={icone} tom={tom} />
+      </div>
+      <p className={cn("mt-2 text-[28px] font-semibold leading-tight tracking-tight tabular-nums", corDoValor)}>{valor}</p>
+      <p className="mt-2 text-sm text-texto-suave">{nota}</p>
+    </div>
+  );
+}

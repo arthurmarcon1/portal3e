@@ -20,7 +20,7 @@ import { SeletorCategoria } from "./formulario-lancamento";
  */
 export function FilaDeConferencia({ itens, podeEditar }: { itens: LancamentoDaTela[]; podeEditar: boolean }) {
   return (
-    <section aria-labelledby="fila" className="mb-6 rounded-lg border border-alerta/40 bg-fundo p-5">
+    <section aria-labelledby="fila" className="superficie mb-6 border-alerta/40 p-6">
       <h3 id="fila" className="text-base font-semibold">A conferir</h3>
       <p className="mb-3 text-sm text-texto-suave">
         Chegaram pelo WhatsApp e a leitura automática ficou em dúvida. Confira cada um.

@@ -150,6 +150,70 @@ export type PostoDaTela = PostoDoPainel & {
   salario_base: number;
 };
 
+/** Um mês do contrato no gráfico: previsto pela planilha × lançado. `futuro` = mês ainda não aberto. */
+export type MesDoHistorico = {
+  mes: string;
+  receitaPrevista: number;
+  receitaLancada: number;
+  custoPrevisto: number;
+  custoLancado: number;
+  temNota: boolean;
+  futuro: boolean;
+};
+
+/** "2026-11-01" → "2026-12-01". */
+function mesSeguinte(iso: string): string {
+  const [ano, mes] = iso.split("-").map(Number);
+  return mes === 12 ? `${ano + 1}-01-01` : `${ano}-${String(mes + 1).padStart(2, "0")}-01`;
+}
+
+/** Últimos 6 meses abertos e mais 2 à frente, com o previsto da planilha que valerá neles. */
+function montarHistorico(
+  competencias: { mes: string; planilha_id: string; lancamentos: { categoria: string; valor: number | string; status: string; posto_id: string | null }[] }[],
+  planilhas: { id: string; versao: number; vigente_desde: string; status: string; postos: PostoDoPainel[] }[],
+): MesDoHistorico[] {
+  const deMes = (painel: Painel, mes: string, futuro: boolean): MesDoHistorico => {
+    const [receita, ...custos] = painel.linhas;
+    return {
+      mes,
+      receitaPrevista: receita.previsto,
+      receitaLancada: receita.realizado,
+      custoPrevisto: custos.reduce((s, l) => s + l.previsto, 0),
+      custoLancado: custos.reduce((s, l) => s + l.realizado, 0),
+      temNota: !painel.semFaturamento,
+      futuro,
+    };
+  };
+
+  const abertos = [...competencias]
+    .sort((a, b) => a.mes.localeCompare(b.mes))
+    .slice(-6)
+    .map((c) =>
+      deMes(
+        calcularPainel(
+          planilhas.find((p) => p.id === c.planilha_id)?.postos ?? [],
+          c.lancamentos.map((l) => ({
+            categoria: l.categoria,
+            valor: num(l.valor),
+            status: l.status as StatusLancamento,
+            posto_id: l.posto_id,
+          })),
+        ),
+        c.mes,
+        false,
+      ),
+    );
+
+  const futuros: MesDoHistorico[] = [];
+  let mes = abertos.at(-1)?.mes ?? new Date().toISOString().slice(0, 8) + "01";
+  for (let i = 0; i < 2; i++) {
+    mes = mesSeguinte(mes);
+    const vigente = planilhaVigente(planilhas, mes);
+    if (vigente) futuros.push(deMes(calcularPainel(vigente.postos, []), mes, true));
+  }
+  return [...abertos, ...futuros];
+}
+
 export type DetalheDoContrato = {
   contrato: { id: string; numero: string; descricao: string | null; contratante: string };
   planilhas: {
@@ -177,6 +241,7 @@ export type DetalheDoContrato = {
   postos: PostoDaTela[];
   lancamentos: LancamentoDaTela[];
   painel: Painel | null;
+  historico: MesDoHistorico[];
 };
 
 /** `null` quando o contrato não existe ou está fora do alcance (a tela mostra 404). */
@@ -204,7 +269,7 @@ export async function detalheDoContrato(
       .order("versao", { ascending: false }),
     supabase
       .from("competencias")
-      .select("id, mes, status, fechada_em, planilha_id")
+      .select("id, mes, status, fechada_em, planilha_id, lancamentos(categoria, valor, status, posto_id)")
       .eq("contrato_id", contratoId)
       .order("mes", { ascending: false }),
   ]);
@@ -290,6 +355,16 @@ export async function detalheDoContrato(
     mesSemCompetencia: mesPedido && !escolhida ? mesPedido : null,
     postos,
     lancamentos,
+    historico: montarHistorico(
+      listaCompetencias.map((c) => ({ mes: c.mes, planilha_id: c.planilha_id, lancamentos: c.lancamentos ?? [] })),
+      (planilhas.data ?? []).map((p) => ({
+        id: p.id,
+        versao: p.versao,
+        vigente_desde: p.vigente_desde,
+        status: p.status,
+        postos: (p.planilha_postos ?? []).map(postoDoPainel),
+      })),
+    ),
     painel: escolhida
       ? calcularPainel(
           postos,

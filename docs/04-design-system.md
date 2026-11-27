@@ -119,6 +119,23 @@ verdade, sublinhado no hover e no foco), linha de apoio em 12px `--texto-suave`
 (matrícula · CPF). Alocação também em duas linhas: contrato · unidade, e função embaixo,
 com a situação da alocação escrita quando não é "Alocado".
 
+### Cartão de painel
+
+Revisão de 2026-11-27 (pedido do Arthur, com referência visual de painel financeiro).
+Vale nos painéis de número — hoje `/admin/financeiro` e o financeiro do contrato:
+
+- **Cartão de número:** rótulo pequeno (`text-sm font-medium`), valor grande
+  (`28px`, `font-semibold`, `tabular-nums`), uma linha de contexto embaixo e, no canto
+  superior direito, o **ícone em quadro** (`src/components/icone-em-quadro.tsx`): ícone
+  de linha Lucide sobre fundo claro do mesmo tom. Barra de progresso fina quando o
+  número é "quanto do previsto já foi".
+- **Card de gráfico:** mesmo cabeçalho (título pequeno, subtítulo, ícone no canto),
+  legenda logo abaixo, `p-6`.
+- **Previsto × lançado:** previsto em `#6F9A80` (3,2:1 sobre o branco), lançado em
+  `--acao`. Fora do previsto em `--alerta`, sempre com o texto dizendo quanto.
+- A referência usava figurinhas 3D (emoji) e cantos de 12px; aqui ficaram ícone de
+  linha e 8px, pelas "Regras rígidas" abaixo. Mudar isso é decisão a registrar aqui.
+
 ### Tipografia
 
 - **Inter** (variável), uma família só. Corporativo, alta legibilidade em tela pequena,
